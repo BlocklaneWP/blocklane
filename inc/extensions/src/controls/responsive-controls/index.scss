@@ -1,0 +1,125 @@
+// A control label with a trailing info glyph (replaces inline `help` text):
+// keep the label aligned with the glyph. Click the glyph to open a
+// help popover.
+.blocklane-pro-label-with-tip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+// Dropdown wrapper — keep it inline with the label text.
+.blocklane-pro-help-tip {
+	display: inline-flex;
+	align-items: center;
+}
+
+// The clickable info glyph: muted until hovered/focused.
+.blocklane-pro-help-tip__toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--wp-components-color-foreground-muted, #757575);
+	cursor: pointer;
+	border-radius: 2px;
+
+	svg {
+		width: 18px;
+		height: 18px;
+		fill: currentcolor;
+	}
+
+	&:hover,
+	&:focus {
+		color: var(--wp-admin-theme-color, #3858e9);
+	}
+
+	&:focus-visible {
+		outline: 1px solid var(--wp-admin-theme-color, #3858e9);
+		outline-offset: 1px;
+	}
+}
+
+// Help popover: size to its content, capped so it never overflows the narrow
+// inspector panel (shift keeps the box itself inside the panel bounds).
+.blocklane-pro-help-tip__popover .components-popover__content {
+	min-width: 0;
+	width: max-content;
+	max-width: 232px;
+}
+
+.blocklane-pro-help-tip__text {
+	margin: 0;
+	padding: 8px 12px;
+	font-size: 12px;
+	line-height: 1.5;
+	color: var(--wp-components-color-foreground, #1e1e1e);
+}
+
+// Footnote inside the Responsive Editing panel (below justify/orientation): the
+// active global breakpoints + a link to change them. Spans both ToolsPanel grid
+// columns so it reads as a full-width caption.
+.blocklane-pro-responsive-editing__bp-hint {
+	grid-column: 1 / -1;
+	margin: 4px 0 0;
+	font-size: 11px;
+	color: var(--wp-components-color-foreground-muted, #757575);
+
+	a {
+		color: var(--wp-admin-theme-color, #3858e9);
+		text-decoration: underline;
+	}
+}
+
+// Inline breakpoint editor: the trigger reads as a plain link inside the hint;
+// the popover holds the two-field form.
+.blocklane-pro-bp-editor {
+	display: inline-flex;
+}
+
+.blocklane-pro-bp-editor__trigger {
+	padding: 0;
+	border: 0;
+	background: none;
+	font: inherit;
+	color: var(--wp-admin-theme-color, #3858e9);
+	text-decoration: underline;
+	cursor: pointer;
+
+	&:focus-visible {
+		outline: 1px solid var(--wp-admin-theme-color, #3858e9);
+		outline-offset: 1px;
+	}
+}
+
+.blocklane-pro-bp-editor__form {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 12px;
+	width: 220px;
+}
+
+.blocklane-pro-bp-editor__title {
+	margin: 0;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--wp-components-color-foreground, #1e1e1e);
+}
+
+.blocklane-pro-bp-editor__note {
+	margin: -8px 0 0;
+	font-size: 11px;
+	color: var(--wp-components-color-foreground-muted, #757575);
+}
+
+.blocklane-pro-bp-editor__warn {
+	margin: 0;
+	font-size: 11px;
+	color: var(--wp-components-color-alert-red, #cc1818);
+}
+
+.blocklane-pro-bp-editor__actions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}

@@ -1,0 +1,189 @@
+/**
+ * Front styles for the whole forms suite. One sheet, attached to the form
+ * block — every other forms block renders inside a form, so this always
+ * loads with them. Vertical rhythm between fields comes from the theme's
+ * block gap (layout support), never from margins here.
+ */
+
+.blocklane-form__field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25em;
+}
+
+.blocklane-form__label {
+	display: block;
+}
+
+.blocklane-form__required {
+	margin-inline-start: 0.125em;
+	color: var(--blocklane-form--asterisk, currentColor);
+}
+
+/* Hidden labels stay in the DOM for assistive tech — clipped, never
+   display:none (that would silence screen readers too). */
+.blocklane-form__label.is-visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+.blocklane-form__required-notice {
+	font-size: 0.875em;
+	opacity: 0.8;
+}
+
+.blocklane-form__control {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 100%;
+	padding: 0.5em 0.75em;
+	font: inherit;
+	color: var(--blocklane-form--input-text, inherit);
+
+	/* white default (Garrett's ruling 2026-08-18) — a transparent control
+	   disappears on tinted section backgrounds; Input Styles still override */
+	background: var(--blocklane-form--input-background, #fff);
+	border: 1px solid var(--blocklane-form--input-border, #949494);
+	border-radius: var(--blocklane-form--input-radius, 4px);
+}
+
+.blocklane-form__control:focus {
+	border-color: var(--blocklane-form--input-focus-border, var(--blocklane-form--input-border, currentColor));
+}
+
+select.blocklane-form__control {
+	appearance: auto;
+}
+
+/* Radio / checkbox rows (form-group options and the consent input). */
+.blocklane-form__option,
+.blocklane-form__checkbox-label {
+	display: flex;
+	gap: 0.5em;
+	align-items: center;
+}
+
+.blocklane-form__option input,
+.blocklane-form__checkbox-label input {
+	width: auto;
+	margin: 0;
+}
+
+.blocklane-form__fieldset {
+	min-width: 0;
+	padding: 0;
+	margin: 0;
+	border: 0;
+}
+
+.blocklane-form__fieldset .blocklane-form__legend {
+	display: block;
+	padding: 0;
+	margin-block-end: 0.25em;
+}
+
+.blocklane-form__fieldset .blocklane-form__option {
+	margin-block-start: 0.25em;
+}
+
+/* Honeypot — visually hidden, still in the accessibility-hidden subtree. */
+.blocklane-form__hp {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	clip-path: inset(50%);
+}
+
+/* Notifications stay hidden until the runtime reveals them (Phase 2). The
+   markup also carries `hidden` (#743) — this rule is the styled half, the
+   attribute is the one that survives an optimizer dropping this file. */
+.blocklane-form__notification {
+	display: none;
+	padding: 0.75em 1em;
+	border-inline-start: 4px solid currentcolor;
+}
+
+.blocklane-form__notification.is-visible {
+	display: block;
+}
+
+.blocklane-form__submit {
+	cursor: pointer;
+
+	/* The Width dimension (style engine inline width) must never overflow
+	   its container by its own padding. */
+	box-sizing: border-box;
+}
+
+/* Turnstile renders inside the submit-button block, above the button —
+   sibling roots in one block, so the layout gap doesn't separate them. */
+
+/* The form's last child, its own block-level row (form/render.php appends it
+   after the inner blocks — never inline with field layouts). */
+.blocklane-form__turnstile {
+	margin-block-start: 0.75em;
+}
+
+/* File field: native picker button inherits the control chrome; the hint
+   line mirrors the server's effective constraints. */
+.blocklane-form__control.is-file {
+	padding: 0.4em 0.5em;
+	cursor: pointer;
+}
+
+.blocklane-form__hint {
+	margin: 0;
+	font-size: 0.8125em;
+	opacity: 0.7;
+}
+
+/* Inline field errors (client and server share this path). */
+.blocklane-form__error {
+	margin: 0;
+	font-size: 0.875em;
+	color: #cc1818;
+}
+
+.blocklane-form [aria-invalid="true"] {
+	border-color: #cc1818;
+}
+
+.blocklane-form__notification:focus {
+	outline: none;
+}
+
+.blocklane-form.is-submitting .blocklane-form__submit {
+	opacity: 0.7;
+	cursor: wait;
+}
+
+// Conditional visibility (v3): the [hidden] attribute does the real work;
+// this backstops themes that set an explicit display on field wrappers.
+.blocklane-form__field.is-bl-hidden {
+	display: none;
+}
+
+// Visually hidden, still announced. Carries the wizard's "Step N of M" live
+// region — without it a screen reader is told nothing when the step changes.
+.blocklane-form__sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}

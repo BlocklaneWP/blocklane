@@ -1,0 +1,40 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blocklane/form-notification",
+	"version": "0.1.0",
+	"title": "Form Notification",
+	"category": "blocklane-forms",
+	"description": "The message shown after submitting — authored as blocks, revealed on success or error.",
+	"keywords": [ "success", "error", "message", "confirmation" ],
+	"ancestor": [ "blocklane/form" ],
+	"usesContext": [ "blocklane/formId" ],
+	"attributes": {
+		"type": {
+			"type": "string",
+			"enum": [ "success", "error" ],
+			"default": "success"
+		}
+	},
+	"supports": {
+		"html": false,
+		"color": {
+			"background": true,
+			"text": true,
+			"gradients": false
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"__experimentalBorder": {
+			"color": true,
+			"radius": true,
+			"style": true,
+			"width": true
+		}
+	},
+	"textdomain": "blocklane",
+	"editorScript": "file:./index.js",
+	"render": "file:./render.php"
+}

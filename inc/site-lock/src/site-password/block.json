@@ -1,0 +1,54 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blocklane-pro/site-password",
+	"version": "1.0.0",
+	"title": "Password Form",
+	"category": "design",
+	"icon": "lock",
+	"description": "Visitors enter the site password here to unlock the Coming Soon page. Only appears while Coming Soon mode is active; rendered on the front end by Blocklane Pro. Style it like any block — the button follows your theme.",
+	"textdomain": "blocklane",
+	"keywords": [ "password", "coming soon", "private" ],
+	"attributes": {
+		"buttonText": {
+			"type": "string",
+			"role": "content"
+		},
+		"buttonBackground": {
+			"type": "string"
+		},
+		"buttonTextColor": {
+			"type": "string"
+		},
+		"buttonBorderRadius": {
+			"type": "string"
+		}
+	},
+	"supports": {
+		"html": false,
+		"reusable": false,
+		"multiple": false,
+		"align": [ "wide", "full" ],
+		"color": {
+			"background": true,
+			"text": true,
+			"gradients": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		},
+		"border": {
+			"color": true,
+			"radius": true,
+			"style": true,
+			"width": true
+		}
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css"
+}

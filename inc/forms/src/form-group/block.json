@@ -1,0 +1,65 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blocklane/form-group",
+	"version": "0.1.0",
+	"title": "Choice Group",
+	"category": "blocklane-forms",
+	"description": "A group of radio buttons or checkboxes inside a fieldset with a legend.",
+	"keywords": [ "radio", "checkbox", "choices", "fieldset" ],
+	"ancestor": [ "blocklane/form" ],
+	"usesContext": [ "blocklane/formId" ],
+	"providesContext": {
+		"blocklane/fieldType": "type",
+		"blocklane/fieldName": "name",
+		"blocklane/fieldLegend": "legend",
+		"blocklane/fieldRequired": "required"
+	},
+	"allowedBlocks": [ "blocklane/form-option" ],
+	"example": {
+		"attributes": {
+			"legend": "How did you hear about us?"
+		}
+	},
+	"attributes": {
+		"type": {
+			"type": "string",
+			"enum": [ "radio", "checkbox" ],
+			"default": "radio"
+		},
+		"name": {
+			"type": "string",
+			"default": ""
+		},
+		"legend": {
+			"type": "string",
+			"default": ""
+		},
+		"required": {
+			"type": "boolean",
+			"default": false
+		},
+		"condition": {
+			"type": "object",
+			"default": {
+				"enabled": false,
+				"field": "",
+				"operator": "is",
+				"value": ""
+			}
+		}
+	},
+	"supports": {
+		"html": false,
+		"spacing": {
+			"margin": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		}
+	},
+	"textdomain": "blocklane",
+	"editorScript": "file:./index.js",
+	"render": "file:./render.php"
+}

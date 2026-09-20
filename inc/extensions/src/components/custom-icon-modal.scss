@@ -1,0 +1,119 @@
+// Custom SVG modal — full-height paste area beside a 400px preview rail
+// (geometry mirrors the reference icon plugin's custom inserter, GPL,
+// reimplemented;
+// see custom-icon-modal.js).
+
+.blocklane-pro-custom-icon-modal .components-modal__content {
+	flex: 1 1 0%;
+	overflow: auto;
+	padding: 0;
+
+	&::before {
+		margin-bottom: 0;
+	}
+
+	> div:nth-child(2) {
+		height: 100%;
+	}
+}
+
+.blocklane-pro-custom-icon-modal__inserter {
+	align-items: stretch;
+	display: flex;
+	flex-direction: row;
+	gap: 32px;
+	height: 100%;
+	// Core's icon modal runs 4px of content padding below its header; the
+	// horizontal padding matches the header's 24px so the paste area sits
+	// flush with the modal title.
+	padding: 4px 24px 32px;
+}
+
+.blocklane-pro-custom-icon-modal__content {
+	min-height: 400px;
+	width: calc(100% - 400px);
+
+	.components-base-control,
+	.components-base-control__field,
+	.components-textarea-control__input {
+		height: 100%;
+	}
+
+	textarea {
+		resize: none;
+		font-family: monospace;
+		font-size: 13px;
+	}
+}
+
+.blocklane-pro-custom-icon-modal__sidebar {
+	display: flex;
+	flex-direction: column;
+	flex-shrink: 0;
+	justify-content: space-between;
+	width: 400px;
+}
+
+.blocklane-pro-custom-icon-modal__label {
+	margin-bottom: 16px;
+}
+
+.blocklane-pro-custom-icon-modal__preview {
+	align-items: center;
+	border: 1px solid var(--wp-components-color-gray-300, #ddd);
+	display: flex;
+	justify-content: center;
+	max-height: 400px;
+	min-height: 250px;
+	overflow: auto;
+	padding: 20px;
+
+	svg {
+		max-width: 100%;
+	}
+
+	// The pasted SVG fills its slider-sized wrapper; the placeholder mark is
+	// sized directly by the Icon wrapper, so only the wrapper span scales.
+	> span svg {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+
+	&.is-default svg {
+		opacity: 0.3;
+	}
+}
+
+.blocklane-pro-custom-icon-modal__size {
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	padding: 12px 24px;
+
+	> span {
+		display: block;
+		font-size: 11px;
+		font-weight: 500;
+		line-height: 1.4;
+		margin-right: 18px;
+		text-transform: uppercase;
+	}
+
+	.components-range-control {
+		width: 116px;
+
+		.components-base-control__field {
+			margin-bottom: 0;
+		}
+	}
+}
+
+.blocklane-pro-custom-icon-modal__sidebar .components-notice {
+	margin: 12px 0 24px;
+}
+
+.blocklane-pro-custom-icon-modal__actions {
+	display: flex;
+	justify-content: space-between;
+}

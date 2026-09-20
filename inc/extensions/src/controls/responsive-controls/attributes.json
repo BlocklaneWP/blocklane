@@ -1,0 +1,30 @@
+{
+	"groups": [
+		{
+			"blocks": [
+				"core/paragraph",
+				"core/heading",
+				"core/list",
+				"core/quote",
+				"core/button",
+				"core/site-title",
+				"core/group",
+				"core/columns",
+				"core/column",
+				"core/cover",
+				"core/buttons",
+				"core/post-content",
+				"core/site-logo",
+				"core/navigation",
+				"core/image",
+				"core/social-links",
+				"core/search",
+				"core/separator",
+				"core/spacer"
+			],
+			"attributes": {
+				"blocklaneProResponsive": { "type": "object", "default": {} }
+			}
+		}
+	]
+}

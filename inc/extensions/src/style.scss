@@ -1,0 +1,19 @@
+/**
+ * Global frontend styles for BlocklanePro UI Helpers.
+ */
+
+// Core indents ToggleControl help text 40px to clear the switch, but in our
+// compact inspector panels it reads as a stray hanging indent that no other
+// control's help has. Flatten it — scoped under our own wrappers so core's
+// panels keep their default. (Controls whose help moved to a tooltip have no
+// inline help element to adjust.)
+[class*="blocklane-pro-"] .components-toggle-control__help {
+	margin-inline-start: 0;
+}
+
+// Import control-specific styles.
+// video-modal deliberately absent (issue #403 round, decision D3): its
+// front-end CSS ships ONLY via loader/video-modal/video-modal.css,
+// enqueued when a trigger renders. The slice that used to be imported
+// here was a full drifted duplicate — the stylesheet-door defect class.
+@import "./controls/transparent-header/index";

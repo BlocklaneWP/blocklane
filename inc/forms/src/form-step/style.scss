@@ -1,0 +1,73 @@
+.blocklane-form__step[hidden] {
+	display: none;
+}
+
+// The wizard nav contract (TurboTax/Typeform convention): one stable row —
+// Back bottom-left as a quiet secondary, the primary action bottom-right.
+// On the last step the runtime moves the author-placed submit button into
+// the primary slot, so Submit appears exactly where Next lived.
+.blocklane-form__step-nav {
+	align-items: center;
+	display: flex;
+	gap: 0.5em;
+	justify-content: space-between;
+	margin-block-start: 1.5em;
+
+	[hidden] {
+		display: none;
+	}
+
+	// Primary slot stays right even when Back is hidden (first step).
+	.blocklane-form__step-next,
+	.blocklane-form__submit {
+		margin-inline-start: auto;
+	}
+}
+
+// Back is deliberately quieter than the primary action — a ghost button
+// that inherits the theme's text color instead of its button surface.
+.blocklane-form__step-nav .blocklane-form__step-back {
+	background: transparent;
+	border: none;
+	color: inherit;
+	opacity: 0.75;
+	padding-inline: 0;
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+
+	&:hover,
+	&:focus-visible {
+		background: transparent;
+		color: inherit;
+		opacity: 1;
+	}
+}
+
+.blocklane-form__progress {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25em 1.25em;
+	list-style: none;
+	margin: 0 0 1em;
+	padding: 0;
+
+	li {
+		color: currentcolor;
+		font-size: 0.85em;
+		opacity: 0.55;
+
+		&.is-current {
+			font-weight: 600;
+			opacity: 1;
+		}
+
+		&.is-done {
+			opacity: 0.8;
+		}
+	}
+}
+
+// Backstop for themes that give the submit button an explicit display.
+.blocklane-form__submit[hidden] {
+	display: none;
+}

@@ -1,0 +1,96 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blocklane/form-select",
+	"version": "0.1.0",
+	"title": "Dropdown Field",
+	"category": "blocklane-forms",
+	"description": "A dropdown of choices.",
+	"keywords": [ "select", "dropdown", "choice" ],
+	"ancestor": [ "blocklane/form" ],
+	"usesContext": [ "blocklane/formId" ],
+	"example": {
+		"attributes": {
+			"label": "Topic"
+		}
+	},
+	"attributes": {
+		"name": {
+			"type": "string",
+			"default": ""
+		},
+		"label": {
+			"type": "string",
+			"default": ""
+		},
+		"hideLabel": {
+			"type": "boolean",
+			"default": false
+		},
+		"required": {
+			"type": "boolean",
+			"default": false
+		},
+		"options": {
+			"type": "array",
+			"default": [
+				{
+					"label": "Option one",
+					"value": ""
+				},
+				{
+					"label": "Option two",
+					"value": ""
+				}
+			],
+			"items": {
+				"type": "object"
+			}
+		},
+		"emptyLabel": {
+			"type": "string",
+			"default": ""
+		},
+		"condition": {
+			"type": "object",
+			"default": {
+				"enabled": false,
+				"field": "",
+				"operator": "is",
+				"value": ""
+			}
+		}
+	},
+	"supports": {
+		"html": false,
+		"spacing": {
+			"margin": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		},
+		"color": {
+			"background": true,
+			"text": true,
+			"gradients": false,
+			"__experimentalSkipSerialization": true
+		},
+		"__experimentalBorder": {
+			"color": true,
+			"radius": true,
+			"style": true,
+			"width": true,
+			"__experimentalSkipSerialization": true
+		}
+	},
+	"selectors": {
+		"root": ".wp-block-blocklane-form-select",
+		"color": ".wp-block-blocklane-form-select .blocklane-form__control",
+		"border": ".wp-block-blocklane-form-select .blocklane-form__control",
+		"typography": ".wp-block-blocklane-form-select"
+	},
+	"textdomain": "blocklane",
+	"editorScript": "file:./index.js",
+	"render": "file:./render.php"
+}

@@ -1,0 +1,42 @@
+{
+    "name": "blocklane",
+    "version": "0.11.4",
+    "description": "Blocklane Pro \u2014 the Pro companion plugin for the FSE block theme.",
+    "author": "Garrett Johnson",
+    "license": "GPL-2.0-or-later",
+    "scripts": {
+        "build": "npm run build:seo && npm run build:forms && npm run build:onboarding && npm run build:extensions && npm run build:site-password && npm run build:popups",
+        "build:seo": "wp-scripts build --webpack-src-dir=inc/seo/src --output-path=inc/seo/build",
+        "build:forms": "wp-scripts build --webpack-src-dir=inc/forms/src --output-path=inc/forms/build --webpack-copy-php --experimental-modules",
+        "start:forms": "wp-scripts start --webpack-src-dir=inc/forms/src --output-path=inc/forms/build --webpack-copy-php --experimental-modules",
+        "start:seo": "wp-scripts start --webpack-src-dir=inc/seo/src --output-path=inc/seo/build",
+        "build:onboarding": "wp-scripts build --webpack-src-dir=inc/onboarding/src --output-path=inc/onboarding/build",
+        "build:extensions": "wp-scripts build --config inc/extensions/webpack.config.js",
+        "build:site-password": "wp-scripts build --webpack-src-dir=inc/site-lock/src --output-path=inc/site-lock/build",
+        "build:popups": "wp-scripts build --webpack-src-dir=inc/popups/src --output-path=inc/popups/build",
+        "start:onboarding": "wp-scripts start --webpack-src-dir=inc/onboarding/src --output-path=inc/onboarding/build",
+        "start:extensions": "wp-scripts start --config inc/extensions/webpack.config.js",
+        "lint:js": "wp-scripts lint-js inc --max-warnings=0",
+        "lint:css": "wp-scripts lint-style 'inc/**/*.css' 'inc/**/*.scss'"
+    },
+    "devDependencies": {
+        "@wordpress/icons": "^16.0.0",
+        "@wordpress/interface": "^10.1.0",
+        "@wordpress/scripts": "^35.0.0",
+        "copy-webpack-plugin": "^14.0.0"
+    },
+    "dependencies": {
+        "@wordpress/dataviews": "19.0.0",
+        "classnames": "^2.5.1",
+        "stylis": "^4.4.0",
+        "embla-carousel": "^8.6.0",
+        "embla-carousel-autoplay": "^8.6.0",
+        "embla-carousel-auto-scroll": "^8.6.0",
+        "embla-carousel-auto-height": "^8.6.0",
+        "embla-carousel-fade": "^8.6.0",
+        "embla-carousel-wheel-gestures": "^8.1.0"
+    },
+    "overrides": {
+        "qs": "^6.16.0"
+    }
+}

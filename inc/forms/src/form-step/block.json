@@ -1,0 +1,34 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blocklane/form-step",
+	"title": "Form Step",
+	"category": "blocklane-forms",
+	"description": "One step of a multi-step form. Add two or more to a Form and visitors move through them one at a time.",
+	"keywords": [ "step", "page", "wizard" ],
+	"textdomain": "blocklane",
+	"parent": [ "blocklane/form" ],
+	"usesContext": [ "blocklane/formId" ],
+	"attributes": {
+		"label": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"color": {
+			"background": true,
+			"text": true
+		},
+		"spacing": {
+			"padding": true,
+			"margin": true
+		}
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php"
+}

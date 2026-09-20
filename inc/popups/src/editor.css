@@ -1,0 +1,19 @@
+/*
+ * Popups — editor styles: STRUCTURAL only. Each settings group is a
+ * PluginDocumentSettingPanel reduced to a zero-chrome shell (no header, no
+ * border, no padding) so the ToolsPanel inside carries the section's entire
+ * anatomy — its own padding, border, grid, and type, byte-for-byte what a
+ * ToolsPanel gets in the block inspector. No colors or sizes are declared
+ * here; anything visual comes from the components themselves (Text
+ * variant="muted" for hints, BaseControl help for guidance).
+ */
+
+.blocklane-popup-section .components-panel__body-title {
+	display: none;
+}
+
+.blocklane-popup-section.components-panel__body,
+.blocklane-popup-section.components-panel__body.is-opened {
+	border-top: none;
+	padding: 0;
+}

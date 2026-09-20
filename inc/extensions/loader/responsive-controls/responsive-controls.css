@@ -1,0 +1,245 @@
+/* Responsive Overrides — BlocklanePro Pro */
+
+/* Per-side classes ensure only explicitly set sides are overridden. */
+
+/* Unset sides inherit their desktop value. */
+
+/* === Tablet (max-width: 768px) === */
+@media (max-width: 768px) {
+
+	.has-blocklane-pro-fs-tablet {
+		font-size: var(--blocklane-pro-fs-tablet, inherit) !important;
+	}
+
+	.has-blocklane-pro-padding-top-tablet {
+		padding-top: var(--blocklane-pro-padding-top-tablet) !important;
+	}
+
+	.has-blocklane-pro-padding-right-tablet {
+		padding-right: var(--blocklane-pro-padding-right-tablet) !important;
+	}
+
+	.has-blocklane-pro-padding-bottom-tablet {
+		padding-bottom: var(--blocklane-pro-padding-bottom-tablet) !important;
+	}
+
+	.has-blocklane-pro-padding-left-tablet {
+		padding-left: var(--blocklane-pro-padding-left-tablet) !important;
+	}
+
+	.has-blocklane-pro-margin-top-tablet {
+		margin-top: var(--blocklane-pro-margin-top-tablet) !important;
+	}
+
+	.has-blocklane-pro-margin-right-tablet {
+		margin-right: var(--blocklane-pro-margin-right-tablet) !important;
+	}
+
+	.has-blocklane-pro-margin-bottom-tablet {
+		margin-bottom: var(--blocklane-pro-margin-bottom-tablet) !important;
+	}
+
+	.has-blocklane-pro-margin-left-tablet {
+		margin-left: var(--blocklane-pro-margin-left-tablet) !important;
+	}
+
+	/* Block gap — flex/grid use gap, flow/constrained use margin-block-start on
+	   children */
+	.has-blocklane-pro-gap-tablet.is-layout-flex,
+	.has-blocklane-pro-gap-tablet.is-layout-grid {
+		gap: var(--blocklane-pro-gap-tablet) !important;
+	}
+
+	.has-blocklane-pro-gap-tablet.is-layout-flow > *,
+	.has-blocklane-pro-gap-tablet.is-layout-constrained > * {
+		margin-block-start: var(--blocklane-pro-gap-tablet) !important;
+	}
+
+	.has-blocklane-pro-gap-tablet.is-layout-flow > :first-child,
+	.has-blocklane-pro-gap-tablet.is-layout-constrained > :first-child {
+		margin-block-start: 0 !important;
+	}
+
+	.has-blocklane-pro-mh-tablet {
+		min-height: var(--blocklane-pro-mh-tablet) !important;
+	}
+
+	.has-blocklane-pro-mw-tablet {
+		max-width: var(--blocklane-pro-mw-tablet) !important;
+	}
+
+	.has-blocklane-pro-ta-tablet {
+		text-align: var(--blocklane-pro-ta-tablet) !important;
+	}
+
+	/* Justification: when orientation is NOT changed responsively, use desktop
+	   .is-vertical */
+	.has-blocklane-pro-jc-tablet:not(.has-blocklane-pro-ori-tablet):not(.is-vertical) {
+		justify-content: var(--blocklane-pro-jc-tablet) !important;
+	}
+
+	.has-blocklane-pro-jc-tablet:not(.has-blocklane-pro-ori-tablet).is-vertical {
+		align-items: var(--blocklane-pro-jc-tablet) !important;
+	}
+
+	/* When orientation IS changed responsively, use the orientation-specific
+	   class */
+	.has-blocklane-pro-jc-tablet.blocklane-pro-ori-tablet-row {
+		justify-content: var(--blocklane-pro-jc-tablet) !important;
+	}
+
+	.has-blocklane-pro-jc-tablet.blocklane-pro-ori-tablet-column {
+		align-items: var(--blocklane-pro-jc-tablet) !important;
+	}
+
+	.has-blocklane-pro-ori-tablet {
+		flex-direction: var(--blocklane-pro-ori-tablet) !important;
+	}
+
+	/* Responsive child order. The container's un-ordered children sit after the
+	   ordered ones — scoped to that container so it never touches other rows. */
+	.has-blocklane-pro-order-tablet {
+		order: var(--blocklane-pro-order-tablet) !important;
+	}
+
+	.blocklane-pro-child-order-tablet > :not(.has-blocklane-pro-order-tablet) {
+		order: 999;
+	}
+}
+
+/* === Mobile (max-width: 480px) === */
+@media (max-width: 480px) {
+
+	.has-blocklane-pro-fs-mobile {
+		font-size: var(--blocklane-pro-fs-mobile, inherit) !important;
+	}
+
+	.has-blocklane-pro-padding-top-mobile {
+		padding-top: var(--blocklane-pro-padding-top-mobile) !important;
+	}
+
+	.has-blocklane-pro-padding-right-mobile {
+		padding-right: var(--blocklane-pro-padding-right-mobile) !important;
+	}
+
+	.has-blocklane-pro-padding-bottom-mobile {
+		padding-bottom: var(--blocklane-pro-padding-bottom-mobile) !important;
+	}
+
+	.has-blocklane-pro-padding-left-mobile {
+		padding-left: var(--blocklane-pro-padding-left-mobile) !important;
+	}
+
+	.has-blocklane-pro-margin-top-mobile {
+		margin-top: var(--blocklane-pro-margin-top-mobile) !important;
+	}
+
+	.has-blocklane-pro-margin-right-mobile {
+		margin-right: var(--blocklane-pro-margin-right-mobile) !important;
+	}
+
+	.has-blocklane-pro-margin-bottom-mobile {
+		margin-bottom: var(--blocklane-pro-margin-bottom-mobile) !important;
+	}
+
+	.has-blocklane-pro-margin-left-mobile {
+		margin-left: var(--blocklane-pro-margin-left-mobile) !important;
+	}
+
+	/* Block gap — flex/grid use gap, flow/constrained use margin-block-start on
+	   children */
+	.has-blocklane-pro-gap-mobile.is-layout-flex,
+	.has-blocklane-pro-gap-mobile.is-layout-grid {
+		gap: var(--blocklane-pro-gap-mobile) !important;
+	}
+
+	.has-blocklane-pro-gap-mobile.is-layout-flow > *,
+	.has-blocklane-pro-gap-mobile.is-layout-constrained > * {
+		margin-block-start: var(--blocklane-pro-gap-mobile) !important;
+	}
+
+	.has-blocklane-pro-gap-mobile.is-layout-flow > :first-child,
+	.has-blocklane-pro-gap-mobile.is-layout-constrained > :first-child {
+		margin-block-start: 0 !important;
+	}
+
+	.has-blocklane-pro-mh-mobile {
+		min-height: var(--blocklane-pro-mh-mobile) !important;
+	}
+
+	.has-blocklane-pro-mw-mobile {
+		max-width: var(--blocklane-pro-mw-mobile) !important;
+	}
+
+	.has-blocklane-pro-ta-mobile {
+		text-align: var(--blocklane-pro-ta-mobile) !important;
+	}
+
+	/* Justification: when orientation is NOT changed responsively, use desktop
+	   .is-vertical */
+	.has-blocklane-pro-jc-mobile:not(.has-blocklane-pro-ori-mobile):not(.has-blocklane-pro-ori-tablet):not(.is-vertical) {
+		justify-content: var(--blocklane-pro-jc-mobile) !important;
+	}
+
+	.has-blocklane-pro-jc-mobile:not(.has-blocklane-pro-ori-mobile):not(.has-blocklane-pro-ori-tablet).is-vertical {
+		align-items: var(--blocklane-pro-jc-mobile) !important;
+	}
+
+	/* When orientation IS changed responsively (mobile-specific or cascaded
+	   from tablet) */
+	.has-blocklane-pro-jc-mobile.blocklane-pro-ori-mobile-row {
+		justify-content: var(--blocklane-pro-jc-mobile) !important;
+	}
+
+	.has-blocklane-pro-jc-mobile.blocklane-pro-ori-mobile-column {
+		align-items: var(--blocklane-pro-jc-mobile) !important;
+	}
+
+	/* Cascade: if only tablet orientation was set, use it for mobile too */
+	.has-blocklane-pro-jc-mobile:not(.has-blocklane-pro-ori-mobile).blocklane-pro-ori-tablet-row {
+		justify-content: var(--blocklane-pro-jc-mobile) !important;
+	}
+
+	.has-blocklane-pro-jc-mobile:not(.has-blocklane-pro-ori-mobile).blocklane-pro-ori-tablet-column {
+		align-items: var(--blocklane-pro-jc-mobile) !important;
+	}
+
+	.has-blocklane-pro-ori-mobile {
+		flex-direction: var(--blocklane-pro-ori-mobile) !important;
+	}
+
+	/* Responsive child order (tablet values cascade to mobile via the var). */
+	.has-blocklane-pro-order-mobile {
+		order: var(--blocklane-pro-order-mobile) !important;
+	}
+
+	.blocklane-pro-child-order-mobile > :not(.has-blocklane-pro-order-mobile) {
+		order: 999;
+	}
+}
+
+/* === Responsive visibility — independent per-device ranges (not cascaded), so
+   "hide on tablet" and "hide on mobile" are distinct. The 769/481 min-widths
+   are
+   breakpoint+1, swapped to the configured values alongside the max-widths. ===
+   */
+@media (min-width: 769px) {
+
+	.has-blocklane-pro-hide-desktop {
+		display: none !important;
+	}
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+
+	.has-blocklane-pro-hide-tablet {
+		display: none !important;
+	}
+}
+
+@media (max-width: 480px) {
+
+	.has-blocklane-pro-hide-mobile {
+		display: none !important;
+	}
+}

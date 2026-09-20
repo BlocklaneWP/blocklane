@@ -1,0 +1,43 @@
+=== Credits ===
+
+Blocklane is licensed under the GNU General Public License, version 2 or later
+(GPL-2.0-or-later). See license.txt for the full license text.
+
+All plugin code is original work by Garrett Johnson. The block-editor
+extensions were rewritten feature-by-feature from behavior specs against
+WordPress core APIs — see docs/clean-room-rebuild.md and the per-feature specs
+in docs/specs/.
+
+Two editions are built from one source tree: Blocklane (the WordPress.org
+edition) and Blocklane Pro. Entries below are marked "Pro edition only" where
+the code they credit is not present in the WordPress.org build at all.
+
+
+== Third-party code and assets ==
+
+* enshrined/svg-sanitize by Daryll Doyle
+  https://github.com/darylldoyle/svg-sanitizer
+  Version 1.0.0 (2026-09-01), GPL-2.0-or-later. Bundled at inc/advanced/vendor/svg-sanitize/, with its
+  LICENSE file alongside. Sanitizes SVG uploads when the Advanced screen's SVG
+  upload support is switched on. Ships in both editions.
+
+* Unbounded and Manrope typefaces
+  SIL Open Font License 1.1. Bundled for the plugin dashboard under
+  inc/onboarding/src/fonts/, with the license texts alongside as OFL-*.txt.
+  Ships in both editions.
+
+* Phosphor Icons — Pro edition only
+  https://phosphoricons.com
+  MIT. The button-icon set; also the carousel arrow glyph catalog
+  (inc/carousel/arrow-icons.json) and the carousel shell/track block icons in
+  inc/carousel/src/shared/icons.js.
+
+* Embla Carousel by David Jerleke — Pro edition only
+  https://www.embla-carousel.com
+  MIT. Bundled into the carousel track's view module with its autoplay,
+  auto-scroll, auto-height, fade and wheel-gestures plugins.
+
+* Plugin Update Checker by Yahnis Elsts — Pro edition only
+  MIT. Bundled under inc/plugin-update-checker/ (see that directory for its
+  own license). The WordPress.org edition contains no updater: WordPress.org
+  serves its updates.

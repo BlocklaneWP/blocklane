@@ -1,0 +1,12 @@
+// Core CSS mirrored for our controls — one copy, imported by each bundle's
+// editor stylesheet that needs it (see inc/shared/README.md).
+
+// Core's HeightControl fieldset reset (.block-editor-height-control in
+// block-editor/style.css). Any control built on that anatomy — a fieldset
+// with a VisualLabel legend over a unit-input + slider Flex — uses this
+// class so the row measures identically to core's Minimum height control.
+.blocklane-pro-height-control {
+	border: 0;
+	margin: 0;
+	padding: 0;
+}

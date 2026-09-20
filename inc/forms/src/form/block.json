@@ -1,0 +1,115 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blocklane/form",
+	"version": "0.1.0",
+	"title": "Form",
+	"category": "blocklane-forms",
+	"description": "A form built from blocks — fields, a submit button, and success and error messages, submitted without a page reload.",
+	"keywords": [ "contact", "form", "email", "submit" ],
+	"example": {},
+	"attributes": {
+		"formId": {
+			"type": "string",
+			"default": ""
+		},
+		"formName": {
+			"type": "string",
+			"default": ""
+		},
+		"recipients": {
+			"type": "string",
+			"default": ""
+		},
+		"subject": {
+			"type": "string",
+			"default": ""
+		},
+		"successAction": {
+			"type": "string",
+			"enum": [ "message", "redirect" ]
+		},
+		"redirectUrl": {
+			"type": "string",
+			"default": ""
+		},
+		"storeSubmissions": {
+			"type": "boolean"
+		},
+		"notifyAdmin": {
+			"type": "boolean"
+		},
+		"autoResponder": {
+			"type": "object"
+		},
+		"replaceOnSuccess": {
+			"type": "boolean"
+		},
+		"inputStyles": {
+			"type": "object",
+			"default": {}
+		},
+		"scheduleEnabled": {
+			"type": "boolean",
+			"default": false
+		},
+		"scheduleStart": {
+			"type": "string",
+			"default": ""
+		},
+		"scheduleEnd": {
+			"type": "string",
+			"default": ""
+		},
+		"requireLogin": {
+			"type": "boolean",
+			"default": false
+		},
+		"closedMessage": {
+			"type": "string",
+			"default": ""
+		},
+		"uniqueField": {
+			"type": "string",
+			"default": ""
+		},
+		"uniqueMessage": {
+			"type": "string",
+			"default": ""
+		},
+		"showProgress": {
+			"type": "boolean",
+			"default": true
+		},
+		"showRequiredNotice": {
+			"type": "boolean",
+			"default": true
+		}
+	},
+	"providesContext": {
+		"blocklane/formId": "formId"
+	},
+	"supports": {
+		"html": false,
+		"interactivity": true,
+		"anchor": true,
+		"align": [ "wide", "full" ],
+		"color": {
+			"background": true,
+			"text": true,
+			"gradients": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true,
+			"blockGap": true
+		},
+		"layout": true
+	},
+	"textdomain": "blocklane",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php",
+	"viewScriptModule": "file:./view.js"
+}

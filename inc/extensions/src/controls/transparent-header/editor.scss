@@ -1,0 +1,24 @@
+/**
+ * Transparent Header — editor-only canvas styles.
+ *
+ * The alternate transparent logo renders as a second <img> on the front end,
+ * but the canvas shows core's own single-image site-logo edit component. To
+ * keep the at-top preview truthful, swap the rendered image via `content:`
+ * fed by the var the canvas mirror sets (blocks.js). Browsers that do not
+ * support `content` on a replaced element simply keep showing the original —
+ * a preview shortfall only; the front end always renders both images.
+ */
+.is-th-transparent .wp-block-site-logo.blocklane-pro-th-has-alt img {
+	content: var(--blocklane-pro-th-alt-url);
+}
+
+// Previewing the transparent state while editing the header part in
+// ISOLATION: the canvas is bare white, so the default-white chrome would be
+// invisible white-on-white. Paint a dark neutral placeholder behind the
+// header — it stands in for the hero the front end overlays. Higher
+// specificity than style-index's strip rule (also !important) so load order
+// cannot decide the winner; the mirror only adds this class outside a
+// template context, so the truthful over-the-real-hero view is untouched.
+.editor-styles-wrapper .wp-block-group.is-th-transparent.blocklane-pro-th-iso-preview {
+	background: linear-gradient(135deg, #32323a, #17171c) !important;
+}

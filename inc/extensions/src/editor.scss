@@ -1,0 +1,50 @@
+/**
+ * Editor-specific styles for BlocklanePro UI Helpers.
+ */
+
+// Shared core-mirror rules (single source of truth — inc/shared/README.md).
+@import "../../shared/styles/core-mirrors";
+@import "./components/custom-icon-modal";
+
+// Import control-specific styles for editor preview.
+@import "./controls/transparent-header/editor";
+
+.blocklane-pro-block-setting-full-width {
+	width: 100%;
+}
+
+.components-base-control__help {
+	margin-top: calc(8px);
+	margin-bottom: 0;
+	font-size: 12px;
+	font-style: normal;
+	color: rgb(117, 117, 117);
+}
+
+// Fix: crisp text in toolbar dropdown menus. Core keeps positioned popovers on
+// a compositor layer (will-change: transform); on scaled/zoomed displays the
+// layer is resampled at fractional device pixels, softening the glyphs — the
+// second blur cause alongside the framer-motion scale transition (see the
+// popoverProps animate:false in icon-library / responsive-controls). Anchored
+// menus reposition rarely, so painting them in the normal raster costs
+// nothing; the scroll-following popovers (block toolbar etc.) keep their
+// layer. Doubled class beats core's .components-popover rule regardless of
+// stylesheet order.
+.components-popover.components-dropdown-menu__popover,
+.components-popover.components-dropdown__content {
+	will-change: auto;
+}
+
+// Fix: text-wrap: balance causes the ::after outline pseudo-element
+// to render with incorrect height in the editor, creating jitter on hover.
+.block-editor-block-list__layout .has-text-wrap-balance.is-hovered::after {
+	display: none !important;
+}
+
+.block-editor-block-list__layout .has-text-wrap-balance.is-hovered:not(.is-selected) {
+	outline-color: var(--wp-admin-theme-color);
+	outline-style: solid;
+	outline-width: calc(1 * var(--wp-admin-border-width-focus) / var(--wp-block-editor-iframe-zoom-out-scale, 1));
+	outline-offset: calc(1 * -1 * var(--wp-admin-border-width-focus) / var(--wp-block-editor-iframe-zoom-out-scale, 1));
+	box-shadow: inset 0 0 0 calc(1 * var(--wp-admin-border-width-focus) / var(--wp-block-editor-iframe-zoom-out-scale, 1) + 0.5px) rgba(255, 255, 255, 0.7);
+}

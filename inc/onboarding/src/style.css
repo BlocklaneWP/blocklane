@@ -1,0 +1,4308 @@
+/* DataViews (bundled npm package, pinned) — its styles must ship with the
+   app. */
+@import "@wordpress/dataviews/build-style/style.css";
+
+/* ==========================================================================
+   Blocklane Pro admin dashboard — embedded in wp-admin like core's Appearance →
+   Fonts screen: the admin bar and admin menu stay, the wp-admin submenu is
+   the app's left nav (see ../adminMenu.js), and the white app canvas fills
+   the content area edge-to-edge.
+   ========================================================================== */
+
+/* --- Brand typography ------------------------------------------------------
+   Bundled (OFL-licensed, see fonts/OFL-*.txt) so the dashboard renders the
+   brand offline with no external requests. Unbounded carries the logotype
+   and headings only; Manrope is the body face. Both are wght-only variable
+   fonts (no italic masters — the browser synthesizes oblique, which is
+   acceptable for admin chrome). */
+@font-face {
+	font-family: Unbounded;
+	src: url(./fonts/Unbounded-VariableFont_wght.woff2) format("woff2");
+	font-weight: 200 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: Manrope;
+	src: url(./fonts/Manrope-VariableFont_wght.woff2) format("woff2");
+	font-weight: 200 800;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* Core indents ToggleControl help text 40px to clear the switch; in our
+   dashboard (and its modals) that reads as a stray hanging indent, so flatten
+   it. Scoped under our own wrappers (.blocklane-pro-layout,
+   .blocklane-pro-hero,
+   etc.) so it never touches core's own panels. */
+[class*="blocklane-pro-"] .components-toggle-control__help {
+	margin-inline-start: 0;
+}
+
+.blocklane-pro-root {
+
+	/* Palette ported from the original settings.scss for visual parity, with
+	   the accent pinned to the Blocklane brand blue (#3858e9) — the app is
+	   branded and does not follow the user's admin color scheme. */
+	--fp-canvas-bg: #fff;
+
+	--fp-text: #3c434a;
+	--fp-text-muted: #636381;
+	--fp-border: #e2e0f3;
+	--fp-border-soft: #f6f6fc;
+	--fp-border-strong: #c4c3cf;
+	--fp-surface: #fff;
+
+	/* Matches the feature-card hover/active tint: 5% accent over white —
+	   derived, so it follows the accent wherever it comes from. */
+	--fp-bg-soft: color-mix(in srgb, var(--fp-accent) 5%, #fff);
+
+	/* Brand: Blocklane blue (the BrandMark) + the app font stack. */
+	--fp-brand: #3858e9;
+	--fp-font-stack:
+		-apple-system,
+		blinkmacsystemfont,
+		"Segoe UI",
+		roboto,
+		oxygen-sans,
+		ubuntu,
+		cantarell,
+		"Helvetica Neue",
+		sans-serif;
+
+	/* Primary accent: pinned to the Blocklane brand blue — the dashboard is
+	   branded, it does not follow the user's admin color scheme. The
+	   --wp-components-color-* overrides below keep the core components
+	   rendered inside the app on the same blue. */
+	--fp-accent: #3858e9;
+	--fp-accent-rgb: 56, 88, 233;
+	--fp-accent-hover: #1d35b4;
+	--fp-accent-soft: #eef1fe;
+	--wp-components-color-accent: #3858e9;
+	--wp-components-color-accent-darker-10: #2b48d0;
+	--wp-components-color-accent-darker-20: #1d35b4;
+	--fp-success: #15c082;
+	--fp-success-soft: #d3f5e7;
+	--fp-warning: #b45309;
+	--fp-warning-soft: #fef3c7;
+	--fp-error: #cc1818;
+	--fp-error-soft: #fef3f2;
+	--fp-status-locked: #f5b301; /* the private / password-gated status dot */
+
+	/* Neutral scale — consolidates ad-hoc grays that crept in. Values are
+	   unchanged from what they replace, so nothing shifts. */
+	--fp-white: #fff;
+	--fp-gray-50: #f9fafb;
+	--fp-gray-100: #f3f4f6;
+	--fp-gray-200: #e5e7eb;
+	--fp-gray-300: #d1d5db;
+	--fp-line: #e0e0e0;
+
+	--fp-radius: 8px;
+	--fp-radius-sm: 5px;
+	--fp-radius-xs: 4px;
+	--fp-radius-pill: 999px;
+
+	/* One padding for every Home section (hero, tools, resources, changelog):
+	   60px top/bottom at desktop, scaling down on narrow screens. */
+	--fp-section-pad-y: clamp(2rem, 7vw, 3.75rem);
+	--fp-section-pad-x: clamp(2rem, 7vw, 3rem);
+	--fp-shadow-card:
+		0 0 0 1px rgba(67, 48, 141, 0.1),
+		0 26px 7px 0 rgba(66, 59, 104, 0),
+		0 17px 7px 0 rgba(66, 59, 104, 0),
+		0 9px 6px 0 rgba(66, 59, 104, 0.02),
+		0 4px 4px 0 rgba(66, 59, 104, 0.03),
+		0 1px 2px 0 rgba(66, 59, 104, 0.03);
+	--fp-shadow-soft:
+		0 0 0 1px rgba(67, 48, 141, 0.08),
+		0 2px 4px -1px rgba(67, 48, 141, 0.08);
+
+	color: var(--fp-text);
+}
+
+/* Brand typography is HOME-ONLY (plus the canvas top bar): Manrope body,
+   Unbounded headings, wp-admin's #3c434a text. Every other screen
+   inherits wp-admin's own font stack, sizes, and #1d2327 text so it reads
+   like a native dashboard/settings page. */
+.blocklane-pro-home,
+.blocklane-pro-canvas-header {
+	font-family: Manrope, var(--fp-font-stack);
+	color: var(--fp-text);
+}
+
+.blocklane-pro-home h1,
+.blocklane-pro-home h2,
+.blocklane-pro-home h3,
+.blocklane-pro-home h4,
+.blocklane-pro-home h5,
+.blocklane-pro-home h6 {
+	font-family: Unbounded, var(--fp-font-stack, sans-serif);
+	font-weight: 600;
+}
+
+/* Heading weight scale: h1 carries the most presence; h4–h6 stay light —
+   Unbounded reads heavy fast, so the scale runs 700/600/600/500/500/500. */
+.blocklane-pro-home h1 {
+	font-weight: 700;
+}
+
+.blocklane-pro-home h4,
+.blocklane-pro-home h5,
+.blocklane-pro-home h6 {
+	font-weight: 500;
+}
+
+/* Core text colors for every screen shell except Home — wp-admin's #3c434a
+   body with #1d2327 headings (core's own h1–h3 element rules supply those),
+   and anything inside that reads var(--fp-text)/-muted resolves to the core
+   palette instead of the brand navy. The shell also fills its slot with the
+   soft background (previously a second .blocklane-pro-extensions block in
+   the layout section, merged here). */
+.blocklane-pro-extensions {
+	--fp-text: #1d2327;
+	--fp-text-muted: #646970;
+	color: #3c434a;
+	min-height: 100%;
+	background: var(--fp-bg-soft);
+}
+
+.blocklane-pro-bootstrapping {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 60vh;
+}
+
+/* ==== Layout ============================================================ */
+
+/* Fill the wp-admin content area edge-to-edge: viewport minus the admin bar
+   (core sets --wp-admin--admin-bar--height, incl. its 46px mobile value).
+   The admin menu's width is already carried by #wpcontent's own margin. A
+   single-cell grid stretches the canvas to fill. */
+.blocklane-pro-layout {
+	display: grid;
+	height: calc(100vh - var(--wp-admin--admin-bar--height, 32px));
+	overflow: hidden;
+}
+
+@media ( max-width: 1250px ) {
+
+	.blocklane-pro-layout {
+		height: auto;
+		min-height: calc(100vh - var(--wp-admin--admin-bar--height, 32px));
+		overflow: visible;
+	}
+}
+
+.blocklane-pro-canvas {
+	display: flex;
+	flex-direction: column;
+	background: var(--fp-canvas-bg);
+	overflow-y: auto;
+	overflow-x: hidden;
+	min-height: 0;
+
+	/* Positioning context for the scroll container: without it, absolutely
+	   positioned descendants (e.g. WP ToggleControl's hidden inputs) anchor to
+	   #wpbody and escape this clip, inflating the wp-admin body height so a
+	   second, outer scrollbar appears past the content. */
+	position: relative;
+}
+
+.blocklane-pro-canvas__body {
+	flex: 1;
+	min-height: 0;
+}
+
+@media ( max-width: 1250px ) {
+
+	.blocklane-pro-canvas {
+		overflow: visible;
+	}
+}
+
+.blocklane-pro-container {
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
+/* ---- Canvas top bar -------------------------------------------------- */
+
+.blocklane-pro-canvas-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 30px;
+	min-height: 60px;
+	border-bottom: 1px solid var(--fp-border);
+	background: var(--fp-white);
+	position: sticky;
+	top: 0;
+	z-index: 100;
+}
+
+.blocklane-pro-canvas-header__brand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.blocklane-pro-canvas-header__logo {
+	display: inline-flex;
+	align-items: center;
+
+	/* The inline lockup SVG rides currentColor — the logo's authentic
+	   near-black, independent of the body text gray. */
+	color: #1e1e1e;
+}
+
+.blocklane-pro-canvas-header__version {
+	color: var(--fp-text-muted);
+	font-size: 14px;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.02em;
+	margin-left: 4px;
+}
+
+.blocklane-pro-canvas-header__nav {
+	display: flex;
+	align-items: stretch;
+	gap: 0;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.blocklane-pro-canvas-header__nav li {
+	margin: 0;
+	display: flex;
+	align-items: center;
+	padding: 15px 0;
+}
+
+
+.blocklane-pro-canvas-header__nav .components-button.is-tertiary,
+.blocklane-pro-canvas-header__nav .components-dropdown-menu__toggle {
+	color: var(--fp-text);
+	font-size: 16px;
+	font-weight: 500;
+}
+
+.blocklane-pro-canvas-header__nav .components-button.is-tertiary:hover,
+.blocklane-pro-canvas-header__nav .components-dropdown-menu__toggle:hover {
+	color: var(--fp-accent);
+	background: transparent;
+	text-decoration: none;
+}
+
+/* ==== Home: hero + tools =============================================== */
+
+.blocklane-pro-home {
+	display: flex;
+	flex-direction: column;
+}
+
+.blocklane-pro-hero {
+	position: relative;
+	padding: var(--fp-section-pad-y) var(--fp-section-pad-x);
+	background:
+		radial-gradient(1200px 600px at 100% 20%, rgba(var(--fp-accent-rgb), 0.1), transparent 60%),
+		radial-gradient(800px 400px at 0% 80%, rgba(var(--fp-accent-rgb), 0.05), transparent 60%),
+		var(--fp-bg-soft);
+}
+
+.blocklane-pro-hero__inner {
+	margin: 0 auto;
+	display: grid;
+	grid-template-columns: 1fr minmax(320px, 420px);
+	gap: 5rem;
+	align-items: stretch;
+}
+
+@media ( max-width: 1250px ) {
+
+	.blocklane-pro-hero__inner {
+		grid-template-columns: 1fr;
+		gap: 50px;
+	}
+}
+
+.blocklane-pro-hero__copy {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	align-self: center;
+}
+
+.blocklane-pro-hero__eyebrow {
+	margin: 0;
+	color: var(--fp-accent);
+	font-size: 16px;
+	font-weight: 500;
+}
+
+.blocklane-pro-hero__title {
+	margin: 0;
+	font-size: clamp(2.125rem, 2.125rem + ((1vw - 0.2rem) * 1.362), 2.925rem);
+	font-weight: 400;
+	line-height: 1.2;
+	letter-spacing: -0.01em;
+	color: var(--fp-text);
+}
+
+.blocklane-pro-hero__body {
+	margin: 0;
+	color: var(--fp-text-muted);
+	font-size: 18px;
+	line-height: 1.55;
+}
+
+.blocklane-pro-hero__panel {
+	align-self: center;
+}
+
+/* Sign-in card (inside hero) */
+
+.blocklane-pro-signin,
+.blocklane-pro-account-card {
+	background: var(--fp-surface);
+	border-radius: var(--fp-radius);
+	padding: 40px;
+	box-shadow: var(--fp-shadow-card);
+}
+
+.blocklane-pro-signin__title,
+.blocklane-pro-account-card__title {
+	margin: 0 0 16px;
+	font-size: 26px;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+}
+
+/* Form input sizing — BlocklanePro spec: explicit 56px height, 10px 20px
+   padding,
+   var(--fp-border-strong) border, 5px radius. Without this, WP component
+   defaults give us
+   ~32px inputs which read cramped vs BlocklanePro's airy form. */
+.blocklane-pro-signin .components-text-control__input,
+.blocklane-pro-child-theme .components-text-control__input {
+	height: 56px;
+	padding: 10px 20px;
+	border: 1px solid var(--fp-border-strong);
+	border-radius: var(--fp-radius-sm);
+	font-size: 16px;
+}
+
+.blocklane-pro-signin .components-text-control__input:focus,
+.blocklane-pro-child-theme .components-text-control__input:focus,
+.blocklane-pro-child-theme .components-textarea-control__input:focus {
+	border-color: var(--fp-accent);
+	box-shadow: 0 0 0 1px var(--fp-accent);
+	outline: none;
+}
+
+.blocklane-pro-child-theme .components-textarea-control__input {
+	padding: 10px 20px;
+	border: 1px solid var(--fp-border-strong);
+	border-radius: var(--fp-radius-sm);
+	font-size: 14px;
+	min-height: 88px;
+}
+
+.blocklane-pro-signin__notice {
+	margin: 0 0 12px;
+}
+
+.blocklane-pro-signin__spacer {
+	height: 12px;
+}
+
+.blocklane-pro-signin__keep {
+	margin-top: 14px;
+}
+
+.blocklane-pro-signin__actions {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 18px;
+}
+
+.blocklane-pro-signin__forgot {
+	color: var(--fp-accent);
+	font-size: 15px;
+	font-weight: 500;
+	text-decoration: none;
+}
+
+.blocklane-pro-signin__forgot:hover {
+	text-decoration: underline;
+}
+
+.blocklane-pro-account-card__email {
+	margin: 0 0 8px;
+	color: var(--fp-text);
+	font-weight: 500;
+}
+
+.blocklane-pro-account-card__plan {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 16px;
+}
+
+.blocklane-pro-account-card__badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 3px 10px;
+	border-radius: var(--fp-radius-pill);
+	background: var(--fp-accent);
+	color: var(--fp-white);
+	font-size: 14px;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+}
+
+.blocklane-pro-account-card__meta {
+	color: var(--fp-text-muted);
+	font-size: 15px;
+}
+
+.blocklane-pro-account-card__meta + .blocklane-pro-account-card__meta::before {
+	content: "·";
+	margin-right: 8px;
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-account-card__notice {
+	margin: 0 0 16px;
+	padding: 10px 12px;
+	border-radius: var(--fp-radius);
+	background: var(--fp-error-soft);
+	color: var(--fp-error);
+	font-size: 15px;
+	line-height: 1.5;
+}
+
+.blocklane-pro-account-card__copy {
+	margin: 0 0 16px;
+	color: var(--fp-text-muted);
+	font-size: 15px;
+	line-height: 1.55;
+}
+
+/* Essential tools section */
+
+.blocklane-pro-tools {
+	padding: var(--fp-section-pad-y) var(--fp-section-pad-x);
+	background: var(--fp-white);
+}
+
+.blocklane-pro-tools__inner {
+	margin: 0 auto;
+}
+
+.blocklane-pro-tools__header {
+	margin-bottom: 24px;
+}
+
+.blocklane-pro-tools__title {
+	margin: 0;
+	font-size: clamp(1.625rem, 1.625rem + ( ( 1vw - 0.2rem ) * 0.851 ), 2.125rem);
+	font-weight: 400;
+	line-height: 1.2;
+	letter-spacing: -0.005em;
+}
+
+.blocklane-pro-tools__subtitle {
+	margin: 10px 0 0;
+	color: var(--fp-text-muted);
+	font-size: 16px;
+}
+
+.blocklane-pro-tools__grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 24px;
+}
+
+@media ( max-width: 960px ) {
+
+	.blocklane-pro-tools__grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.blocklane-pro-tool-card {
+	background: var(--fp-surface);
+	border-radius: var(--fp-radius);
+	overflow: hidden;
+	box-shadow: var(--fp-shadow-card);
+
+	/* translateY, not scale: a fractional scale (plus the will-change layer
+	   promotion it needed) re-rasterized the card and left its text fuzzy. */
+	transition: transform 0.3s ease;
+	display: flex;
+	flex-direction: column;
+}
+
+/* :focus-within keeps the lift for keyboard users reaching the card's
+   controls. */
+.blocklane-pro-tool-card:hover,
+.blocklane-pro-tool-card:focus-within {
+	transform: translateY(-3px);
+	cursor: pointer;
+}
+
+.blocklane-pro-tool-card__art {
+	position: relative;
+	height: 160px;
+	background: linear-gradient(135deg, var(--fp-bg-soft), var(--fp-accent-soft));
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: 10px;
+	padding: 20px;
+	margin: 25px 25px 0;
+	border-radius: 6px;
+}
+
+.blocklane-pro-tool-card__art-row {
+	width: 70%;
+	height: 14px;
+	background: var(--fp-accent);
+	border-radius: var(--fp-radius-xs);
+	opacity: 0.22;
+}
+
+.blocklane-pro-tool-card__art-row.is-narrow {
+	width: 50%;
+	opacity: 0.13;
+}
+
+.blocklane-pro-tool-card__pill {
+	width: 75%;
+	height: 18px;
+	border-radius: var(--fp-radius-pill);
+	background: var(--fp-white);
+	box-shadow: 0 0 0 1px rgba(67, 48, 141, 0.1);
+	display: flex;
+	align-items: center;
+	padding: 0 10px;
+}
+
+.blocklane-pro-tool-card__pill::before {
+	content: "";
+	width: 28px;
+	height: 14px;
+	background: var(--fp-accent);
+	border-radius: var(--fp-radius-pill);
+	margin-left: auto;
+}
+
+.blocklane-pro-tool-card__art.is-child {
+	flex-direction: row;
+	gap: 12px;
+}
+
+.blocklane-pro-tool-card__square {
+	width: 64px;
+	height: 64px;
+	background: var(--fp-white);
+	border-radius: var(--fp-radius);
+	box-shadow: 0 0 0 1px rgba(67, 48, 141, 0.1);
+}
+
+.blocklane-pro-tool-card__square.is-tinted {
+	background: var(--fp-accent-soft);
+	box-shadow: 0 0 0 1px var(--fp-accent);
+}
+
+.blocklane-pro-tool-card__body {
+	padding: 25px;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+.blocklane-pro-tool-card__body h4 {
+	margin: 0 0 8px;
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: -0.005em;
+}
+
+.blocklane-pro-tool-card__body p {
+	margin: 0 0 20px;
+	color: var(--fp-text-muted);
+	font-size: 16px;
+	line-height: 1.55;
+}
+
+.blocklane-pro-tool-card__actions {
+	display: flex;
+	justify-content: flex-start;
+	margin-top: auto;
+}
+
+/* Hero icon-notice (.blocklane-pro-icon-notice in BlocklanePro) — brand-tinted
+   background,
+   compact padding, brand-colored text. */
+.blocklane-pro-hero__footnote {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin: 20px 0 0;
+	padding: 12px 20px 12px 15px;
+	max-width: 550px;
+	background: rgba(var(--fp-accent-rgb), 0.04);
+	border-radius: var(--fp-radius-sm);
+	color: var(--fp-accent);
+	font-size: 15px;
+	line-height: 1.4;
+}
+
+.blocklane-pro-hero__footnote svg {
+	flex-shrink: 0;
+	width: 22px;
+	height: 22px;
+	color: var(--fp-accent);
+}
+
+.blocklane-pro-hero__footnote p {
+	margin: 0;
+}
+
+.blocklane-pro-hero__footnote a {
+	color: var(--fp-accent);
+	text-decoration: none;
+	font-weight: 500;
+}
+
+.blocklane-pro-hero__footnote a:hover {
+	text-decoration: underline;
+}
+
+/* ==== Resources / Changelog sections =================================== */
+
+.blocklane-pro-resources,
+.blocklane-pro-changelog {
+	padding: var(--fp-section-pad-y) var(--fp-section-pad-x);
+}
+
+.blocklane-pro-resources {
+	background: var(--fp-white);
+	border-top: 1px solid var(--fp-border);
+	border-bottom: 1px solid var(--fp-border);
+}
+
+.blocklane-pro-changelog {
+	background: var(--fp-white);
+	border-top: 1px solid var(--fp-border);
+}
+
+.blocklane-pro-resources__inner,
+.blocklane-pro-changelog__inner {
+	margin: 0 auto;
+}
+
+.blocklane-pro-resources__header,
+.blocklane-pro-changelog__header {
+	margin-bottom: 24px;
+}
+
+.blocklane-pro-resources__title,
+.blocklane-pro-changelog__title {
+	margin: 0;
+	font-size: clamp(1.625rem, 1.625rem + ( ( 1vw - 0.2rem ) * 0.851 ), 2.125rem);
+	font-weight: 400;
+	line-height: 1.2;
+	letter-spacing: -0.005em;
+}
+
+.blocklane-pro-resources__subtitle,
+.blocklane-pro-changelog__subtitle {
+	margin: 10px 0 0;
+	color: var(--fp-text-muted);
+	font-size: 16px;
+}
+
+.blocklane-pro-resources__grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 24px;
+}
+
+.blocklane-pro-changelog__grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 24px;
+}
+
+@media ( max-width: 960px ) {
+
+	.blocklane-pro-resources__grid,
+	.blocklane-pro-changelog__grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ==== InfoCard ========================================================= */
+
+.blocklane-pro-info-card {
+	background: var(--fp-white);
+	border-radius: var(--fp-radius);
+	box-shadow: var(--fp-shadow-card);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.blocklane-pro-info-card__body {
+	padding: 25px 25px 12px;
+	flex: 1;
+}
+
+.blocklane-pro-info-card__title {
+	margin: 0 0 8px;
+	font-size: 19px;
+	font-weight: 600;
+	letter-spacing: -0.005em;
+}
+
+/* "Coming soon" pill beside a card's footer link. */
+.blocklane-pro-info-card__badge {
+	display: inline-block;
+	padding: 2px 10px;
+	background: var(--fp-accent-soft);
+	color: var(--fp-accent);
+	border-radius: var(--fp-radius-pill);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+/* Icon art for the Essential Tools cards (the pills stay on Extensions). */
+.blocklane-pro-tool-card__icon {
+	display: inline-flex;
+	color: var(--fp-accent);
+}
+
+.blocklane-pro-tool-card__icon svg {
+	width: 56px;
+	height: 56px;
+	fill: currentcolor;
+}
+
+.blocklane-pro-info-card__tagline {
+	margin: 0;
+	color: var(--fp-text-muted);
+	font-size: 16px;
+	line-height: 1.55;
+}
+
+.blocklane-pro-info-card__tagline ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.blocklane-pro-info-card__tagline li {
+	position: relative;
+	padding-left: 18px;
+	margin-bottom: 6px;
+}
+
+.blocklane-pro-info-card__tagline li::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 8px;
+	width: 6px;
+	height: 6px;
+	background: var(--fp-accent);
+	border-radius: 50%;
+	opacity: 0.6;
+}
+
+.blocklane-pro-info-card__footer {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 4px 16px 16px;
+}
+
+.blocklane-pro-info-card__footer .components-button {
+	color: var(--fp-accent);
+}
+
+.blocklane-pro-info-card__footer .components-button:hover {
+	color: var(--fp-accent-hover);
+	background: var(--fp-accent-soft);
+}
+
+/* ==== Modal overlay (BlocklanePro's tinted + blurred treatment) =========== */
+
+.blocklane-pro-root + .components-modal__screen-overlay,
+body.blocklane-pro-embedded .components-modal__screen-overlay {
+	background: rgb(63 64 88 / 42%);
+	backdrop-filter: blur(3px);
+	-webkit-backdrop-filter: blur(3px);
+}
+
+/* ==== Shared sign-in form (used in modal + home hero) =================== */
+
+.blocklane-pro-signin-form__spacer {
+	height: 12px;
+}
+
+.blocklane-pro-signin-form__keep {
+	margin-top: 14px;
+}
+
+.blocklane-pro-signin-form__actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: 20px;
+	gap: 12px;
+}
+
+.blocklane-pro-signin-form__forgot {
+	color: var(--fp-accent);
+	font-size: 15px;
+	font-weight: 500;
+	text-decoration: none;
+}
+
+.blocklane-pro-signin-form__forgot:hover {
+	text-decoration: underline;
+}
+
+/* ==== Sticky sign-in CTA =============================================== */
+
+.blocklane-pro-sticky-cta {
+	position: fixed;
+	bottom: 24px;
+	right: 24px;
+	z-index: 1000;
+	box-shadow: 0 12px 32px rgba(var(--fp-accent-rgb), 0.35);
+	border-radius: var(--fp-radius-pill);
+}
+
+.blocklane-pro-sticky-cta .components-button {
+	background: var(--fp-accent);
+	color: var(--fp-white);
+	padding: 0 24px;
+	height: 48px;
+	border-radius: var(--fp-radius-pill);
+	font-weight: 600;
+	font-size: 16px;
+}
+
+.blocklane-pro-sticky-cta .components-button:hover {
+	background: var(--fp-accent-hover);
+	color: var(--fp-white);
+}
+
+/* ==== Patterns (refined for new canvas) ================================ */
+
+.blocklane-pro-patterns {
+	display: grid;
+	grid-template-columns: 220px 1fr;
+	gap: 32px;
+	padding: clamp(2rem, 5vw, 3.5rem) clamp(2rem, 7vw, 3rem);
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
+@media ( max-width: 1100px ) {
+
+	.blocklane-pro-patterns {
+		grid-template-columns: 1fr;
+	}
+}
+
+.blocklane-pro-patterns__sidebar {
+	position: sticky;
+	top: 32px;
+	align-self: start;
+}
+
+.blocklane-pro-patterns__main {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	min-width: 0;
+}
+
+.blocklane-pro-patterns__toolbar .components-search-control {
+	max-width: 360px;
+}
+
+.blocklane-pro-patterns__empty {
+	background: var(--fp-surface);
+	border: 1px dashed var(--fp-border);
+	border-radius: var(--fp-radius);
+	padding: 48px 24px;
+	text-align: center;
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-patterns__empty p {
+	margin: 0;
+}
+
+.blocklane-pro-patterns__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	gap: 20px;
+}
+
+/* Category sidebar (within patterns) */
+
+.blocklane-pro-category-sidebar {
+	background: var(--fp-bg-soft);
+	border-radius: var(--fp-radius);
+	padding: 6px;
+}
+
+.blocklane-pro-category-sidebar ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.blocklane-pro-category-sidebar__item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+	padding: 10px 14px;
+	background: transparent;
+	border: 0;
+	border-radius: var(--fp-radius-sm);
+	color: var(--fp-text);
+	font-size: 14px;
+	font-weight: 500;
+	text-align: left;
+	cursor: pointer;
+	transition: background 120ms ease, color 120ms ease;
+}
+
+.blocklane-pro-category-sidebar__item:hover {
+	background: var(--fp-white);
+}
+
+.blocklane-pro-category-sidebar__item.is-active {
+	background: var(--fp-white);
+	color: var(--fp-accent);
+	font-weight: 600;
+	box-shadow: var(--fp-shadow-soft);
+}
+
+.blocklane-pro-category-sidebar__count {
+	color: var(--fp-text-muted);
+	font-variant-numeric: tabular-nums;
+	font-size: 12px;
+}
+
+.blocklane-pro-category-sidebar__item.is-active .blocklane-pro-category-sidebar__count {
+	color: var(--fp-accent);
+}
+
+/* ==== Pattern cards ===================================================== */
+
+.blocklane-pro-pattern-card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	padding: 0;
+	background: var(--fp-surface);
+	border: 1px solid var(--fp-border);
+	border-radius: var(--fp-radius);
+	overflow: hidden;
+	text-align: left;
+	box-shadow: var(--fp-shadow-card);
+	transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.blocklane-pro-pattern-card:hover,
+.blocklane-pro-pattern-card:focus-within {
+	transform: translateY(-2px);
+	box-shadow: var(--fp-shadow-soft);
+	border-color: var(--fp-gray-300);
+}
+
+.blocklane-pro-pattern-card__trigger {
+	position: absolute;
+	inset: 0;
+	background: transparent;
+	border: none;
+	cursor: pointer;
+	z-index: 1;
+}
+
+.blocklane-pro-pattern-card__trigger:focus-visible {
+	outline: 2px solid var(--fp-accent);
+	outline-offset: -2px;
+}
+
+.blocklane-pro-pattern-card__preview {
+	position: relative;
+	background: var(--fp-gray-50);
+	border-bottom: 1px solid var(--fp-border);
+}
+
+.blocklane-pro-pattern-preview {
+	aspect-ratio: 16 / 10;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.blocklane-pro-pattern-preview.is-empty {
+	background: linear-gradient(135deg, var(--fp-gray-100), var(--fp-gray-200));
+}
+
+.blocklane-pro-pattern-card__badge {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	display: inline-flex;
+	align-items: center;
+	height: 22px;
+	padding: 0 10px;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	border-radius: var(--fp-radius-pill);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.blocklane-pro-pattern-card__badge.is-installed {
+	background: var(--fp-success-soft);
+	color: var(--fp-success);
+}
+
+.blocklane-pro-pattern-card__badge.is-update {
+	background: var(--fp-warning-soft);
+	color: var(--fp-warning);
+}
+
+.blocklane-pro-pattern-card__meta {
+	padding: 14px 16px 16px;
+}
+
+.blocklane-pro-pattern-card__title {
+	margin: 0 0 4px;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--fp-text);
+}
+
+.blocklane-pro-pattern-card__categories {
+	margin: 0;
+	color: var(--fp-text-muted);
+	font-size: 12px;
+	text-transform: capitalize;
+}
+
+/* ==== Skeleton ========================================================== */
+
+@keyframes blocklane-pro-skeleton {
+
+	0% {
+		background-position: 200% 0;
+	}
+
+	100% {
+		background-position: -200% 0;
+	}
+}
+
+.blocklane-pro-skeleton-card {
+	background: var(--fp-surface);
+	border: 1px solid var(--fp-border);
+	border-radius: var(--fp-radius);
+	overflow: hidden;
+	box-shadow: var(--fp-shadow-card);
+}
+
+.blocklane-pro-skeleton-card__preview {
+	aspect-ratio: 16 / 10;
+	background: linear-gradient(90deg, var(--fp-gray-100), var(--fp-gray-200), var(--fp-gray-100));
+	background-size: 200% 100%;
+	animation: blocklane-pro-skeleton 1.6s ease-in-out infinite;
+}
+
+.blocklane-pro-skeleton-card__meta {
+	padding: 14px 16px 16px;
+}
+
+.blocklane-pro-skeleton-card__title,
+.blocklane-pro-skeleton-card__sub {
+	height: 12px;
+	background: linear-gradient(90deg, var(--fp-gray-100), var(--fp-gray-200), var(--fp-gray-100));
+	background-size: 200% 100%;
+	animation: blocklane-pro-skeleton 1.6s ease-in-out infinite;
+	border-radius: var(--fp-radius-xs);
+}
+
+.blocklane-pro-skeleton-card__title {
+	width: 60%;
+	margin-bottom: 8px;
+}
+
+.blocklane-pro-skeleton-card__sub {
+	width: 40%;
+	height: 10px;
+}
+
+/* ==== Preview modal ===================================================== */
+
+.blocklane-pro-preview-modal .components-modal__content {
+	padding: 0;
+}
+
+.blocklane-pro-preview-modal .components-modal__header {
+	padding: 18px 24px;
+	border-bottom: 1px solid var(--fp-border);
+}
+
+.blocklane-pro-preview-modal__preview {
+	background: var(--fp-gray-50);
+	border-bottom: 1px solid var(--fp-border);
+}
+
+.blocklane-pro-preview-modal__preview .blocklane-pro-pattern-preview {
+	aspect-ratio: 16 / 9;
+	max-height: 60vh;
+}
+
+.blocklane-pro-preview-modal__description {
+	margin: 0;
+	padding: 0 24px;
+	color: var(--fp-text-muted);
+	font-size: 14px;
+	line-height: 1.55;
+}
+
+.blocklane-pro-preview-modal__meta {
+	padding: 0 24px;
+}
+
+.blocklane-pro-preview-modal__meta-label {
+	display: block;
+	margin-bottom: 6px;
+	color: var(--fp-text-muted);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.blocklane-pro-preview-modal__chips {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.blocklane-pro-preview-modal__chips li {
+	background: var(--fp-accent-soft);
+	color: var(--fp-accent);
+	font-size: 12px;
+	font-weight: 500;
+	padding: 3px 10px;
+	border-radius: var(--fp-radius-pill);
+}
+
+.blocklane-pro-preview-modal__chips--muted li {
+	background: var(--fp-border-soft);
+	color: var(--fp-text-muted);
+	font-weight: 400;
+}
+
+.blocklane-pro-preview-modal__status {
+	padding: 0 24px;
+	color: var(--fp-text-muted);
+	font-size: 12px;
+}
+
+.blocklane-pro-preview-modal .components-h-stack:last-child {
+	padding: 0 24px 24px;
+}
+
+/* ==== Extensions screen — pixel-matched to BlocklanePro Pro 2.4 =========== */
+
+/* Panel background shows through the transparent preview area; sidebar
+   overlays it with white. Matches BlocklanePro's rgb(246,246,252) panel tint.
+   Box-sizing scoped to our own BEM elements only — applying to `*` would
+   leak into nested @wordpress/components which assume content-box and
+   would compress toggle tracks / shift inputs. */
+.blocklane-pro-extensions,
+.blocklane-pro-extensions [class*="blocklane-pro-extensions__"],
+.blocklane-pro-extensions [class*="blocklane-pro-feature-"] {
+	box-sizing: border-box;
+}
+
+/* Sidebar (left) — white, grows to fill remaining space, min 450px.
+   The right hairline is the drawer face's edge: it runs the full column
+   height, defines the seam the Help handle attaches to, and travels with
+   the seam through the collapse. */
+.blocklane-pro-extensions__sidebar {
+	flex: 1 1 auto;
+	min-width: 450px;
+	background: var(--fp-white);
+	padding: 0;
+	border-right: 1px solid var(--fp-border);
+}
+
+/* Inner section — 20px padding all round, roughly matching core wp-admin's
+   content inset, applied to every dashboard screen (shared wrapper). */
+.blocklane-pro-extensions__section {
+	max-width: 1200px;
+	margin: 0;
+	padding: 20px;
+}
+
+/* Save / error notices sit at the top of the section (directly, or as the
+   first children of a tab panel on the tabbed screens) — give them room
+   below so they don't crowd what follows. */
+.blocklane-pro-extensions__section > .components-notice,
+.blocklane-pro-extensions__section > [role="tabpanel"] > .components-notice {
+	margin: 0 0 24px;
+}
+
+.blocklane-pro-extensions__header {
+	margin-bottom: 32px;
+}
+
+/* Screen title — matched to core wp-admin's .wrap h1 (23px / 400 / 1.3) so the
+   dashboard headings read at the same size as standard admin pages. */
+.blocklane-pro-extensions__title {
+	margin: 0 0 16px;
+	font-size: 23px;
+	font-weight: 400;
+	line-height: 1.3;
+	color: var(--fp-text);
+}
+
+/* The screen title is a roving focus target (tabindex="-1") that the screen
+   focuses on view changes so screen-reader/keyboard users are moved to the new
+   view and it's announced. It's not a Tab stop or an interactive control, so
+   its
+   focus ring reads as a visual artifact (browsers treat the programmatic focus
+   on
+   a fresh deep-link load as :focus-visible, so that guard can't suppress it) —
+   hide it; the element still receives focus and is announced. */
+.blocklane-pro-extensions__title:focus {
+	outline: none;
+}
+
+.blocklane-pro-extensions__lede {
+	margin: 0;
+	color: var(--fp-text-muted);
+	font-size: 15px;
+	line-height: 1.5;
+}
+
+/* Title row (Dynamic Values, the Content Types editor chrome and section
+   heads): a heading with its actions inline — core's "Plugins [Add Plugin]"
+   row. The search box, when a row has one, is pushed to the right. */
+.blocklane-pro-extensions__titlerow {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 10px;
+}
+
+/* In the row the title aligns with the controls, so drop its bottom margin. */
+.blocklane-pro-extensions__titlerow .blocklane-pro-extensions__title {
+	margin: 0;
+}
+
+.blocklane-pro-extensions__titlerow .blocklane-pro-extensions__search {
+	margin-left: auto;
+}
+
+.blocklane-pro-extensions__search {
+	width: 186px;
+}
+
+.blocklane-pro-extensions__search .components-search-control {
+	margin: 0;
+}
+
+/* Search wrapper matches core wp-admin form controls (WP 7.0): 32px tall, 2px
+   radius, same height as the Enable/Disable All button alongside it. */
+.blocklane-pro-extensions__search .components-input-control__container {
+	height: 32px;
+	border-radius: 2px;
+	box-shadow: inset 0 0 0 1px var(--fp-accent);
+	background: var(--fp-white);
+}
+
+.blocklane-pro-extensions__search .components-input-control__container .components-input-control__input {
+	border-radius: 2px;
+	background: transparent;
+	box-shadow: none;
+}
+
+/* Disable/Enable All button — match the search wrapper's 2px radius */
+.blocklane-pro-extensions__titlerow .components-button.is-secondary {
+	border-radius: 2px;
+}
+
+/* Snackbar lives as a flex child of the screen by default so it stretches
+   to fill the panel height. Lift it out as a fixed-position toast in the
+   bottom-center, mirroring how core WP renders SnackbarList. */
+.blocklane-pro-extensions__snackbar {
+	position: fixed !important;
+	right: 24px !important;
+	bottom: 24px !important;
+	left: auto !important;
+	width: auto !important;
+	height: auto !important;
+	max-width: min(480px, calc(100vw - 48px));
+	z-index: 100000;
+}
+
+/* The feature list column (Extensions, Advanced) — under the tab panel's
+   toolbar, which carries the gap. */
+.blocklane-pro-extensions__fields {
+	width: 100%;
+}
+
+.blocklane-pro-extensions__error {
+	margin: 16px 0 0;
+	color: var(--fp-error);
+	font-size: 13px;
+}
+
+/* Preview area (right) — fixed 420px, transparent so panel bg shows.
+   Sticky so the help/overview pane stays in view as the left column scrolls.
+   align-self: flex-start stops the item from stretching to the row height, so
+   its containing block is the tall flex CONTAINER — that's what gives a sticky
+   item room to travel (a stretched item has none). Scrollport is the canvas.
+   top: 0 + the 20px top padding matches the left column's section padding,
+   lining the panel's first text line up with the page title / search row. */
+.blocklane-pro-extensions__preview {
+	flex: 0 0 420px;
+	min-width: 420px;
+	background: transparent;
+	padding: 20px 40px 40px;
+	align-self: flex-start;
+	position: sticky;
+	top: 0;
+	overflow: hidden;
+	transition:
+		flex-basis 0.2s ease,
+		min-width 0.2s ease,
+		padding 0.2s ease;
+}
+
+/* ---- Help tab (core's contextual-help affordance as a drawer handle) ----
+   Core hangs its Help tab under the admin bar and drops a full-width drawer;
+   ours is a vertical pull tab riding the seam between the feature list and
+   the help sidebar — a zero-width sticky rail in the flex row, so the handle
+   tracks the seam through the collapse animation with no hardcoded offsets
+   and stays in view while the list scrolls. Closed, it hugs the canvas's
+   right edge; opening slides the panel out from under it. */
+
+/* The rail is a zero-width, full-height flex item at the seam; the BUTTON
+   is the sticky element inside it, pinned at mid-viewport. Sticky travel is
+   bounded by the containing rail — a viewport-tall sticky rail ran out of
+   room halfway down a long list and drifted; a 56px sticky button inside a
+   container-height rail effectively never does. */
+.blocklane-pro-help-tab-rail {
+	flex: 0 0 0;
+	width: 0;
+	align-self: stretch;
+}
+
+/* Icon-only handle, the sidebar's own tint and no border so it reads as a
+   notch of the drawer itself. Closed it hangs off the list side of the
+   seam (a soft pill on the white column); open it flips across onto the
+   panel's padding — same background, so it melts into the drawer face and
+   can't overlap the list's header row. The flip is a transform so it
+   animates in step with the panel slide. */
+.blocklane-pro-help-tab {
+	position: sticky;
+	top: calc(50vh - 44px);
+	z-index: 10;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	width: 32px;
+
+	/* Hang off the list side of the seam; margin-left mirrors the width so
+	   the right edge stays pinned. The open state's fixed 32px translate
+	   flips it across onto the panel. */
+	margin-left: -32px;
+	padding: 10px 0 12px;
+	overflow: hidden;
+	white-space: nowrap;
+	background: var(--fp-bg-soft);
+	border: none;
+	border-radius: 4px 0 0 4px;
+	color: var(--fp-text);
+	cursor: pointer;
+	transition: transform 0.2s ease, background 0.1s ease;
+}
+
+/* Closed pill: icon on top, vertical Help beneath, 20px of air all around
+   (width mirrors into the margin so the right edge stays pinned to the
+   seam). flex-shrink pairs with the svg rule below: the icon+label overflow
+   the resting 32px pill, and without it the flex row shrinks the label. */
+.blocklane-pro-help-tab__label {
+	font-size: 14px;
+	writing-mode: vertical-rl;
+	flex-shrink: 0;
+}
+
+.blocklane-pro-help-tab[aria-expanded="false"] {
+	width: 50px;
+	margin-left: -50px;
+	padding: 15px;
+}
+
+.blocklane-pro-help-tab[aria-expanded="false"] svg {
+	width: 20px;
+	height: 20px;
+}
+
+/* Open = active: the handle holds the hover treatment while the panel is
+   out, like a selected tab; hovering it then deepens slightly. */
+
+/* Active tint on the surface only — the chevron keeps the text color. */
+.blocklane-pro-help-tab[aria-expanded="true"] {
+	transform: translateX(32px);
+	border-radius: 0 4px 4px 0;
+	background: color-mix(in srgb, var(--fp-accent) 12%, #fff);
+	color: var(--fp-text);
+	height: 56px;
+	padding: 0;
+}
+
+.blocklane-pro-help-tab[aria-expanded="true"] .blocklane-pro-help-tab__label {
+	display: none;
+}
+
+/* :focus-visible, not :focus — a mouse click parks focus on the handle,
+   and a just-closed handle must not keep looking active. */
+.blocklane-pro-help-tab:hover,
+.blocklane-pro-help-tab:focus-visible {
+	background: color-mix(in srgb, var(--fp-accent) 12%, #fff);
+	color: var(--fp-accent);
+}
+
+
+.blocklane-pro-help-tab[aria-expanded="true"]:hover,
+.blocklane-pro-help-tab[aria-expanded="true"]:focus-visible {
+	background: color-mix(in srgb, var(--fp-accent) 18%, #fff);
+}
+
+.blocklane-pro-help-tab:focus-visible {
+	outline: 1.5px solid var(--fp-accent);
+	outline-offset: 1px;
+}
+
+.blocklane-pro-help-tab svg {
+	fill: currentcolor;
+
+	/* The icon+label overflow the resting 32px pill; without this the flex
+	   row shrinks the icon instead of clipping the label. */
+	flex-shrink: 0;
+}
+
+@media ( prefers-reduced-motion: reduce ) {
+
+	.blocklane-pro-help-tab {
+		transition: none;
+	}
+}
+
+/* Closed: the column collapses (delayed visibility so the slide finishes
+   before the content is removed from the accessibility tree/tab order);
+   the fixed content width means the panel clips as it slides instead of
+   reflowing its text mid-animation. */
+.blocklane-pro-extensions.is-help-closed .blocklane-pro-extensions__preview {
+	flex-basis: 0;
+	min-width: 0;
+	padding-left: 0;
+	padding-right: 0;
+	visibility: hidden;
+	transition:
+		flex-basis 0.2s ease,
+		min-width 0.2s ease,
+		padding 0.2s ease,
+		visibility 0s linear 0.2s;
+}
+
+/* Content slides in horizontally on mount — the same motion as the drawer
+   pullout, so a swap reads as more of the drawer arriving, not a separate
+   fade (keyframes below, past the collapse rules). */
+.blocklane-pro-extensions__preview-content {
+	position: relative;
+	width: 340px;
+	transition: opacity 0.15s ease 0.1s, transform 0.2s ease 0.05s;
+	animation: blocklane-pro-help-slide-in 0.2s ease-out;
+}
+
+.blocklane-pro-extensions.is-help-closed
+.blocklane-pro-extensions__preview-content {
+	opacity: 0;
+	transform: translateX(24px);
+	transition: opacity 0.1s ease, transform 0.15s ease;
+}
+
+@media ( prefers-reduced-motion: reduce ) {
+
+	.blocklane-pro-extensions__preview,
+	.blocklane-pro-extensions.is-help-closed .blocklane-pro-extensions__preview,
+	.blocklane-pro-extensions__preview-content,
+	.blocklane-pro-extensions.is-help-closed
+	.blocklane-pro-extensions__preview-content {
+		transition: none;
+	}
+}
+
+@keyframes blocklane-pro-help-slide-in {
+
+	from {
+		opacity: 0;
+		transform: translateX(24px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+.blocklane-pro-extensions__preview-content p {
+	margin: 0 0 1em;
+	font-size: 14px;
+	line-height: 1.6;
+	color: var(--fp-text);
+}
+
+.blocklane-pro-extensions__preview-content > p:first-child strong,
+.blocklane-pro-extensions__preview-content > p strong {
+	color: var(--fp-text);
+	font-weight: 600;
+}
+
+/* Separators in the preview / overview panels — subtle theme-border rule with
+   breathing room, applied consistently across every dashboard screen. */
+.blocklane-pro-extensions__preview-content .components-divider {
+	width: 100%;
+	border-color: var(--fp-border);
+	margin-block: 1.5em;
+}
+
+/* Close X positioned outside the content area, into the preview's
+   top + right padding — matches BlocklanePro's button hugging the panel corner.
+   */
+
+/* Detail-view toggle: label acts as the heading on the left, toggle
+   on the right. Reversing the inner h-stack achieves this layout
+   (mirrors BlocklanePro's .blocklane-pro-extension-toggle treatment). */
+.blocklane-pro-extensions__detail-toggle {
+	padding-top: 0;
+	margin: 0 0 1em !important;
+}
+
+.blocklane-pro-extensions__detail-toggle .components-h-stack {
+	flex-direction: row-reverse;
+}
+
+.blocklane-pro-extensions__detail-toggle .components-toggle-control__label {
+	font-size: 1.1rem;
+	font-weight: 600;
+	line-height: 1.2;
+	color: var(--fp-text);
+}
+
+/* "Enforced by wp-config" note under a locked-on toggle. */
+.blocklane-pro-extensions__detail-note {
+	margin: -0.4em 0 1.1em;
+	font-size: 0.8125rem;
+	color: var(--fp-text-muted);
+}
+
+/* Content lists inside a feature's detail panel are prose, so they show
+   real bullets (the toggle-row list above is intentionally bare). The
+   left padding keeps the outside-positioned markers from being clipped. */
+.blocklane-pro-extensions__detail-desc ul {
+	list-style: disc;
+	margin: 0 0 1.15em;
+	padding-left: 1.35em;
+}
+
+.blocklane-pro-extensions__detail-desc li {
+	margin: 0 0 0.4em;
+}
+
+.blocklane-pro-extensions__detail-desc li:last-child {
+	margin-bottom: 0;
+}
+
+@keyframes blocklane-pro-fade-in {
+
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@media ( max-width: 1250px ) {
+
+	.blocklane-pro-extensions {
+		flex-direction: column;
+	}
+
+	.blocklane-pro-extensions__sidebar {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	/* Stacked: the preview sits below the content, so don't pin it. */
+	.blocklane-pro-extensions__preview {
+		flex: 1 1 auto;
+		min-width: 0;
+		border-top: 1px solid var(--fp-border);
+		position: static;
+		align-self: auto;
+		top: auto;
+	}
+}
+
+/* Feature list — a <ul> of rows: a toggle on the left and a details button
+   (title
+   + description, chevron right) as siblings inside .blocklane-pro-feature-item,
+   so no
+   interactive control is nested inside a button role. Styling targets the item
+   class (not the list child) to keep list semantics intact. */
+
+.blocklane-pro-feature-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.blocklane-pro-feature-item {
+	padding: 20px;
+	border-top: 1px solid var(--fp-border);
+	transition: background 0.2s ease, border-color 0.2s ease;
+	cursor: pointer;
+}
+
+/* First row never has a top separator. */
+.blocklane-pro-feature-list > li:first-child .blocklane-pro-feature-item {
+	border-top: 0;
+}
+
+.blocklane-pro-feature-item:hover,
+.blocklane-pro-feature-item.is-active {
+	background: color-mix(in srgb, var(--fp-accent) 5%, transparent);
+	border-top-color: transparent;
+	border-radius: var(--fp-radius);
+}
+
+/* Drop the separator on the row right after a highlighted one. */
+.blocklane-pro-feature-list > li:hover + li .blocklane-pro-feature-item,
+.blocklane-pro-feature-list > li:has(.is-active) + li .blocklane-pro-feature-item {
+	border-top-color: transparent;
+}
+
+/* The pinned/active card gets a subtle left accent bar (inset shadow, so no
+   layout shift) to mark the current selection. Plain hover stays unchanged. */
+.blocklane-pro-feature-item.is-active {
+	box-shadow: inset 3px 0 0 0 var(--fp-accent);
+}
+
+/* The details button carries the click/keyboard target (opens the preview
+   panel);
+   the toggle is a sibling with its own native focus style. */
+.blocklane-pro-feature-item__open {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	background: none;
+	border: 0;
+	text-align: left;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+
+/* Keyboard focus ring on the details button — required for WCAG 2.1 SC
+   2.4.7. */
+.blocklane-pro-feature-item__open:focus-visible {
+	outline: 2px solid var(--fp-accent);
+	outline-offset: 3px;
+	border-radius: var(--fp-radius);
+}
+
+.blocklane-pro-feature-list .components-toggle-control {
+	margin: 0;
+}
+
+.blocklane-pro-feature-list__empty {
+	padding: 32px 16px;
+	color: var(--fp-text-muted);
+	font-size: 13px;
+	text-align: center;
+}
+
+.blocklane-pro-feature-item__toggle {
+	flex-shrink: 0;
+}
+
+/* The toggle's label is its accessible name (screen readers) but must not
+   render
+   visibly — the row already shows the title. hideLabelFromVision doesn't clip
+   the
+   ToggleControl's inline label in this components version, so clip it here. */
+.blocklane-pro-feature-item__toggle .components-toggle-control__label {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+.blocklane-pro-feature-item__text {
+	min-width: 0;
+}
+
+.blocklane-pro-feature-item__title {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--fp-text);
+	line-height: 1.15;
+}
+
+.blocklane-pro-feature-item__desc {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 400;
+	line-height: 1.5;
+
+	/* Darker than --fp-text-muted to clear WCAG AA 4.5:1 against white
+	   on this 16px/400 description copy. */
+	color: #525272;
+}
+
+.blocklane-pro-feature-item__badge {
+	display: inline-flex;
+	align-items: center;
+	height: 18px;
+	padding: 0 8px;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--fp-accent);
+	background: color-mix(in srgb, var(--fp-accent) 10%, transparent);
+	border-radius: var(--fp-radius-xs);
+	line-height: 1;
+}
+
+.blocklane-pro-feature-item__chevron {
+	flex-shrink: 0;
+	color: var(--fp-text-muted);
+}
+
+/* Skeleton row — toggle left, text middle, chevron right */
+
+.blocklane-pro-feature-item.is-skeleton {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	pointer-events: none;
+}
+
+.blocklane-pro-feature-item__skel-text {
+	flex: 1;
+}
+
+.blocklane-pro-feature-item__skel-title {
+	width: 35%;
+	height: 14px;
+	margin-bottom: 8px;
+	border-radius: var(--fp-radius-xs);
+}
+
+.blocklane-pro-feature-item__skel-body {
+	width: 75%;
+	height: 12px;
+	border-radius: var(--fp-radius-xs);
+}
+
+.blocklane-pro-feature-item__skel-toggle {
+	width: 36px;
+	height: 20px;
+	border-radius: var(--fp-radius-pill);
+	flex-shrink: 0;
+}
+
+.blocklane-pro-feature-item__skel-chevron {
+	width: 16px;
+	height: 16px;
+	border-radius: var(--fp-radius-xs);
+	flex-shrink: 0;
+}
+
+.blocklane-pro-feature-item__skel-title,
+.blocklane-pro-feature-item__skel-body,
+.blocklane-pro-feature-item__skel-toggle,
+.blocklane-pro-feature-item__skel-chevron {
+	background: linear-gradient(90deg, var(--fp-gray-100) 0%, var(--fp-gray-200) 50%, var(--fp-gray-100) 100%);
+	background-size: 200% 100%;
+	animation: blocklane-pro-skeleton 1.4s ease-in-out infinite;
+}
+
+/* Breakpoints setting — Tablet/Mobile inputs fill the row 50/50, labels on one
+   line. */
+
+/* Let the VStack gap own the spacing — default heading/p margins would double
+   it. */
+.blocklane-pro-breakpoints-setting h2,
+.blocklane-pro-breakpoints-setting p {
+	margin: 0;
+}
+
+.blocklane-pro-breakpoints-setting .components-input-control,
+.blocklane-pro-breakpoints-setting .components-number-control {
+	width: 100%;
+}
+
+.blocklane-pro-breakpoints-setting .components-base-control__label,
+.blocklane-pro-breakpoints-setting .components-input-control__label {
+	white-space: nowrap;
+}
+
+/* Create Child Theme screen — the shell (container, sidebar, section, header,
+   title, lede, preview, preview-content) reuses the .blocklane-pro-extensions
+   classes for identical measurements; only the form below is specific. */
+
+.blocklane-pro-child-theme__fields {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	max-width: 600px;
+}
+
+.blocklane-pro-child-theme__field label {
+	display: block;
+	margin-bottom: 6px;
+	font-weight: 600;
+	font-size: 13px;
+}
+
+.blocklane-pro-child-theme__field label.is-required::after {
+	content: " *";
+	color: var(--fp-error);
+}
+
+.blocklane-pro-child-theme__help {
+	margin: 6px 0 0;
+	color: var(--fp-text-muted);
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.blocklane-pro-child-theme__import {
+	padding: 16px;
+	background: var(--fp-bg-soft);
+	border: 1px solid var(--fp-border);
+	border-radius: var(--fp-radius-sm);
+}
+
+.blocklane-pro-child-theme__import .blocklane-pro-child-theme__help {
+	margin: 8px 0 0;
+}
+
+.blocklane-pro-child-theme__actions {
+	margin-top: 8px;
+}
+
+.blocklane-pro-child-theme__summary-row {
+	padding: 8px 0;
+}
+
+.blocklane-pro-child-theme__summary-row strong {
+	display: inline-block;
+	min-width: 110px;
+}
+
+.blocklane-pro-child-theme__screenshot {
+	max-width: 320px;
+	width: 100%;
+	height: fit-content;
+	border-radius: var(--fp-radius-sm);
+	border: 1px solid var(--fp-border);
+}
+
+.blocklane-pro-child-theme-modal {
+	max-width: 600px;
+}
+
+.blocklane-pro-child-theme-modal p {
+	margin-top: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Scripts screen
+   ---------------------------------------------------------------------- */
+
+.blocklane-pro-scripts__fields {
+	display: flex;
+	flex-direction: column;
+	gap: 28px;
+}
+
+.blocklane-pro-scripts__field-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 8px;
+}
+
+.blocklane-pro-scripts__field label {
+	display: block;
+	font-weight: 600;
+	font-size: 13px;
+	color: var(--fp-text);
+}
+
+/* Keep the per-section toggle compact and on the field-head baseline. */
+.blocklane-pro-scripts__field-toggle {
+	margin-bottom: 0;
+	flex-shrink: 0;
+}
+
+/* Section switched off: dim the editor but leave it editable so code can be
+   prepped while it's parked. */
+.blocklane-pro-scripts__field.is-off .CodeMirror,
+.blocklane-pro-scripts__field.is-off .blocklane-pro-scripts__textarea {
+	opacity: 0.55;
+}
+
+.blocklane-pro-scripts__textarea {
+	width: 100%;
+	min-height: 132px;
+	padding: 12px;
+	border: 1px solid var(--fp-border);
+	border-radius: var(--fp-radius-xs);
+	font-family: Menlo, Consolas, monaco, monospace;
+	font-size: 13px;
+	line-height: 1.5;
+	resize: vertical;
+	box-sizing: border-box;
+}
+
+/* CodeMirror replaces the textarea in place; match the field framing. */
+.blocklane-pro-scripts__field .CodeMirror {
+	border: 1px solid var(--fp-border);
+	border-radius: var(--fp-radius-xs);
+	height: auto;
+	min-height: 160px;
+	font-size: 13px;
+}
+
+.blocklane-pro-scripts__field .CodeMirror-scroll {
+	min-height: 160px;
+}
+
+/* Shared loading state for a screen's async content (used by every screen). */
+.blocklane-pro-loading {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 220px;
+}
+
+/* -------------------------------------------------------------------------
+   Dynamic Values screen
+   ---------------------------------------------------------------------- */
+
+.blocklane-pro-dynamic-values__empty {
+	color: var(--fp-text-muted);
+	margin: 8px 0 20px;
+}
+
+/* Separate the notices (saved / duplicate keys / invalid values) from the
+   table. */
+.blocklane-pro-dynamic-values__table {
+	margin-top: 16px;
+}
+
+.blocklane-pro-dynamic-values__rows {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-bottom: 20px;
+}
+
+/* Column headers (shown once) + each row share one grid:
+   label | key | type | value | remove. The remove column is a fixed 36px (the
+   icon button's width) rather than `auto` — the header's remove cell is an
+   empty
+   placeholder (0px) while the row's is the button, so an `auto` track resolved
+   to
+   different widths in each grid and drifted every column's header off its
+   field. */
+.blocklane-pro-dynamic-values__head,
+.blocklane-pro-dynamic-values__row {
+	display: grid;
+	grid-template-columns: 1fr 1fr minmax(96px, 0.7fr) 1.4fr 36px;
+	gap: 12px;
+	align-items: center;
+}
+
+.blocklane-pro-dynamic-values__head {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-dynamic-values__col {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+}
+
+.blocklane-pro-dynamic-values__cell {
+	min-width: 0;
+}
+
+/* Invalid value (doesn't match its type): red ring on the input. */
+.blocklane-pro-dynamic-values__cell.is-invalid input {
+	box-shadow: inset 0 0 0 1px var(--fp-error);
+}
+
+/* The URL field is an InputControl (prefix + input) — ring the whole container
+   so the https:// prefix is included in the red outline. */
+.blocklane-pro-dynamic-values__cell.is-invalid .components-input-control__container {
+	box-shadow: 0 0 0 1px var(--fp-error);
+	border-radius: 2px;
+}
+
+/* Invalid-values warning: a tight list of "name (Type) needs …format" lines. */
+.blocklane-pro-dynamic-values__invalid {
+	margin: 4px 0 0;
+	padding-left: 18px;
+	list-style: disc;
+}
+
+.blocklane-pro-dynamic-values__invalid li {
+	margin: 0;
+}
+
+.blocklane-pro-dynamic-values__remove {
+	color: var(--fp-text-muted);
+	justify-self: start;
+}
+
+.blocklane-pro-dynamic-values__remove:hover {
+	color: var(--fp-error);
+}
+
+/* Image value: a single tile (click to replace) with a corner clear button;
+   empty state is a "Select image" button. */
+.blocklane-pro-dynamic-values__media {
+	display: flex;
+	align-items: center;
+}
+
+.blocklane-pro-dynamic-values__imagewrap {
+	position: relative;
+	display: inline-flex;
+}
+
+.blocklane-pro-dynamic-values__imagebtn {
+	display: block;
+	padding: 0;
+	border: 0;
+	background: none;
+	border-radius: 6px;
+	line-height: 0;
+	cursor: pointer;
+}
+
+.blocklane-pro-dynamic-values__thumb {
+	display: block;
+	width: 44px;
+	height: 44px;
+	object-fit: cover;
+	border-radius: 6px;
+	border: 1px solid var(--fp-border);
+}
+
+.blocklane-pro-dynamic-values__imagebtn:hover .blocklane-pro-dynamic-values__thumb,
+.blocklane-pro-dynamic-values__imagebtn:focus-visible .blocklane-pro-dynamic-values__thumb {
+	box-shadow: 0 0 0 2px var(--fp-accent);
+	border-color: var(--fp-accent);
+}
+
+.blocklane-pro-dynamic-values__imageclear.components-button.has-icon {
+	position: absolute;
+	top: -8px;
+	right: -8px;
+	min-width: 22px;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	border-radius: 50%;
+	background: var(--fp-white);
+	color: var(--fp-text-muted);
+	box-shadow: 0 0 0 1px var(--fp-border), 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.blocklane-pro-dynamic-values__imageclear.components-button.has-icon:hover {
+	color: var(--fp-error);
+	background: var(--fp-white);
+}
+
+.blocklane-pro-dynamic-values__actions {
+	margin-top: 16px;
+}
+
+/* Narrow: drop the header row and stack two-up; placeholders carry the
+   hints. */
+@media ( max-width: 782px ) {
+
+	.blocklane-pro-dynamic-values__head {
+		display: none;
+	}
+
+	.blocklane-pro-dynamic-values__row {
+		grid-template-columns: 1fr 1fr;
+		align-items: start;
+		padding-bottom: 14px;
+		border-bottom: 1px solid var(--fp-border-soft);
+	}
+
+	.blocklane-pro-dynamic-values__cell--value {
+		grid-column: 1 / -1;
+	}
+}
+
+/* -------------------------------------------------------------------------
+   Content Types screen
+   ---------------------------------------------------------------------- */
+
+.blocklane-pro-ct__empty {
+	color: var(--fp-text-muted);
+	margin: 8px 0 20px;
+}
+
+/* ---- list ---- */
+
+.blocklane-pro-ct__list {
+	list-style: none;
+	margin: 0 0 24px;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.blocklane-pro-ct__row {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 14px;
+	padding: 14px 16px;
+	border: 1px solid var(--fp-border);
+	border-radius: var(--fp-radius-sm);
+	background: var(--fp-surface);
+}
+
+/* Drag-to-reorder grip at the row's leading edge (shown with 2+ types). The
+   list
+   order also sets the type's placement in the wp-admin menu. Mirrors the field
+   grip in the type editor. */
+.blocklane-pro-ct__rowhandle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	padding: 2px;
+	border: 0;
+	background: none;
+	color: var(--fp-text-muted);
+	cursor: grab;
+	border-radius: 2px;
+}
+
+.blocklane-pro-ct__rowhandle:active {
+	cursor: grabbing;
+}
+
+.blocklane-pro-ct__rowhandle:disabled {
+	cursor: default;
+	opacity: 0.5;
+}
+
+.blocklane-pro-ct__rowhandle:focus-visible {
+	outline: 2px solid var(--fp-accent);
+	outline-offset: 1px;
+}
+
+/* The row being dragged + the row it will drop above. */
+.blocklane-pro-ct__row.is-dragging {
+	opacity: 0.5;
+}
+
+.blocklane-pro-ct__row.is-drop-target {
+	box-shadow: 0 -2px 0 var(--fp-accent);
+}
+
+.blocklane-pro-ct__rowmain {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
+	min-width: 0;
+}
+
+.blocklane-pro-ct__rowmeta {
+	color: var(--fp-text-muted);
+	font-size: 12px;
+}
+
+.blocklane-pro-ct__rowicon.dashicons {
+	font-size: 22px;
+	width: 22px;
+	height: 22px;
+	color: var(--fp-text-muted);
+	flex-shrink: 0;
+}
+
+.blocklane-pro-ct__confirm {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	flex: 1 1 100%;
+	min-width: 0;
+	padding: 12px;
+	border-radius: var(--fp-radius-sm);
+	background: var(--fp-bg-soft);
+}
+
+.blocklane-pro-ct__confirm-text {
+	margin: 0;
+	font-size: 12px;
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-ct__confirm-text.is-danger {
+	color: var(--fp-error);
+	font-weight: 600;
+}
+
+/* What a plain (non-wipe) delete does to the records — stated at the decision
+   point, under the reference's question copy. */
+.blocklane-pro-ct__confirm-note {
+	margin: 0;
+	font-size: 12px;
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-ct__confirm-actions {
+	display: flex;
+	gap: 8px;
+}
+
+.blocklane-pro-ct__actions {
+	flex-wrap: wrap;
+}
+
+/* ---- "Start from a preset" picker ---- */
+
+.blocklane-pro-ct__presets {
+	margin-top: 32px;
+	padding-top: 24px;
+	border-top: 1px solid var(--fp-border-soft);
+}
+
+.blocklane-pro-ct__presets-head {
+	margin: 0 0 12px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-ct__presets-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 12px;
+}
+
+.blocklane-pro-ct__preset {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 14px;
+	text-align: left;
+	background: var(--fp-white);
+	border: 1px solid var(--fp-border);
+	border-radius: var(--fp-radius-sm);
+	cursor: pointer;
+	transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.blocklane-pro-ct__preset:hover:not(:disabled),
+.blocklane-pro-ct__preset:focus-visible {
+	border-color: var(--fp-accent);
+	box-shadow: var(--fp-shadow-soft);
+	outline: none;
+}
+
+.blocklane-pro-ct__preset:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+
+.blocklane-pro-ct__preset-icon.dashicons {
+	font-size: 24px;
+	width: 24px;
+	height: 24px;
+	color: var(--fp-accent);
+	flex-shrink: 0;
+}
+
+.blocklane-pro-ct__preset-main {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.blocklane-pro-ct__preset-meta {
+	font-size: 12px;
+	color: var(--fp-text-muted);
+}
+
+/* ---- editor form ---- */
+
+/* The section title rows on this screen (the editor chrome, the Taxonomies
+   section head) get a 20px gap to their content (the shared titlerow
+   default is 10px). */
+.blocklane-pro-ct .blocklane-pro-extensions__titlerow {
+	margin-bottom: 20px;
+}
+
+/* ---- Taxonomies section ---- */
+
+.blocklane-pro-ct__taxes {
+	margin-top: 32px;
+	padding-top: 24px;
+	border-top: 1px solid var(--fp-border-soft);
+}
+
+.blocklane-pro-ct__taxes-intro {
+	margin: 0 0 16px;
+	font-size: 12px;
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-ct__taxtypes {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 4px 0 8px;
+}
+
+.blocklane-pro-ct__back {
+	margin-bottom: 8px;
+}
+
+.blocklane-pro-ct__form {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	max-width: 760px;
+}
+
+.blocklane-pro-ct__labels > * {
+	flex: 1;
+	min-width: 0;
+}
+
+/* Field with a help-tip beside its label (label header + hidden-label
+   control). */
+.blocklane-pro-ct__labeled {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.blocklane-pro-ct__labeled-head {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	font-weight: 600;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: var(--fp-text);
+}
+
+.blocklane-pro-ct__toggles {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px 24px;
+	padding: 16px;
+	border: 1px solid var(--fp-border);
+	border-radius: var(--fp-radius-sm);
+}
+
+.blocklane-pro-ct__subhead {
+	margin: 4px 0 0;
+	font-size: 14px;
+}
+
+/* Subhead with an inline help-tip beside the text (e.g. "Applies to"). */
+.blocklane-pro-ct__subhead--tip {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+}
+
+.blocklane-pro-ct__fields {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+/* Header (shown once) + each field row share one grid:
+   handle | label | key | type | remove. */
+.blocklane-pro-ct__fieldhead,
+.blocklane-pro-ct__field {
+	display: grid;
+	grid-template-columns: auto 1fr 1fr 0.8fr auto;
+	gap: 12px;
+	align-items: center;
+}
+
+/* Per-field extras (the dropdown-options token editor): a full sub-row under
+   the field's inputs, aligned past the drag handle. */
+.blocklane-pro-ct__fieldoptions {
+	grid-column: 2 / -1;
+}
+
+.blocklane-pro-ct__fieldoptions-help {
+	margin: 4px 0 0;
+	font-size: 12px;
+	color: var(--fp-text-muted);
+}
+
+/* Duplicate or missing field key: the store drops such a row silently, so the
+   collision is called out here, on the same sub-row grid as the options. */
+.blocklane-pro-ct__fielderror {
+	grid-column: 2 / -1;
+	margin: 0;
+	font-size: 12px;
+	color: var(--fp-error);
+}
+
+/* Drag-to-reorder grip. */
+.blocklane-pro-ct__fieldhandle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 2px;
+	border: 0;
+	background: none;
+	color: var(--fp-text-muted);
+	cursor: grab;
+	border-radius: 2px;
+}
+
+.blocklane-pro-ct__fieldhandle:active {
+	cursor: grabbing;
+}
+
+.blocklane-pro-ct__fieldhandle:focus-visible {
+	outline: 2px solid var(--fp-accent);
+	outline-offset: 1px;
+}
+
+/* The row being dragged + the row it will drop above. */
+.blocklane-pro-ct__field.is-dragging {
+	opacity: 0.5;
+}
+
+.blocklane-pro-ct__field.is-drop-target {
+	box-shadow: 0 -2px 0 var(--fp-accent);
+}
+
+.blocklane-pro-ct__fieldhead {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-ct__fieldcol {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+}
+
+.blocklane-pro-ct__field .blocklane-pro-ct__fieldremove,
+.blocklane-pro-ct__row .components-button.has-icon {
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-ct__addfield {
+	align-self: flex-start;
+}
+
+.blocklane-pro-ct__formactions {
+	border-top: 1px solid var(--fp-border-soft);
+	padding-top: 16px;
+}
+
+@media ( max-width: 782px ) {
+
+	/* Drop the header and stack; the field placeholders carry the hints. */
+	.blocklane-pro-ct__fieldhead {
+		display: none;
+	}
+
+	.blocklane-pro-ct__field {
+		grid-template-columns: auto 1fr 1fr;
+	}
+
+	.blocklane-pro-ct__toggles {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ---- toggle help (matches the blocks' blocklane-pro-help-tip) ---- */
+
+.blocklane-pro-ct__toggle {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.blocklane-pro-help-tip {
+	display: inline-flex;
+	align-items: center;
+}
+
+.blocklane-pro-help-tip__toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	background: transparent;
+	border: 0;
+	color: var(--fp-text-muted);
+	cursor: pointer;
+	border-radius: 2px;
+}
+
+.blocklane-pro-help-tip__toggle svg {
+	width: 18px;
+	height: 18px;
+	fill: currentcolor;
+}
+
+.blocklane-pro-help-tip__toggle:hover,
+.blocklane-pro-help-tip__toggle:focus {
+	color: var(--fp-accent);
+}
+
+.blocklane-pro-help-tip__toggle:focus-visible {
+	outline: 1px solid var(--fp-accent);
+	outline-offset: 1px;
+}
+
+.blocklane-pro-help-tip__popover .components-popover__content {
+	min-width: 0;
+	width: max-content;
+	max-width: 240px;
+}
+
+.blocklane-pro-help-tip__text {
+	margin: 0;
+	padding: 8px 12px;
+	font-size: 12px;
+	line-height: 1.5;
+	color: var(--fp-text);
+}
+
+/* ---- icon picker ---- */
+
+.blocklane-pro-ct__icon {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	position: relative;
+}
+
+.blocklane-pro-ct__icon-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	align-self: flex-start;
+	font-weight: 600;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: var(--fp-text);
+}
+
+.blocklane-pro-ct__icon-trigger {
+	align-self: flex-start;
+	gap: 8px;
+}
+
+.blocklane-pro-ct__icon-trigger .dashicons {
+	font-size: 20px;
+	width: 20px;
+	height: 20px;
+}
+
+.blocklane-pro-ct__icon-name {
+	font-family: Menlo, Consolas, monaco, monospace;
+	font-size: 12px;
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-ct__icon-pop {
+	width: 300px;
+	max-width: 80vw;
+	padding: 12px;
+}
+
+.blocklane-pro-ct__icon-grid {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 4px;
+	margin-top: 10px;
+	max-height: 240px;
+	overflow-y: auto;
+}
+
+.blocklane-pro-ct__icon-cell {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	aspect-ratio: 1;
+	border: 1px solid transparent;
+	border-radius: var(--fp-radius-sm);
+	background: transparent;
+	cursor: pointer;
+	color: var(--fp-text);
+}
+
+.blocklane-pro-ct__icon-cell:hover {
+	background: var(--fp-bg-soft);
+}
+
+.blocklane-pro-ct__icon-cell.is-selected {
+	border-color: var(--fp-accent);
+	background: var(--fp-accent-soft);
+	color: var(--fp-accent);
+}
+
+.blocklane-pro-ct__icon-cell .dashicons {
+	font-size: 22px;
+	width: 22px;
+	height: 22px;
+}
+
+.blocklane-pro-ct__icon-empty {
+	grid-column: 1 / -1;
+	color: var(--fp-text-muted);
+	font-size: 12px;
+	text-align: center;
+	padding: 12px 0;
+}
+
+/* ---- content types: DataViews rebuild ----------------------------------- */
+
+/* The DataViews table needs a definite height context for its own
+   scroll/footer arrangement; keep it bounded inside the section. */
+.blocklane-pro-ct__dataviews {
+	display: flex;
+	flex-direction: column;
+	min-height: 320px;
+
+	/* DataViews self-pads its header and rows; pull it back so the search
+	   field aligns with the tab labels at the section's 24px gutter. */
+	margin: 0 -24px 24px;
+}
+
+.blocklane-pro-ct__dataviews .dataviews-wrapper {
+	flex: 1;
+}
+
+.blocklane-pro-ct__name {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.blocklane-pro-ct__name .blocklane-pro-ct__rowicon.dashicons {
+	margin: 0;
+}
+
+.blocklane-pro-ct__dv-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+	padding: 48px 24px;
+	text-align: center;
+	color: var(--fp-text-muted);
+}
+
+/* Presets-first empty state: the gallery is the centerpiece. The preset
+   cards reuse the standard card styles; text inside them stays
+   left-aligned while the lead line stays centered. */
+.blocklane-pro-ct__dv-empty.is-presets {
+	gap: 20px;
+	padding: 40px 24px 56px;
+}
+
+.blocklane-pro-ct__dv-empty-lead {
+	margin: 0;
+	font-size: 14px;
+}
+
+/* A ROW of cards (Garrett's round-4 ruling), wrapping at narrow widths. */
+.blocklane-pro-ct__dv-empty .blocklane-pro-ct__presets-grid {
+	display: flex;
+	flex-flow: row wrap;
+	gap: 12px;
+	justify-content: center;
+	width: 100%;
+	text-align: left;
+}
+
+.blocklane-pro-ct__dv-empty .blocklane-pro-ct__preset {
+	flex: 0 1 260px;
+	min-width: 220px;
+}
+
+.blocklane-pro-ct__preset.is-blank {
+	border-style: dashed;
+}
+
+/* Badge rows in list columns (supports, taxonomies, applies-to, status). */
+.blocklane-pro-ct__badges {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	align-items: center;
+}
+
+.blocklane-pro-ct__badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 2px;
+	background: #f0f0f0;
+	color: #1e1e1e;
+	font-size: 12px;
+	line-height: 1.6;
+	white-space: nowrap;
+}
+
+.blocklane-pro-ct__badge.is-active {
+	background: #edfaef;
+	color: #007017;
+}
+
+.blocklane-pro-ct__badge.is-inactive {
+	background: #f0f0f0;
+	color: #50575e;
+}
+
+.blocklane-pro-ct__badge.is-overflow {
+	cursor: default;
+	background: transparent;
+	border: 1px solid #ddd;
+}
+
+/* DataForm editors: the reference's single-flow form (max-width 680,
+   centered — its .post-type-form/.taxonomy-form) with card spacing. */
+.blocklane-pro-ct__form.is-dataform {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 680px;
+	margin: 0 auto;
+	padding: 24px 0;
+}
+
+/* Editor page chrome: breadcrumbs + title row + subtitle (the reference's
+   admin-ui Page arrangement, re-authored). */
+.blocklane-pro-ct__pagehead {
+	margin-bottom: 8px;
+}
+
+.blocklane-pro-ct__breadcrumbs {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 8px;
+	font-size: 12px;
+}
+
+.blocklane-pro-ct__crumb.components-button {
+	font-size: 12px;
+	text-decoration: none;
+	padding: 0;
+	height: auto;
+}
+
+.blocklane-pro-ct__crumb.is-current {
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-ct__crumb-sep {
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-ct__subtitle {
+	margin: 4px 0 0;
+	color: var(--fp-text-muted);
+}
+
+/* Snackbars — core's bottom-left stack. */
+.blocklane-pro-ct__snackbars {
+	position: fixed;
+	bottom: 24px;
+	left: 190px;
+	z-index: 100000;
+}
+
+/* Quick-edit modal chrome (the reference's header / content / footer). */
+.blocklane-pro-ct__qe-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 16px;
+}
+
+.blocklane-pro-ct__qe-header h2 {
+	margin: 0;
+	font-size: 1rem;
+}
+
+.blocklane-pro-ct__qe-content {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	min-width: 320px;
+}
+
+.blocklane-pro-ct__qe-footer {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 16px;
+}
+
+/* Labels-section action row (help text + Auto-fill / Clear). */
+.blocklane-pro-ct__labels-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.blocklane-pro-ct__labels-help {
+	margin: 0;
+	color: var(--fp-text-muted);
+	font-size: 12px;
+}
+
+/* The editor's two-column accordion grid: Identity | Behavior side by
+   side, the full-width card(s) (Fields / Advanced) below as ordinary flex
+   children of .is-dataform. Columns stack under 960px. */
+.blocklane-pro-ct__editor-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 24px;
+	align-items: start;
+}
+
+.blocklane-pro-ct__editor-col {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	min-width: 0;
+}
+
+@media ( max-width: 960px ) {
+
+	.blocklane-pro-ct__editor-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* The supports checklist — a plain fieldset of CheckboxControls. */
+.blocklane-pro-ct__supports {
+	border: 0;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.blocklane-pro-ct__supports-legend {
+	font-weight: 600;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	margin-bottom: 4px;
+	color: var(--fp-text);
+}
+
+.blocklane-pro-ct__field-error {
+	margin: 4px 0 0;
+	font-size: 12px;
+	color: #cc1818;
+}
+
+/* The slug control's rename notice (taxonomies only). */
+.blocklane-pro-ct__field-warning {
+	margin: 4px 0 0;
+	font-size: 12px;
+	color: #996800;
+}
+
+/* Inside a DataForm card the fields editor keeps its own grid; give the
+   delete-modal variant of the confirm block breathing room. */
+.blocklane-pro-ct__confirm.is-modal {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+/* -------------------------------------------------------------------------
+   Site Visibility screen (internal class prefix stays site-privacy)
+   ---------------------------------------------------------------------- */
+
+.blocklane-pro-site-privacy__form {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	max-width: 520px;
+}
+
+/* Search-engine (blog_public) control sits below the gate, separated by a rule;
+   the form's flex gap handles the spacing, so zero the divider's own margin. */
+.blocklane-pro-site-privacy__rule {
+	margin: 0;
+}
+
+/* The search-engine checkbox + the shared HelpTip glyph ("same as Settings →
+   Reading"), laid out on one row (checkbox grows, glyph pinned to the label).
+   */
+.blocklane-pro-site-privacy__search {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+}
+
+.blocklane-pro-site-privacy__search-check {
+	flex: 0 1 auto;
+}
+
+/* Nudge the shared HelpTip glyph onto the checkbox's label line. */
+.blocklane-pro-site-privacy__search .blocklane-pro-help-tip {
+	flex: 0 0 auto;
+	margin-top: 2px;
+}
+
+/* Give the Reading link a little breathing room under the tip text. */
+.blocklane-pro-site-privacy__search-link {
+	display: inline-block;
+	margin-top: 6px;
+}
+
+/* Advanced screen — a feature's extra settings inside its detail panel, set off
+   from the description above with a little space + a top divider. */
+.blocklane-pro-advanced__detail-setting {
+	margin-top: 1.25em;
+	padding-top: 1.25em;
+	border-top: 1px solid var(--fp-border, var(--fp-line));
+	max-width: 260px;
+}
+
+/* Option group inside a feature's detail (e.g. reorder post-type checkboxes).
+   The detail panel gives prose ULs disc markers (a higher-specificity rule),
+   so the control list opts out explicitly — no markers on checkbox rows. */
+.blocklane-pro-advanced__option-list,
+.blocklane-pro-extensions__detail-desc .blocklane-pro-advanced__option-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+/* Notices inside the settings box (e.g. Reorder Content's no-types-selected
+   warning) — drop wp-admin's default side margins so they fill the box. */
+.blocklane-pro-advanced__detail-setting .components-notice {
+	margin: 0 0 16px;
+}
+
+.blocklane-pro-advanced__sublabel {
+	margin: 0 0 12px;
+	font-weight: 600;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #50575e;
+}
+
+/* Suspense fallback while a code-split screen chunk loads. */
+.blocklane-pro-screen-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 60vh;
+}
+
+/* Error boundary fallback — shown when a screen (or the shell) throws. */
+.blocklane-pro-error-boundary {
+	max-width: 560px;
+	margin: 48px auto;
+	padding: 32px;
+	text-align: center;
+	background: var(--fp-surface, #fff);
+	border: 1px solid var(--fp-border, #e0e0e0);
+	border-radius: var(--fp-radius, 8px);
+	box-shadow: var(--fp-shadow-card, 0 1px 3px rgba(0, 0, 0, 0.08));
+}
+
+.blocklane-pro-error-boundary__title {
+	margin: 0 0 8px;
+	font-size: 18px;
+	font-weight: 600;
+	color: var(--fp-text, #1e1e1e);
+}
+
+.blocklane-pro-error-boundary__message {
+	margin: 0 0 16px;
+	color: var(--fp-text-muted, #757575);
+	line-height: 1.55;
+}
+
+.blocklane-pro-error-boundary__detail {
+	margin: 0 0 16px;
+	padding: 12px;
+	text-align: left;
+	background: var(--fp-bg-soft, #f6f7f7);
+	border-radius: var(--fp-radius-sm, 4px);
+	color: var(--fp-text, #1e1e1e);
+	font-size: 12px;
+	white-space: pre-wrap;
+	overflow-x: auto;
+}
+
+.blocklane-pro-error-boundary__details {
+	margin: 0 0 20px;
+	text-align: left;
+}
+
+.blocklane-pro-error-boundary__details summary {
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--fp-text-muted, #757575);
+	margin-bottom: 8px;
+}
+
+.blocklane-pro-error-boundary__report {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 12px;
+	background: var(--fp-bg-soft, #f6f7f7);
+	border: 1px solid var(--fp-border, #e0e0e0);
+	border-radius: var(--fp-radius-sm, 4px);
+	color: var(--fp-text, #1e1e1e);
+	font-family: Menlo, Consolas, monospace;
+	font-size: 12px;
+	line-height: 1.5;
+	resize: vertical;
+}
+
+.blocklane-pro-error-boundary__actions {
+	display: flex;
+	gap: 8px;
+	justify-content: center;
+}
+
+/* Status pill: a colored dot + label reflecting public / locked /
+   maintenance. */
+.blocklane-pro-site-privacy__status {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	padding: 10px 14px;
+	border-radius: var(--fp-radius-sm);
+	background: var(--fp-bg-soft);
+	font-size: 13px;
+	color: var(--fp-text);
+}
+
+.blocklane-pro-site-privacy__status::before {
+	content: "";
+	flex: 0 0 auto; /* keep a perfect circle when the label wraps to two lines */
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--fp-success);
+}
+
+.blocklane-pro-site-privacy__status.is-locked::before {
+	background: var(--fp-status-locked);
+}
+
+.blocklane-pro-site-privacy__status.is-maintenance::before {
+	background: var(--fp-warning);
+}
+
+/* Coming Soon enabled without a password: a blocking, action-required state
+   (Save is disabled until a password is set), so a red dot — distinct from the
+   golden "locked" and amber "maintenance" states. */
+.blocklane-pro-site-privacy__status.is-incomplete::before {
+	background: var(--fp-error);
+}
+
+.blocklane-pro-site-privacy__password {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.blocklane-pro-site-privacy__help {
+	margin: -4px 0 0;
+	font-size: 12px;
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-site-privacy__edit {
+	margin: 0;
+	font-size: 13px;
+}
+
+/* Shareable preview-link block. */
+.blocklane-pro-site-privacy__preview {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding-top: 16px;
+	border-top: 1px solid var(--fp-border-soft);
+}
+
+.blocklane-pro-site-privacy__preview-label {
+	margin: 0;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-site-privacy__preview-row {
+	width: 100%;
+}
+
+.blocklane-pro-site-privacy__regen {
+	align-self: flex-start;
+	padding: 0 !important;
+	height: auto !important;
+}
+
+.blocklane-pro-site-privacy__actions {
+	border-top: 1px solid var(--fp-border-soft);
+	padding-top: 16px;
+}
+
+/* ==== Forced-colors (Windows High Contrast) ============================ */
+
+/* Most of our focus rings use `outline`, which survives forced-colors mode (the
+   UA just forces its color to a system one). A couple rely on box-shadow with
+   `outline: none`, and forced-colors drops box-shadow entirely — so those focus
+   indicators would vanish. Restore a real, system-colored outline for them in
+   that mode. (The roving screen-title heading is intentionally excluded — it's
+   a
+   non-interactive orientation target, not something the user operates.) */
+@media ( forced-colors: active ) {
+
+	.blocklane-pro-ct__preset:focus-visible,
+	.blocklane-pro-child-theme
+	.components-textarea-control__input:focus {
+		outline: 2px solid Highlight;
+		outline-offset: 2px;
+	}
+}
+
+/* Vestibular safety: no scaling/sliding/shimmering for visitors who ask for
+   reduced motion — cards stay interactive, skeletons hold a static tint. */
+@media (prefers-reduced-motion: reduce) {
+
+	.blocklane-pro-tool-card,
+	.blocklane-pro-pattern-card {
+		transition: none;
+	}
+
+	.blocklane-pro-tool-card:hover,
+	.blocklane-pro-tool-card:focus-within {
+		transform: none;
+	}
+
+	.blocklane-pro-pattern-card:hover,
+	.blocklane-pro-pattern-card:focus-within {
+		transform: none;
+	}
+
+	.blocklane-pro-skeleton-card__preview,
+	.blocklane-pro-skeleton-card__title,
+	.blocklane-pro-skeleton-card__sub,
+	.blocklane-pro-feature-item__skel-title,
+	.blocklane-pro-feature-item__skel-body,
+	.blocklane-pro-feature-item__skel-toggle,
+	.blocklane-pro-feature-item__skel-chevron {
+		animation: none;
+		background: var(--fp-gray-100);
+	}
+
+	/* The extension info panel fades/slides in on every navigation — hold it
+	   still (it keeps its own background, unlike the skeletons above). */
+	.blocklane-pro-extensions__preview-content {
+		animation: none;
+	}
+}
+
+/* ==== Blocklane AI MCP screen ============================================ */
+
+.blocklane-pro-ai-mcp .blocklane-pro-extensions__lede {
+	max-width: 640px;
+}
+
+.blocklane-pro-ai-mcp__notice {
+	margin: 16px 0 0;
+	max-width: 640px;
+}
+
+.blocklane-pro-ai-mcp__steps {
+	margin-top: 24px;
+	max-width: 640px;
+}
+
+.blocklane-pro-ai-mcp__step {
+	display: flex;
+	gap: 16px;
+	padding: 20px 0;
+	border-top: 1px solid var(--fp-border);
+}
+
+.blocklane-pro-ai-mcp__step:first-of-type {
+	border-top: none;
+}
+
+.blocklane-pro-ai-mcp__step-marker {
+	flex: 0 0 24px;
+	width: 24px;
+	height: 24px;
+	margin-top: 2px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	border: 1.5px solid var(--fp-border);
+	color: #fff;
+}
+
+.blocklane-pro-ai-mcp__step.is-done .blocklane-pro-ai-mcp__step-marker {
+	background: var(--fp-accent);
+	border-color: var(--fp-accent);
+}
+
+.blocklane-pro-ai-mcp__step-marker svg {
+	fill: currentcolor;
+}
+
+.blocklane-pro-ai-mcp__step-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.blocklane-pro-ai-mcp__step-title {
+	margin: 0 0 6px;
+	font-size: 15px;
+	font-weight: 600;
+	color: var(--fp-text);
+}
+
+.blocklane-pro-ai-mcp__step-actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-top: 12px;
+	flex-wrap: wrap;
+}
+
+.blocklane-pro-ai-mcp__copyfield {
+	margin-top: 12px;
+}
+
+.blocklane-pro-ai-mcp__copyfield-label {
+	display: block;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--fp-text-muted);
+	margin-bottom: 4px;
+}
+
+.blocklane-pro-ai-mcp__copyfield-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.blocklane-pro-ai-mcp__copyfield-value {
+	flex: 1;
+	min-width: 0;
+	overflow-x: auto;
+	white-space: nowrap;
+	padding: 8px 10px;
+	background: var(--fp-bg-soft, #f6f7f7);
+	border: 1px solid var(--fp-border);
+	border-radius: 4px;
+	font-size: 12px;
+}
+
+.blocklane-pro-ai-mcp__abilities {
+	margin-top: 8px;
+	padding-top: 20px;
+	border-top: 1px solid var(--fp-border);
+}
+
+.blocklane-pro-ai-mcp__ability-list {
+	margin: 8px 0 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.blocklane-pro-ai-mcp__ability-list li code {
+	font-size: 12px;
+	padding: 4px 8px;
+	background: var(--fp-bg-soft, #f6f7f7);
+	border: 1px solid var(--fp-border);
+	border-radius: 4px;
+}
+
+/* Connect-your-AI-tool modal (per-client MCP config snippets). */
+.blocklane-pro-ai-mcp__connect-modal .components-modal__content {
+	max-width: 640px;
+}
+
+.blocklane-pro-ai-mcp__connect-tab {
+	padding-top: 4px;
+}
+
+.blocklane-pro-ai-mcp__connect-steps {
+	margin: 12px 0 16px;
+	padding-left: 20px;
+	font-size: 13px;
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-ai-mcp__connect-steps li {
+	margin-bottom: 6px;
+}
+
+.blocklane-pro-ai-mcp__snippet {
+	margin-top: 12px;
+	border: 1px solid var(--fp-border);
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.blocklane-pro-ai-mcp__snippet-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 6px 8px 6px 10px;
+	background: var(--fp-bg-soft, #f6f7f7);
+	border-bottom: 1px solid var(--fp-border);
+}
+
+.blocklane-pro-ai-mcp__snippet-label {
+	font-size: 11px;
+	font-weight: 500;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+	color: var(--fp-text-muted);
+}
+
+.blocklane-pro-ai-mcp__snippet-code {
+	margin: 0;
+	padding: 12px;
+	overflow-x: auto;
+	font-size: 12px;
+	line-height: 1.6;
+	background: var(--fp-bg, #fff);
+}
+
+/* Neutralize wp-admin's per-line code background inside the block. */
+.blocklane-pro-ai-mcp__snippet-code code {
+	display: block;
+	padding: 0;
+	margin: 0;
+	background: transparent;
+	font-size: inherit;
+}
+
+/* ---- SEO screen --------------------------------------------------------- */
+
+/* The bordered settings sections are shared by the SEO and Forms screens. */
+.blocklane-pro-seo-screen__sections .components-panel__body,
+.blocklane-pro-forms-page__sections .components-panel__body {
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	margin-bottom: 12px;
+	background: #fff;
+}
+
+.blocklane-pro-seo-screen__sections .components-panel__body .components-base-control,
+.blocklane-pro-seo-screen__sections .components-panel__body .components-toggle-control,
+.blocklane-pro-forms-page__sections .components-panel__body .components-base-control,
+.blocklane-pro-forms-page__sections .components-panel__body .components-toggle-control {
+	margin-bottom: 16px;
+}
+
+.blocklane-pro-seo-screen__section-intro,
+.blocklane-pro-forms-page__section-intro {
+	color: #757575;
+	margin-top: 0;
+}
+
+/* The Settings tab's sections column: the SEO content gutter (20px 24px),
+   a readable measure, and room for the save row. */
+.blocklane-pro-forms-page__sections {
+	padding: 20px 24px;
+	max-width: 720px;
+}
+
+.blocklane-pro-forms-page__sections > .components-notice {
+	margin: 0 0 12px;
+}
+
+.blocklane-pro-forms-page__save-row {
+	margin-top: 16px;
+}
+
+.blocklane-pro-seo-screen__chip {
+	display: inline-block;
+	padding: 1px 8px;
+	border-radius: 999px;
+	font-size: 11px;
+	background: #f0f0f0;
+	color: #50575e;
+	white-space: nowrap;
+}
+
+.blocklane-pro-seo-screen__chip.is-positive {
+	background: #edfaef;
+	color: #007017;
+}
+
+.blocklane-pro-seo-screen__verification-field {
+	margin-bottom: 12px;
+}
+
+.blocklane-pro-seo-screen__profiles-label {
+	display: block;
+	font-size: 11px;
+	font-weight: 500;
+	text-transform: uppercase;
+	margin-bottom: 4px;
+}
+
+.blocklane-pro-seo-screen__profile-row {
+	margin-bottom: 8px;
+}
+
+.blocklane-pro-seo-screen__count {
+	display: block;
+	text-align: right;
+	font-size: 11px;
+	color: #757575;
+	margin-top: 4px;
+}
+
+.blocklane-pro-seo-screen__count.is-over {
+	color: #b32d2e;
+}
+
+.blocklane-pro-seo-screen__previews {
+	display: grid;
+	gap: 16px;
+}
+
+.blocklane-pro-seo-screen__preview-caption {
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #757575;
+	margin-bottom: 6px;
+}
+
+.blocklane-pro-seo-screen__serp {
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 12px 16px;
+	background: #fff;
+	max-width: 600px;
+}
+
+/* The result's site row — favicon circle vertically centered against the
+   site-name + breadcrumb pair, Google's own anatomy. */
+.blocklane-pro-seo-screen__serp-site {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 6px;
+}
+
+.blocklane-pro-seo-screen__serp-favicon {
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	background: #f1f3f4;
+	border: 1px solid #ecedef;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: none;
+	overflow: hidden;
+	color: #5f6368;
+}
+
+.blocklane-pro-seo-screen__serp-favicon img {
+	width: 18px;
+	height: 18px;
+	object-fit: contain;
+	display: block;
+}
+
+.blocklane-pro-seo-screen__serp-site-lines {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	line-height: 1.3;
+}
+
+.blocklane-pro-seo-screen__serp-site-name {
+	font-size: 13px;
+	color: #202124;
+}
+
+.blocklane-pro-seo-screen__serp-url {
+	font-size: 12px;
+	color: #4d5156;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.blocklane-pro-seo-screen__serp-title {
+	font-size: 18px;
+	line-height: 1.3;
+	color: #1a0dab;
+	margin: 2px 0;
+}
+
+/* Drawer header nav — the media modal's Attachment-details cluster:
+   prev/next/close as full-height cells split by hairlines, flush to the
+   header's right edge. */
+.blocklane-pro-seo-screen__editor-column .components-panel__header {
+	padding-right: 0;
+}
+
+.blocklane-pro-seo-screen__panel-nav {
+	display: flex;
+	align-self: stretch;
+	margin-left: auto;
+}
+
+.blocklane-pro-seo-screen__panel-nav .components-button {
+	height: 100%;
+	width: 48px;
+	justify-content: center;
+	border-left: 1px solid #dcdcde;
+	border-radius: 0;
+}
+
+.blocklane-pro-seo-screen__panel-nav .components-button:hover:not(:disabled) {
+	background: #f0f0f1;
+}
+
+/* Info-glyph help beside labels — the page editor panel's treatment:
+   core's dark hover Tooltip on a focusable ⓘ. */
+.blocklane-pro-seo-screen__label-with-tip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.blocklane-pro-seo-screen__help-tip-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--wp-components-color-foreground-muted, #757575);
+	cursor: help;
+	border-radius: 2px;
+}
+
+.blocklane-pro-seo-screen__help-tip-toggle svg {
+	width: 18px;
+	height: 18px;
+	fill: currentcolor;
+}
+
+.blocklane-pro-seo-screen__help-tip-toggle:hover,
+.blocklane-pro-seo-screen__help-tip-toggle:focus {
+	color: var(--wp-admin-theme-color, #3858e9);
+}
+
+.blocklane-pro-seo-screen__help-tip-toggle:focus-visible {
+	outline: 1px solid var(--wp-admin-theme-color, #3858e9);
+	outline-offset: 1px;
+}
+
+/* Cap the bubble so full-sentence help wraps instead of running wide. */
+.blocklane-pro-seo-screen__help-tooltip {
+	max-width: 232px;
+}
+
+.blocklane-pro-seo-screen__serp-description {
+	font-size: 13px;
+	line-height: 1.5;
+	color: #4d5156;
+}
+
+.blocklane-pro-seo-screen__card {
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	overflow: hidden;
+	background: #fff;
+	max-width: 480px;
+}
+
+.blocklane-pro-seo-screen__card-image {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #f0f0f1;
+	height: 160px;
+	font-size: 40px;
+}
+
+.blocklane-pro-seo-screen__card-image img {
+	max-height: 120px;
+	max-width: 60%;
+	object-fit: contain;
+}
+
+.blocklane-pro-seo-screen__card-body {
+	padding: 10px 12px;
+	border-top: 1px solid #ddd;
+}
+
+.blocklane-pro-seo-screen__card-host {
+	font-size: 12px;
+	color: #65676b;
+	text-transform: lowercase;
+}
+
+.blocklane-pro-seo-screen__card-title {
+	font-weight: 600;
+	font-size: 14px;
+	margin: 2px 0;
+}
+
+.blocklane-pro-seo-screen__card-description {
+	font-size: 12px;
+	color: #65676b;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+/* ------------------------------------------------------------------
+   Page shell — core's admin-ui page arrangement (values measured off
+   font-library.php's .admin-ui-page__header), shared by every screen with
+   a page header and tab row (SEO, Forms, Content Types, Extensions,
+   Advanced; ScreenHeader.js + ScreenTabs.js): a full-width title section
+   with a hairline bottom border, the tab row, then content. The screen's
+   content flex (the shared .blocklane-pro-extensions row with its help
+   drawer) fills whatever height the header and tabs leave.
+   ------------------------------------------------------------------ */
+
+.blocklane-pro-page {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: 100%;
+}
+
+/* Inside the page column the content flex fills the remaining height —
+   overriding the shared .blocklane-pro-extensions min-height: 100%, which
+   would overflow the column by the header's height. */
+.blocklane-pro-page .blocklane-pro-extensions {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+/* Content gutters match the header's 24px, and the content runs full
+   width like core's admin-ui pages (no 1200px cap). */
+.blocklane-pro-page .blocklane-pro-extensions__section {
+	padding: 20px 24px;
+	max-width: none;
+}
+
+.blocklane-pro-page__header {
+	padding: 16px 24px;
+	border-bottom: 1px solid #e7e7e7;
+}
+
+.blocklane-pro-page__title {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+	font-size: 20px;
+	font-weight: 500;
+	line-height: 1.3;
+}
+
+/* The title is a roving focus target (tabindex="-1"), focused on mount and
+   on view changes so the new view is announced; it is not a Tab stop, so
+   its ring would read as an artifact — the .blocklane-pro-extensions__title
+   rule, for the page header. */
+.blocklane-pro-page__title:focus {
+	outline: none;
+}
+
+.blocklane-pro-page__title-icon {
+	color: #3858e9; /* the brand core blue; the mark fills with currentColor */
+	display: flex;
+	flex: none;
+}
+
+.blocklane-pro-page__subtitle {
+	color: #50575e;
+	margin: 4px 0 0;
+}
+
+.blocklane-pro-page__tabs {
+	display: flex;
+	gap: 4px;
+	padding: 0 24px;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.blocklane-pro-page__tab.components-button {
+	border-radius: 0;
+	height: 40px;
+	color: #50575e;
+	box-shadow: none;
+	border-bottom: 2px solid transparent;
+}
+
+.blocklane-pro-page__tab.components-button.is-active {
+	color: #1e1e1e;
+	font-weight: 600;
+	border-bottom-color: var(--wp-admin-theme-color, #3858e9);
+}
+
+/* A tab panel's toolbar (Extensions, Advanced): the Enable/Disable All
+   button and the search box, pushed right — core's "Plugins … [search]"
+   row without the heading, which the tab now supplies. */
+.blocklane-pro-page__toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+/* Match the search wrapper's 2px radius (the same pairing as the title row). */
+.blocklane-pro-page__toolbar .components-button.is-secondary {
+	border-radius: 2px;
+}
+
+/* ---- SEO screen: overview cards, rings (the header and tab row are the
+   shared page shell above) ----------------------------------------------- */
+
+.blocklane-pro-seo-screen__cards {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+/* The lead card (Content SEO) takes the whole first row. */
+.blocklane-pro-seo-screen__overview-card.is-wide {
+	grid-column: 1 / -1;
+}
+
+@media ( max-width: 1100px ) {
+
+	.blocklane-pro-seo-screen__cards {
+		grid-template-columns: 1fr;
+	}
+}
+
+.blocklane-pro-seo-screen__overview-card {
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	background: #fff;
+	padding: 16px 20px;
+}
+
+.blocklane-pro-seo-screen__overview-card h2 {
+	font-size: 14px;
+	margin: 0 0 12px;
+}
+
+.blocklane-pro-seo-screen__overview-card ul {
+	list-style: none;
+	margin: 0 0 16px;
+	padding: 0;
+}
+
+.blocklane-pro-seo-screen__status-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 3px 0;
+}
+
+.blocklane-pro-seo-screen__status-value {
+	margin-left: auto;
+	color: #757575;
+	font-size: 12px;
+}
+
+.blocklane-pro-seo-screen__status-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	flex: none;
+	background: #c3c4c7;
+}
+
+.blocklane-pro-seo-screen__status-row.is-on .blocklane-pro-seo-screen__status-dot {
+	background: #00a32a;
+}
+
+.blocklane-pro-seo-screen__status-row.is-off-warning .blocklane-pro-seo-screen__status-dot {
+	background: #dba617;
+}
+
+.blocklane-pro-seo-screen__rings {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin: 8px 0 20px;
+}
+
+/* In the full-width lead card the four rings breathe across one row. */
+.blocklane-pro-seo-screen__overview-card.is-wide .blocklane-pro-seo-screen__rings {
+	gap: 48px;
+}
+
+.blocklane-pro-seo-screen__ring {
+	text-align: center;
+	max-width: 130px;
+}
+
+.blocklane-pro-seo-screen__ring-count {
+	font-weight: 600;
+	margin-top: 4px;
+}
+
+.blocklane-pro-seo-screen__ring-label {
+	font-size: 12px;
+	color: #757575;
+}
+
+.blocklane-pro-seo-screen__disable-hint {
+	color: #757575;
+	margin-top: 16px;
+}
+
+.blocklane-pro-seo-screen__chip.is-warning {
+	background: #fcf9e8;
+	color: #996800;
+}
+
+/* Content tab — the Site Editor's patterns-page DataViews treatment,
+   values measured off site-editor.php?p=/pattern: the view runs full
+   width with no box around it (DataViews' own actions row supplies the
+   16/24 gutters), and filter chips are borderless pills
+   (.dataviews-filters__summary-chip: 16px radius, #f0f0f0). Our bundled
+   dataviews 17.2 ships an older bordered-chip look, hence the override. */
+.blocklane-pro-seo-screen .blocklane-pro-extensions__section.is-full-bleed {
+	padding: 0;
+	max-width: none;
+}
+
+.blocklane-pro-seo-screen .dataviews-filters__summary-chip {
+	border: none;
+	border-radius: 16px;
+	background: #f0f0f0;
+}
+
+/* Page shell — a root-level flex row so the Edit SEO drawer can run the FULL
+   page height (the Site Editor's full-height-drawer arrangement): everything
+   else (header, tabs, content) lives in __main, which compresses left when
+   the drawer opens. min-height: 100% fills the app canvas (the scrollport —
+   .blocklane-pro-canvas — so sticky offsets below are canvas-relative). */
+.blocklane-pro-seo-page {
+	display: flex;
+	align-items: stretch;
+	min-height: 100%;
+}
+
+/* The Edit SEO sidebar — the page editor's settings-sidebar arrangement,
+   built from core Panel primitives (Panel/PanelHeader/PanelBody/VStack),
+   which bring their own header, borders, padding, and type. The only thing
+   the flex shell has to supply is the column itself: the editor sidebar's
+   380px + hairline seam, stretching the full page height. While it's open
+   the help rail and panel hide, and they come back exactly as they were
+   when it closes. */
+.blocklane-pro-seo-screen__editor-column {
+	flex: 0 0 380px;
+	min-width: 380px;
+	border-left: 1px solid #e0e0e0;
+}
+
+/* Content tab cell values — the real SEO title/description text, one
+   ellipsized muted line; the full value is in the cell tooltip and the
+   drawer. is-wide gives descriptions more room than titles. */
+.blocklane-pro-seo-screen__cell-value {
+	display: block;
+	max-width: 28ch;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: #757575;
+}
+
+.blocklane-pro-seo-screen__cell-value.is-wide {
+	max-width: 42ch;
+}
+
+/* The column is a programmatic focus target (tabindex="-1") on the stacked
+   layout, where opening a row's editor scrolls here and moves focus in —
+   same roving-target arrangement as the page title, so no focus ring. */
+.blocklane-pro-seo-screen__editor-column:focus {
+	outline: none;
+}
+
+/* The panel rides sticky inside the tall column and fills the visible
+   canvas height as a flex column: header pinned top, fields scrolling in
+   the middle, the action footer pinned to the bottom — flush with the
+   DataViews footer beside it. */
+.blocklane-pro-seo-screen__editor-column .components-panel {
+	border: none;
+	position: sticky;
+	top: 0;
+	display: flex;
+	flex-direction: column;
+	height: calc(100vh - var(--wp-admin--admin-bar--height, 32px));
+}
+
+.blocklane-pro-seo-screen__editor-column .components-panel__body {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+}
+
+/* The footer div after this body makes it no longer :last-child, so core's
+   border-bottom reset never fires. Drop it here — the footer's own border-top
+   is the seam hairline; keeping both stacks a double border. Scoped to the
+   body actually adjacent to the footer, so a future sibling panel in the
+   drawer keeps its own body-to-body seam. */
+.blocklane-pro-seo-screen__editor-column .components-panel__body:has(+ .blocklane-pro-seo-screen__editor-footer) {
+	border-bottom: 0;
+}
+
+/* The pinned action bar — the DataViews footer's vertical metrics (12px
+   padding, 1px #f0f0f0 border-top, 32px compact controls) so the seam
+   between the two footers reads as one continuous bar. */
+.blocklane-pro-seo-screen__editor-footer {
+	flex: none;
+	padding: 12px 16px;
+	border-top: 1px solid #f0f0f0;
+	background: #fff;
+}
+
+.blocklane-pro-seo-screen.is-editing-seo .blocklane-pro-help-tab-rail,
+.blocklane-pro-seo-screen.is-editing-seo .blocklane-pro-extensions__preview {
+	display: none;
+}
+
+/* While editing, the drawer's border-left is the seam — the content column's
+   own right hairline would sit flush against it and read as a double border. */
+.blocklane-pro-seo-screen.is-editing-seo .blocklane-pro-extensions__sidebar {
+	border-right: none;
+}
+
+/* Stacked layout (same breakpoint the shared extensions flex stacks at):
+   the drawer becomes a full-width block below the content. */
+@media ( max-width: 1250px ) {
+
+	.blocklane-pro-seo-page {
+		flex-direction: column;
+	}
+
+	.blocklane-pro-seo-screen__editor-column {
+		flex: 1 1 auto;
+		min-width: 0;
+		border-left: none;
+		border-top: 1px solid #e0e0e0;
+	}
+
+	.blocklane-pro-seo-screen__editor-column .components-panel {
+		position: static;
+		height: auto;
+	}
+
+	.blocklane-pro-seo-screen__editor-column .components-panel__body {
+		overflow-y: visible;
+	}
+}
+
+.blocklane-pro-seo-screen__serp.is-noindex {
+	opacity: 0.55;
+}
+
+/* Sitemap include list — a checkbox per type/taxonomy under the XML
+   toggle, indented into their own group with light row rhythm. */
+.blocklane-pro-seo-screen__sitemap-includes {
+	margin: 16px 0;
+}
+
+.blocklane-pro-seo-screen__sitemap-includes .components-checkbox-control {
+	margin-top: 8px;
+}
+
+/* Import rows — source name + count chip left, Import button right. */
+.blocklane-pro-seo-screen__import-row {
+	margin-top: 12px;
+}
+
+/* Search-title format preview — the SERP title line reused inline. */
+.blocklane-pro-seo-screen__title-preview {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin: 16px 0 0;
+}
+
+/* Organization logo picker — a bordered thumb that doubles as the Replace
+   button, matching the Dynamic Values screen's image-cell treatment. */
+.blocklane-pro-seo-screen__logo-thumb {
+	width: 48px;
+	height: 48px;
+	padding: 0;
+	border: 1px solid #ddd;
+	border-radius: 2px;
+	background: #fff;
+	cursor: pointer;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: none;
+}
+
+.blocklane-pro-seo-screen__logo-thumb img {
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
+	display: block;
+}
+
+/* Local business — paired fields and the opening-hours grid. The day label
+   column is fixed so the time inputs line up down the week. */
+.blocklane-pro-seo-screen__local {
+	margin-top: 16px;
+}
+
+.blocklane-pro-seo-screen__local-row,
+.blocklane-pro-seo-screen__hours {
+	margin-top: 12px;
+}
+
+.blocklane-pro-seo-screen__hours-row {
+	margin-bottom: 6px;
+}
+
+.blocklane-pro-seo-screen__hours-day {
+	width: 90px;
+	flex: none;
+	font-size: 12px;
+}
+
+
+/* Filter popover list — core's shipped hover treatment (edit-site
+   style.css): the deep admin blue with white text, radio ring in the
+   darker-20 blue. Bundled dataviews 17.2 ships a pale tint instead.
+   Left unscoped on purpose: the popover portals outside the screen root,
+   and this stylesheet only loads on Blocklane Pro dashboard pages. */
+.dataviews-filters__search-widget-listitem:hover,
+.dataviews-filters__search-widget-listitem[data-active-item],
+.dataviews-filters__search-widget-listitem:focus {
+	background-color: var(--wp-admin-theme-color, #3858e9);
+	color: #fff;
+}
+
+.dataviews-filters__search-widget-listitem:hover .dataviews-filters__search-widget-listitem-description,
+.dataviews-filters__search-widget-listitem[data-active-item] .dataviews-filters__search-widget-listitem-description,
+.dataviews-filters__search-widget-listitem:focus .dataviews-filters__search-widget-listitem-description {
+	color: #fff;
+}
+
+.dataviews-filters__search-widget-listitem:hover .dataviews-filters__search-widget-listitem-single-selection,
+.dataviews-filters__search-widget-listitem[data-active-item] .dataviews-filters__search-widget-listitem-single-selection,
+.dataviews-filters__search-widget-listitem:focus .dataviews-filters__search-widget-listitem-single-selection {
+	border-color: var(--wp-admin-theme-color-darker-20, #183ad6);
+	background: #fff;
+}
+
+.dataviews-filters__search-widget-listitem:hover .dataviews-filters__search-widget-listitem-single-selection.is-selected,
+.dataviews-filters__search-widget-listitem[data-active-item] .dataviews-filters__search-widget-listitem-single-selection.is-selected,
+.dataviews-filters__search-widget-listitem:focus .dataviews-filters__search-widget-listitem-single-selection.is-selected {
+	border-color: var(--wp-admin-theme-color-darker-20, #183ad6);
+	background: var(--wp-admin-theme-color-darker-20, #183ad6);
+}
+
+/* ------------------------------------------------------------------
+   Forms screen — the submissions inbox. The header and tab row are the
+   shared page shell (.blocklane-pro-page__*).
+   ------------------------------------------------------------------ */
+
+.blocklane-pro-forms-page__content {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.blocklane-pro-forms-page__content .dataviews-wrapper {
+	flex: 1;
+}
+
+.blocklane-pro-forms-page__notice {
+	margin: 16px 24px 0;
+}
+
+.blocklane-pro-forms-page__loading {
+	display: flex;
+	justify-content: center;
+	padding: 48px;
+}
+
+.blocklane-pro-forms-screen__row.is-unread {
+	font-weight: 600;
+}
+
+.blocklane-pro-forms-screen__excerpt {
+	color: #757575;
+}
+
+.blocklane-pro-forms-entry__meta {
+	margin: 0 0 16px;
+	font-size: 12px;
+	color: #757575;
+}
+
+.blocklane-pro-forms-entry__field {
+	margin: 0 0 12px;
+}
+
+.blocklane-pro-forms-entry__value {
+	margin: 2px 0 0;
+	white-space: pre-wrap;
+}
+
+.blocklane-pro-forms-entry__files {
+	margin: 2px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.blocklane-pro-forms-entry__filesize {
+	font-size: 12px;
+	opacity: 0.7;
+}
+
+.blocklane-pro-forms-entry .components-flex:last-child {
+	margin-top: 16px;
+}

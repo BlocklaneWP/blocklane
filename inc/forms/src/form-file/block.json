@@ -1,0 +1,91 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blocklane/form-file",
+	"version": "0.1.0",
+	"title": "File Upload",
+	"category": "blocklane-forms",
+	"description": "Let visitors attach files — types, count, and size are capped and every upload is verified server-side.",
+	"keywords": [ "file", "upload", "attachment" ],
+	"ancestor": [ "blocklane/form" ],
+	"usesContext": [ "blocklane/formId" ],
+	"example": {
+		"attributes": {
+			"label": "Attachment"
+		}
+	},
+	"attributes": {
+		"name": {
+			"type": "string",
+			"default": ""
+		},
+		"label": {
+			"type": "string",
+			"default": ""
+		},
+		"required": {
+			"type": "boolean",
+			"default": false
+		},
+		"accept": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			},
+			"default": [ "images", "documents" ]
+		},
+		"multiple": {
+			"type": "boolean",
+			"default": false
+		},
+		"maxFiles": {
+			"type": "number",
+			"default": 3
+		},
+		"maxSize": {
+			"type": "number",
+			"default": 8
+		},
+		"condition": {
+			"type": "object",
+			"default": {
+				"enabled": false,
+				"field": "",
+				"operator": "is",
+				"value": ""
+			}
+		}
+	},
+	"supports": {
+		"html": false,
+		"spacing": {
+			"margin": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		},
+		"color": {
+			"background": true,
+			"text": true,
+			"gradients": false,
+			"__experimentalSkipSerialization": true
+		},
+		"__experimentalBorder": {
+			"color": true,
+			"radius": true,
+			"style": true,
+			"width": true,
+			"__experimentalSkipSerialization": true
+		}
+	},
+	"selectors": {
+		"root": ".wp-block-blocklane-form-file",
+		"color": ".wp-block-blocklane-form-file .blocklane-form__control",
+		"border": ".wp-block-blocklane-form-file .blocklane-form__control",
+		"typography": ".wp-block-blocklane-form-file"
+	},
+	"textdomain": "blocklane",
+	"editorScript": "file:./index.js",
+	"render": "file:./render.php"
+}

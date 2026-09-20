@@ -1,0 +1,5280 @@
+# Copyright (C) 2026 Garrett Johnson
+# This file is distributed under the GPLv2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Blocklane 0.11.4\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stage\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-09-20T07:46:20+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: blocklane\n"
+
+#. Plugin Name of the plugin
+#: blocklane.php
+#: inc/onboarding/src/screens/HomeScreen.js:338
+msgid "Blocklane"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: blocklane.php
+msgid "https://blocklanewp.com/"
+msgstr ""
+
+#. Description of the plugin
+#: blocklane.php
+msgid "Everything a WordPress site should have out of the box: SEO, a contact form, popups, a coming soon page, and security hardening. In one plugin."
+msgstr ""
+
+#. Author of the plugin
+#: blocklane.php
+msgid "Garrett Johnson"
+msgstr ""
+
+#. Author URI of the plugin
+#: blocklane.php
+msgid "https://profiles.wordpress.org/garrettmichaelj/"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced-controller.php:99
+#: inc/seo/class-blocklane-pro-seo-controller.php:426
+msgid "You do not have permission to manage these settings."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced-controller.php:198
+msgid "No file was received."
+msgstr ""
+
+#. translators: %s: the setting key.
+#: inc/advanced/class-blocklane-pro-advanced.php:168
+#, php-format
+msgid "The \"%s\" setting belongs to a feature this edition does not include."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:456
+msgid "Sort by Order"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:541
+msgid "Couldn’t save the new order. Please refresh and try again."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:542
+msgid "Indent"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:543
+msgid "Outdent"
+msgstr ""
+
+#. translators: 1: page title, 2: new parent page title.
+#: inc/advanced/class-blocklane-pro-advanced.php:545
+#, php-format
+msgid "%1$s is now nested under %2$s."
+msgstr ""
+
+#. translators: %s: page title.
+#: inc/advanced/class-blocklane-pro-advanced.php:547
+#, php-format
+msgid "%s moved up one level."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:548
+msgid "Move up"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:549
+msgid "Move down"
+msgstr ""
+
+#. translators: %s: item title.
+#: inc/advanced/class-blocklane-pro-advanced.php:551
+#, php-format
+msgid "%s moved up."
+msgstr ""
+
+#. translators: %s: item title.
+#: inc/advanced/class-blocklane-pro-advanced.php:553
+#, php-format
+msgid "%s moved down."
+msgstr ""
+
+#. translators: %s: page title.
+#: inc/advanced/class-blocklane-pro-advanced.php:555
+#, php-format
+msgid "Collapse %s"
+msgstr ""
+
+#. translators: %s: page title.
+#: inc/advanced/class-blocklane-pro-advanced.php:557
+#, php-format
+msgid "Expand %s"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:558
+msgid "Collapse All"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:559
+msgid "Expand All"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:560
+msgid "The Sort by Order view shows every item so the full order can be arranged at once. This setting applies to the other views."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:682
+msgid "This content type doesn’t support nesting."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:691
+msgid "That item can’t be moved."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:702
+msgid "That item can’t be nested there."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:786
+msgid "Last Login"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:805
+msgid "Never"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:806
+msgid "Never logged in"
+msgstr ""
+
+#. translators: %s: human-readable time difference, e.g. "2 hours".
+#: inc/advanced/class-blocklane-pro-advanced.php:815
+#, php-format
+msgid "%s ago"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:846
+msgid "Clone"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:861
+msgid "Invalid or expired duplicate request."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:866
+msgid "You are not allowed to duplicate this item."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:871
+msgid "You are not allowed to create items of this type."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:876
+msgid "The item could not be duplicated."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:993
+msgid "The SVG sanitizer is unavailable, so this file was not uploaded."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:1000
+msgid "The SVG file could not be read."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:1014
+msgid "This SVG could not be sanitized safely, so it was not uploaded."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:1022
+msgid "The sanitized SVG could not be saved."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:1235
+msgid "Replace file"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:1236
+msgid "Replacing…"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:1237
+msgid "Replaced ✓"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:1238
+msgid "Replace failed"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:1261
+msgid "The file could not be uploaded."
+msgstr ""
+
+#. translators: %s: the original file's mime type.
+#: inc/advanced/class-blocklane-pro-advanced.php:1272
+#, php-format
+msgid "The replacement must be the same type (%s) so the URL stays valid."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:1283
+msgid "The file was uploaded but could not replace the original. Please try again."
+msgstr ""
+
+#. translators: %s: plugin name.
+#: inc/advanced/class-blocklane-pro-blog-features-disabler.php:77
+#, php-format
+msgid "Blog features (Post Formats, Post via Email, and Update Services) are turned off by %s, so those settings are hidden and inactive."
+msgstr ""
+
+#. translators: %s: plugin name.
+#: inc/advanced/class-blocklane-pro-blog-features-disabler.php:85
+#: inc/advanced/class-blocklane-pro-comments-disabler.php:250
+#, php-format
+msgid "Manage in %s → Advanced"
+msgstr ""
+
+#. translators: %s: plugin name.
+#: inc/advanced/class-blocklane-pro-comments-disabler.php:242
+#, php-format
+msgid "Comments are turned off site-wide by %s, so the comment settings below are hidden and inactive."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-svg-editor.php:55
+msgid "That file no longer exists."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-svg-editor.php:60
+msgid "That file is not an SVG image."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-svg-editor.php:83
+msgid "The image could not be saved."
+msgstr ""
+
+#. translators: 1: this plugin's name, 2: the other copy's directory name.
+#: inc/bootstrap.php:114
+#, php-format
+msgid "%1$s: a second Blocklane plugin at %2$s/ is active but not running, because this one already is. Deactivate or delete one of them."
+msgstr ""
+
+#. translators: %s: plugin name.
+#: inc/bootstrap.php:242
+#, php-format
+msgid "%s could not finish checking your customized templates for retired presets; it will retry automatically."
+msgstr ""
+
+#. translators: 1: plugin name, 2: comma-separated template and template-part names.
+#: inc/bootstrap.php:258
+#, php-format
+msgid "%1$s: these customized templates and template parts still use text and spacing presets retired by the current theme, so their sizes no longer apply: %2$s. Open each in the Site Editor and reapply current sizes, or reset it to its default."
+msgstr ""
+
+#: inc/bootstrap.php:262
+msgid "Dismiss"
+msgstr ""
+
+#. translators: 1: plugin name, 2: link to manage themes
+#: inc/bootstrap.php:514
+#, php-format
+msgid "%1$s needs a block theme. Activate any block theme to use its editing tools. %2$s"
+msgstr ""
+
+#: inc/bootstrap.php:516
+msgid "Manage themes"
+msgstr ""
+
+#. translators: 1: plugin name, 2: feature name, 3: comma-separated list of block names, 4: the feature's consequence sentence.
+#: inc/class-blocklane-pro-block-suite.php:138
+#, php-format
+msgid "%1$s — %2$s: the built assets are out of date, so these blocks did not register: %3$s. %4$s"
+msgstr ""
+
+#: inc/class-blocklane-pro-child-theme-controller.php:83
+msgid "You do not have permission to create a child theme."
+msgstr ""
+
+#: inc/class-blocklane-pro-child-theme-controller.php:125
+#: inc/onboarding/src/screens/ChildThemeScreen.js:260
+msgid "Child theme created and activated."
+msgstr ""
+
+#. translators: %s: plugin name.
+#: inc/class-blocklane-pro-extensions-controller.php:172
+#, php-format
+msgid "You do not have permission to manage %s extensions."
+msgstr ""
+
+#. translators: %s: extension slug
+#: inc/class-blocklane-pro-extensions-controller.php:210
+#: inc/extensions/class-blocklane-pro-extensions-handler.php:189
+#, php-format
+msgid "Unknown extension: %s"
+msgstr ""
+
+#: inc/class-blocklane-pro-helper.php:49
+msgid "Please use a theme name (or text domain) that contains letters or numbers."
+msgstr ""
+
+#: inc/class-blocklane-pro-helper.php:58
+msgid "That matches the parent theme. Choose a different name or text domain."
+msgstr ""
+
+#: inc/class-blocklane-pro-helper.php:81
+msgid "Could not access the filesystem to create the theme."
+msgstr ""
+
+#: inc/class-blocklane-pro-helper.php:96
+msgid "A theme with this slug already exists. Choose a different name or text domain."
+msgstr ""
+
+#: inc/class-blocklane-pro-helper.php:104
+msgid "Could not create the theme directory."
+msgstr ""
+
+#: inc/class-blocklane-pro-helper.php:114
+msgid "Could not read the child theme template."
+msgstr ""
+
+#: inc/class-blocklane-pro-helper.php:172
+msgid "Could not write the child theme files. Check theme directory permissions."
+msgstr ""
+
+#: inc/class-blocklane-pro-helper.php:191
+msgid "The generated theme could not be validated."
+msgstr ""
+
+#. translators: %s: a file path inside the plugin.
+#: inc/class-blocklane-pro-modules.php:711
+#, php-format
+msgid "the file %s is missing"
+msgstr ""
+
+#. translators: %s: a PHP class name.
+#: inc/class-blocklane-pro-modules.php:714
+#, php-format
+msgid "the class %s is not in inc/classmap.php"
+msgstr ""
+
+#. translators: 1: a PHP class name, 2: a file path inside the plugin.
+#: inc/class-blocklane-pro-modules.php:717
+#, php-format
+msgid "the file %2$s for the class %1$s is missing"
+msgstr ""
+
+#. translators: 1: a PHP class name, 2: a file path inside the plugin.
+#: inc/class-blocklane-pro-modules.php:720
+#, php-format
+msgid "the file %2$s no longer declares the class %1$s (inc/classmap.php is stale)"
+msgstr ""
+
+#. translators: 1: plugin name, 2: module slug, 3: the reason clause (e.g. "the class X is not in inc/classmap.php").
+#: inc/class-blocklane-pro-modules.php:760
+#, php-format
+msgid "%1$s: the %2$s module is running, but its REST routes did not register — %3$s. Its dashboard screen will not work until the plugin is reinstalled."
+msgstr ""
+
+#. translators: 1: plugin name, 2: unit id, 3: the reason clause.
+#: inc/class-blocklane-pro-modules.php:768
+#, php-format
+msgid "%1$s: the %2$s content runtime did not load — %3$s. Content you have already built with it will not render until the plugin is reinstalled."
+msgstr ""
+
+#. translators: 1: plugin name, 2: unit id, 3: the reason clause.
+#: inc/class-blocklane-pro-modules.php:776
+#, php-format
+msgid "%1$s: the %2$s lifecycle file did not load — %3$s. Its once-per-version housekeeping was skipped and will run by itself once the file is back; reinstall the plugin to restore it."
+msgstr ""
+
+#. translators: 1: plugin name, 2: module slug, 3: the reason clause.
+#: inc/class-blocklane-pro-modules.php:784
+#, php-format
+msgid "%1$s: the %2$s module did not load — %3$s. The plugin's files are incomplete; reinstall the plugin. In development, run php bin/generate-classmap.php."
+msgstr ""
+
+#: inc/class-blocklane-pro-scripts-controller.php:47
+msgid "You do not have permission to manage custom scripts."
+msgstr ""
+
+#: inc/class-blocklane-pro-scripts.php:228
+msgid "Your settings were saved, but code from a file generated by an older version is still running and could not be removed. Delete wp-content/mu-plugins/blocklane-pro-scripts.php by hand to stop it."
+msgstr ""
+
+#: inc/class-blocklane-pro-settings.php:68
+#: inc/onboarding/src/screens/FormsScreen.js:63
+#: inc/onboarding/src/screens/SeoScreen.js:37
+msgid "Settings"
+msgstr ""
+
+#: inc/class-blocklane-pro-settings.php:111
+#: inc/onboarding/src/screens/registry.js:61
+#: inc/onboarding/src/screens/registry.js:62
+msgid "Dashboard"
+msgstr ""
+
+#: inc/class-blocklane-pro-settings.php:176
+#: inc/onboarding/src/screens/HomeScreen.js:245
+#: inc/onboarding/src/screens/registry.js:73
+#: inc/onboarding/src/screens/registry.js:74
+msgid "Dynamic Values"
+msgstr ""
+
+#: inc/class-blocklane-pro-settings.php:177
+#: inc/onboarding/src/screens/registry.js:84
+#: inc/onboarding/src/screens/registry.js:85
+msgid "Content Types"
+msgstr ""
+
+#: inc/class-blocklane-pro-settings.php:178
+#: inc/onboarding/src/screens/registry.js:98
+#: inc/onboarding/src/screens/registry.js:99
+#: inc/onboarding/src/screens/SeoScreen.js:89
+#: inc/seo/src/index.js:133
+#: inc/seo/src/index.js:137
+msgid "SEO"
+msgstr ""
+
+#: inc/class-blocklane-pro-settings.php:179
+#: inc/forms/runtime.php:136
+#: inc/forms/runtime.php:227
+#: inc/forms/runtime.php:3988
+#: inc/onboarding/src/screens/advanced/rows/forms.js:15
+#: inc/onboarding/src/screens/FormsScreen.js:1227
+#: inc/onboarding/src/screens/registry.js:111
+#: inc/onboarding/src/screens/registry.js:112
+msgid "Forms"
+msgstr ""
+
+#: inc/class-blocklane-pro-settings.php:180
+#: inc/onboarding/src/screens/advanced/rows/scripts.js:15
+#: inc/onboarding/src/screens/HomeScreen.js:259
+#: inc/onboarding/src/screens/registry.js:124
+#: inc/onboarding/src/screens/registry.js:125
+#: inc/onboarding/src/screens/ScriptsScreen.js:189
+#: inc/onboarding/src/screens/ScriptsScreen.js:217
+msgid "Scripts"
+msgstr ""
+
+#: inc/class-blocklane-pro-settings.php:181
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:173
+#: inc/onboarding/src/screens/advanced/rows/site-privacy.js:15
+#: inc/onboarding/src/screens/HomeScreen.js:228
+#: inc/onboarding/src/screens/registry.js:135
+#: inc/onboarding/src/screens/registry.js:136
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:253
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:281
+msgid "Site Visibility"
+msgstr ""
+
+#: inc/class-blocklane-pro-settings.php:182
+#: inc/onboarding/src/screens/registry.js:146
+#: inc/onboarding/src/screens/registry.js:147
+msgid "Extensions"
+msgstr ""
+
+#: inc/class-blocklane-pro-settings.php:183
+#: inc/onboarding/src/screens/registry.js:160
+#: inc/onboarding/src/screens/registry.js:161
+msgid "Advanced"
+msgstr ""
+
+#: inc/class-blocklane-pro-settings.php:184
+#: inc/onboarding/src/screens/registry.js:174
+#: inc/onboarding/src/screens/registry.js:175
+msgid "Create Child Theme"
+msgstr ""
+
+#: inc/class-blocklane-pro-settings.php:191
+#: inc/onboarding/src/screens/registry.js:185
+#: inc/onboarding/src/screens/registry.js:186
+msgid "Blocklane AI MCP"
+msgstr ""
+
+#. translators: %s: the plural post type or taxonomy label.
+#: inc/content-types/mu-runtime.php:213
+#: inc/content-types/mu-runtime.php:442
+#, php-format
+msgid "All %s"
+msgstr ""
+
+#: inc/content-types/mu-runtime.php:214
+msgid "Add New"
+msgstr ""
+
+#. translators: %s: the singular post type or taxonomy label.
+#: inc/content-types/mu-runtime.php:216
+#: inc/content-types/mu-runtime.php:450
+#, php-format
+msgid "Add New %s"
+msgstr ""
+
+#. translators: %s: what is being edited: a post type or taxonomy label, or an animation preset or type name.
+#: inc/content-types/mu-runtime.php:218
+#: inc/content-types/mu-runtime.php:444
+#, php-format
+msgid "Edit %s"
+msgstr ""
+
+#. translators: %s: Singular post type label.
+#: inc/content-types/mu-runtime.php:220
+#, php-format
+msgid "New %s"
+msgstr ""
+
+#. translators: %s: the post type or taxonomy label, singular or plural as the menu line reads.
+#: inc/content-types/mu-runtime.php:222
+#: inc/content-types/mu-runtime.php:224
+#: inc/content-types/mu-runtime.php:446
+#, php-format
+msgid "View %s"
+msgstr ""
+
+#. translators: %s: the plural post type or taxonomy label.
+#: inc/content-types/mu-runtime.php:226
+#: inc/content-types/mu-runtime.php:454
+#, php-format
+msgid "Search %s"
+msgstr ""
+
+#. translators: %s: the plural post type or taxonomy label, sometimes lowercase.
+#: inc/content-types/mu-runtime.php:228
+#: inc/content-types/mu-runtime.php:456
+#, php-format
+msgid "No %s found."
+msgstr ""
+
+#. translators: %s: Plural post type label, lowercase.
+#: inc/content-types/mu-runtime.php:230
+#, php-format
+msgid "No %s found in Trash."
+msgstr ""
+
+#. translators: %s: the singular post type or taxonomy label, or its lowercase plural.
+#: inc/content-types/mu-runtime.php:232
+#: inc/content-types/mu-runtime.php:466
+#, php-format
+msgid "Parent %s:"
+msgstr ""
+
+#. translators: %s: Singular post type label.
+#: inc/content-types/mu-runtime.php:234
+#, php-format
+msgid "%s Archives"
+msgstr ""
+
+#. translators: %s: Singular post type label.
+#: inc/content-types/mu-runtime.php:236
+#, php-format
+msgid "%s Attributes"
+msgstr ""
+
+#. translators: %s: Singular post type label, lowercase.
+#: inc/content-types/mu-runtime.php:238
+#, php-format
+msgid "Insert into %s"
+msgstr ""
+
+#. translators: %s: Singular post type label, lowercase.
+#: inc/content-types/mu-runtime.php:240
+#, php-format
+msgid "Uploaded to this %s"
+msgstr ""
+
+#: inc/content-types/mu-runtime.php:241
+msgid "Featured image"
+msgstr ""
+
+#: inc/content-types/mu-runtime.php:242
+msgid "Set featured image"
+msgstr ""
+
+#: inc/content-types/mu-runtime.php:243
+msgid "Remove featured image"
+msgstr ""
+
+#: inc/content-types/mu-runtime.php:244
+msgid "Use as featured image"
+msgstr ""
+
+#. translators: %s: Plural post type label, lowercase.
+#: inc/content-types/mu-runtime.php:246
+#, php-format
+msgid "Filter %s list"
+msgstr ""
+
+#. translators: %s: Plural post type label.
+#: inc/content-types/mu-runtime.php:248
+#, php-format
+msgid "%s list navigation"
+msgstr ""
+
+#. translators: %s: Plural post type label.
+#: inc/content-types/mu-runtime.php:250
+#, php-format
+msgid "%s list"
+msgstr ""
+
+#: inc/content-types/mu-runtime.php:394
+msgid "Field Gallery"
+msgstr ""
+
+#: inc/content-types/mu-runtime.php:395
+msgid "The images from a gallery field on the current entry."
+msgstr ""
+
+#. translators: %s: Singular taxonomy label.
+#: inc/content-types/mu-runtime.php:448
+#, php-format
+msgid "Update %s"
+msgstr ""
+
+#. translators: %s: Singular taxonomy label.
+#: inc/content-types/mu-runtime.php:452
+#, php-format
+msgid "New %s Name"
+msgstr ""
+
+#. translators: %s: Plural taxonomy label.
+#: inc/content-types/mu-runtime.php:458
+#, php-format
+msgid "← Back to %s"
+msgstr ""
+
+#. translators: %s: Singular taxonomy label.
+#: inc/content-types/mu-runtime.php:460
+#, php-format
+msgid "Parent %s"
+msgstr ""
+
+#. translators: %s: Plural taxonomy label.
+#: inc/content-types/mu-runtime.php:462
+#, php-format
+msgid "Popular %s"
+msgstr ""
+
+#. translators: %s: Plural taxonomy label, lowercase.
+#: inc/content-types/mu-runtime.php:464
+#, php-format
+msgid "Separate %s with commas"
+msgstr ""
+
+#. translators: %s: Plural taxonomy label, lowercase.
+#: inc/content-types/mu-runtime.php:468
+#, php-format
+msgid "Add or remove %s"
+msgstr ""
+
+#. translators: %s: Plural taxonomy label, lowercase.
+#: inc/content-types/mu-runtime.php:470
+#, php-format
+msgid "Choose from the most used %s"
+msgstr ""
+
+#. translators: %s: content type singular name.
+#: inc/content-types/mu-runtime.php:591
+#, php-format
+msgctxt "template title"
+msgid "%s (Single)"
+msgstr ""
+
+#. translators: %s: content type singular name.
+#: inc/content-types/mu-runtime.php:593
+#, php-format
+msgid "Starter template for a single %s."
+msgstr ""
+
+#. translators: %d: rating value out of 5.
+#: inc/content-types/mu-runtime.php:694
+#, php-format
+msgid "%d out of 5 stars"
+msgstr ""
+
+#. translators: %s: singular type name.
+#: inc/content-types/mu-runtime.php:1244
+#, php-format
+msgctxt "meta box title"
+msgid "%s fields"
+msgstr ""
+
+#. translators: %d: number of stars.
+#: inc/content-types/mu-runtime.php:1309
+#, php-format
+msgid "%d star"
+msgid_plural "%d stars"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/content-types/mu-runtime.php:1314
+#: inc/content-types/mu-runtime.php:1336
+#: inc/content-types/mu-runtime.php:1365
+#: inc/extensions/src/components/custom-icon-modal.js:176
+msgid "Clear"
+msgstr ""
+
+#: inc/content-types/mu-runtime.php:1331
+#: inc/extensions/src/controls/transparent-header/blocks.js:425
+msgid "Replace image"
+msgstr ""
+
+#: inc/content-types/mu-runtime.php:1331
+#: inc/extensions/src/controls/transparent-header/blocks.js:448
+#: inc/onboarding/src/screens/seo/SettingsTab.js:737
+msgid "Select image"
+msgstr ""
+
+#: inc/content-types/mu-runtime.php:1360
+#: inc/content-types/mu-runtime.php:1523
+msgid "Edit gallery"
+msgstr ""
+
+#: inc/content-types/mu-runtime.php:1360
+#: inc/content-types/mu-runtime.php:1524
+msgid "Add images"
+msgstr ""
+
+#: inc/content-types/mu-runtime.php:1377
+msgid "— Select —"
+msgstr ""
+
+#: inc/content-types/mu-runtime.php:1522
+msgid "Select images"
+msgstr ""
+
+#: inc/dynamic-values/mu-runtime.php:172
+msgid "Dynamic Value"
+msgstr ""
+
+#. translators: %s: extension slug
+#: inc/extensions/class-blocklane-pro-extensions-handler.php:220
+#, php-format
+msgid "The setting for %s could not be saved."
+msgstr ""
+
+#: inc/extensions/class-blocklane-pro-extensions-handler.php:357
+msgid "The canvas grid tools setting could not be saved."
+msgstr ""
+
+#: inc/forms/class-blocklane-pro-forms-controller.php:203
+#: inc/forms/class-blocklane-pro-forms-controller.php:372
+#: inc/forms/class-blocklane-pro-forms-controller.php:427
+msgid "Submission not found."
+msgstr ""
+
+#: inc/forms/class-blocklane-pro-forms-controller.php:219
+msgid "File not found."
+msgstr ""
+
+#: inc/forms/class-blocklane-pro-forms-controller.php:227
+msgid "The stored file no longer exists."
+msgstr ""
+
+#: inc/forms/class-blocklane-pro-forms.php:56
+msgid "List forms"
+msgstr ""
+
+#: inc/forms/class-blocklane-pro-forms.php:57
+msgid "List the site’s Blocklane forms that have received submissions, with total and unread counts."
+msgstr ""
+
+#: inc/forms/class-blocklane-pro-forms.php:73
+msgid "Read form submissions"
+msgstr ""
+
+#: inc/forms/class-blocklane-pro-forms.php:74
+msgid "Read stored Blocklane form submissions — filter by form, originating page (origin_id), status, or search, paged. Read-only."
+msgstr ""
+
+#. translators: %d: post id of a deleted/unnamed origin page.
+#: inc/forms/class-blocklane-pro-forms.php:493
+#, php-format
+msgid "Page #%d"
+msgstr ""
+
+#: inc/forms/class-blocklane-pro-forms.php:748
+#: inc/forms/src/form-input/edit.js:321
+#: inc/onboarding/src/screens/FormsScreen.js:1171
+msgid "Date"
+msgstr ""
+
+#: inc/forms/class-blocklane-pro-forms.php:749
+#: inc/forms/runtime.php:3834
+#: inc/forms/src/form/edit.js:747
+#: inc/onboarding/src/screens/FormsScreen.js:1098
+msgid "Form"
+msgstr ""
+
+#: inc/forms/class-blocklane-pro-forms.php:750
+#: inc/onboarding/src/screens/FormsScreen.js:1156
+msgid "Status"
+msgstr ""
+
+#: inc/forms/class-blocklane-pro-forms.php:751
+msgid "Origin URL"
+msgstr ""
+
+#. translators: %s: number of exported rows.
+#: inc/forms/class-blocklane-pro-forms.php:772
+#, php-format
+msgid "NOTE: this export was truncated at %s rows. Narrow the filters and export again to get the rest."
+msgstr ""
+
+#: inc/forms/runtime.php:137
+msgid "Saved forms render without those blocks, and submissions silently drop the fields they carry, until the assets are rebuilt."
+msgstr ""
+
+#: inc/forms/runtime.php:437
+#: inc/forms/src/form-file/edit.js:42
+msgid "Images"
+msgstr ""
+
+#: inc/forms/runtime.php:438
+#: inc/forms/src/form-file/edit.js:46
+msgid "Documents"
+msgstr ""
+
+#: inc/forms/runtime.php:439
+#: inc/forms/src/form-file/edit.js:63
+msgid "Archives (zip)"
+msgstr ""
+
+#: inc/forms/runtime.php:1234
+#: inc/forms/src/form/edit.js:1315
+msgid "This form is not currently accepting submissions."
+msgstr ""
+
+#: inc/forms/runtime.php:2263
+#: inc/forms/runtime.php:2514
+msgid "This field is required."
+msgstr ""
+
+#: inc/forms/runtime.php:2283
+msgid "This field could not be validated."
+msgstr ""
+
+#: inc/forms/runtime.php:2301
+#: inc/forms/runtime.php:2422
+msgid "Please choose from the available options."
+msgstr ""
+
+#: inc/forms/runtime.php:2345
+msgid "Please enter a valid email address."
+msgstr ""
+
+#: inc/forms/runtime.php:2355
+msgid "Please enter a valid web address."
+msgstr ""
+
+#: inc/forms/runtime.php:2365
+msgid "Please enter a number."
+msgstr ""
+
+#: inc/forms/runtime.php:2372
+msgid "Please enter a number within the allowed range."
+msgstr ""
+
+#: inc/forms/runtime.php:2384
+msgid "Please enter a valid value."
+msgstr ""
+
+#: inc/forms/runtime.php:2395
+msgid "Please enter a valid date."
+msgstr ""
+
+#: inc/forms/runtime.php:2402
+msgid "Please enter a date within the allowed range."
+msgstr ""
+
+#. translators: %d: maximum number of characters.
+#: inc/forms/runtime.php:2433
+#, php-format
+msgid "Please use at most %d characters."
+msgstr ""
+
+#. translators: %d: maximum number of files.
+#: inc/forms/runtime.php:2523
+#: inc/forms/src/form-file/render.php:54
+#, php-format
+msgid "Please attach at most %d file."
+msgid_plural "Please attach at most %d files."
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/forms/runtime.php:2535
+msgid "A file is too large to upload."
+msgstr ""
+
+#: inc/forms/runtime.php:2541
+#: inc/forms/runtime.php:2548
+msgid "A file failed to upload. Please try again."
+msgstr ""
+
+#. translators: %d: maximum number of files.
+#: inc/forms/runtime.php:2557
+#: inc/forms/src/form-file/render.php:55
+msgid "An attached file is empty. Please choose a different file."
+msgstr ""
+
+#. translators: %s: maximum file size, e.g. "8 MB".
+#: inc/forms/runtime.php:2565
+#: inc/forms/src/form-file/render.php:53
+#, php-format
+msgid "Each file must be smaller than %s."
+msgstr ""
+
+#: inc/forms/runtime.php:2580
+#: inc/forms/runtime.php:2590
+msgid "This file type is not accepted."
+msgstr ""
+
+#: inc/forms/runtime.php:2933
+msgid "Too many submissions from your connection. Please wait a minute and try again."
+msgstr ""
+
+#: inc/forms/runtime.php:2956
+msgid "Your submission was too large to upload. Please attach smaller or fewer files and try again."
+msgstr ""
+
+#: inc/forms/runtime.php:3073
+msgid "You attached too many files. Please attach fewer files and try again."
+msgstr ""
+
+#: inc/forms/runtime.php:3104
+msgid "We could not confirm you are human. Please complete the verification and try again."
+msgstr ""
+
+#: inc/forms/runtime.php:3172
+msgid "Please correct the highlighted fields."
+msgstr ""
+
+#: inc/forms/runtime.php:3244
+#: inc/forms/src/form/edit.js:1378
+msgid "You have already submitted this form."
+msgstr ""
+
+#: inc/forms/runtime.php:3278
+msgid "We could not save your upload. Please try again."
+msgstr ""
+
+#. translators: 1: form name, 2: site title.
+#: inc/forms/runtime.php:3839
+#, php-format
+msgid "New submission: %1$s — %2$s"
+msgstr ""
+
+#. translators: 1: form name, 2: site title.
+#: inc/forms/runtime.php:3859
+#, php-format
+msgid "Sent by the “%1$s” form on %2$s."
+msgstr ""
+
+#. translators: %s: site title.
+#: inc/forms/runtime.php:3896
+#, php-format
+msgid "We received your message — %s"
+msgstr ""
+
+#: inc/forms/runtime.php:3902
+msgid "Thanks for getting in touch! Here is a copy of what you sent — we will get back to you soon."
+msgstr ""
+
+#: inc/forms/runtime.php:3950
+#: inc/forms/src/form-notification/edit.js:15
+msgid "Thanks! Your message has been sent."
+msgstr ""
+
+#: inc/forms/runtime.php:3953
+#: inc/forms/src/form-notification/edit.js:26
+msgid "Something went wrong and your message was not sent. Please check the highlighted fields and try again."
+msgstr ""
+
+#: inc/forms/runtime.php:4002
+msgid "Contact form"
+msgstr ""
+
+#: inc/forms/runtime.php:4003
+msgid "Name, email, and message with a submit button."
+msgstr ""
+
+#: inc/forms/runtime.php:4004
+msgid "Contact"
+msgstr ""
+
+#: inc/forms/runtime.php:4009
+#: inc/forms/runtime.php:4094
+#: inc/forms/src/form/edit.js:53
+msgid "Name"
+msgstr ""
+
+#: inc/forms/runtime.php:4018
+#: inc/forms/runtime.php:4050
+#: inc/forms/runtime.php:4103
+#: inc/forms/src/form-input/edit.js:305
+#: inc/forms/src/form/edit.js:62
+msgid "Email"
+msgstr ""
+
+#: inc/forms/runtime.php:4027
+#: inc/forms/src/form/edit.js:70
+#: inc/forms/src/form/edit.js:974
+msgid "Message"
+msgstr ""
+
+#: inc/forms/runtime.php:4031
+msgid "Send message"
+msgstr ""
+
+#: inc/forms/runtime.php:4043
+msgid "Newsletter signup"
+msgstr ""
+
+#: inc/forms/runtime.php:4044
+msgid "Email plus a consent checkbox."
+msgstr ""
+
+#: inc/forms/runtime.php:4045
+msgid "Newsletter"
+msgstr ""
+
+#: inc/forms/runtime.php:4060
+msgid "I agree to receive email updates."
+msgstr ""
+
+#: inc/forms/runtime.php:4064
+msgid "Subscribe"
+msgstr ""
+
+#: inc/forms/runtime.php:4074
+msgid "Will you attend?"
+msgstr ""
+
+#: inc/forms/runtime.php:4078
+msgid "Yes, I will be there"
+msgstr ""
+
+#: inc/forms/runtime.php:4079
+msgid "Sorry, I can’t make it"
+msgstr ""
+
+#: inc/forms/runtime.php:4087
+#: inc/forms/runtime.php:4089
+msgid "RSVP"
+msgstr ""
+
+#: inc/forms/runtime.php:4088
+msgid "Attendance, guest count, and a note."
+msgstr ""
+
+#: inc/forms/runtime.php:4114
+msgid "Number of guests"
+msgstr ""
+
+#: inc/forms/runtime.php:4119
+msgid "Anything we should know?"
+msgstr ""
+
+#: inc/forms/runtime.php:4120
+msgid "Send RSVP"
+msgstr ""
+
+#. translators: 1: extension list, 2: maximum file size (e.g. "8 MB").
+#: inc/forms/src/form-file/render.php:24
+#: inc/forms/src/form-file/edit.js:133
+#, php-format,js-format
+msgid "Accepted: %1$s · Max %2$s"
+msgstr ""
+
+#. translators: %d: maximum number of files.
+#: inc/forms/src/form-file/render.php:31
+#: inc/forms/src/form-file/edit.js:142
+#, php-format,js-format
+msgid "Up to %d file"
+msgid_plural "Up to %d files"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/forms/src/form-step/render.php:28
+msgid "Back"
+msgstr ""
+
+#: inc/forms/src/form-step/render.php:31
+msgid "Next"
+msgstr ""
+
+#: inc/forms/src/form-submit-button/render.php:19
+#: inc/forms/src/form-submit-button/edit.js:64
+msgid "Submit"
+msgstr ""
+
+#: inc/forms/src/form-submit-button/render.php:22
+msgid "Sending…"
+msgstr ""
+
+#. translators: 1: current step number, 2: total number of steps. Both placeholders are literal tokens replaced by script — keep each exactly once.
+#: inc/forms/src/form/render.php:73
+#, php-format
+msgid "Step %1$s of %2$s"
+msgstr ""
+
+#: inc/forms/src/form/render.php:77
+msgid "Your session expired. Please reload the page and try again."
+msgstr ""
+
+#: inc/forms/src/form/render.php:93
+msgid "Leave this field empty"
+msgstr ""
+
+#: inc/forms/src/form/render.php:99
+#: inc/forms/src/form/edit.js:787
+msgid "Required fields are marked with an asterisk (*)."
+msgstr ""
+
+#. translators: %d: step number.
+#: inc/forms/src/form/render.php:105
+#: inc/forms/src/form-step/edit.js:96
+#, php-format,js-format
+msgid "Step %d"
+msgstr ""
+
+#: inc/popups/class-blocklane-pro-popups-controller.php:42
+msgid "You do not have permission to list popups."
+msgstr ""
+
+#: inc/popups/class-blocklane-pro-popups-controller.php:91
+#: inc/shared/seo-ui.js:190
+msgid "(no title)"
+msgstr ""
+
+#: inc/popups/runtime.php:206
+#: inc/onboarding/src/screens/advanced/rows/popups.js:15
+msgid "Popups"
+msgstr ""
+
+#: inc/popups/runtime.php:207
+#: inc/popups/src/index.js:362
+#: inc/popups/src/index.js:365
+msgid "Popup"
+msgstr ""
+
+#: inc/popups/runtime.php:208
+msgid "Add New Popup"
+msgstr ""
+
+#: inc/popups/runtime.php:209
+msgid "Edit Popup"
+msgstr ""
+
+#: inc/popups/runtime.php:210
+msgid "No popups yet."
+msgstr ""
+
+#. translators: %s: popup title.
+#: inc/popups/runtime.php:592
+#, php-format
+msgid "Open popup: %s"
+msgstr ""
+
+#: inc/popups/runtime.php:593
+msgid "Open popup"
+msgstr ""
+
+#: inc/popups/runtime.php:774
+#: inc/onboarding/src/screens/FormsScreen.js:202
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:111
+msgid "Close"
+msgstr ""
+
+#: inc/security/class-blocklane-pro-security-controller.php:35
+msgid "Map of security toggle slug to enabled state."
+msgstr ""
+
+#: inc/security/class-blocklane-pro-security-controller.php:48
+msgid "You do not have permission to manage security settings."
+msgstr ""
+
+#: inc/security/class-blocklane-pro-security.php:296
+msgid "Too many failed login attempts. Please try again in a few minutes."
+msgstr ""
+
+#: inc/seo/class-blocklane-pro-seo-controller.php:370
+msgid "Content not found."
+msgstr ""
+
+#: inc/seo/class-blocklane-pro-seo-controller.php:374
+msgid "You cannot edit this content."
+msgstr ""
+
+#: inc/seo/class-blocklane-pro-seo-import.php:129
+msgid "Unknown import source."
+msgstr ""
+
+#: inc/seo/class-blocklane-pro-seo.php:403
+msgid "Get SEO settings"
+msgstr ""
+
+#: inc/seo/class-blocklane-pro-seo.php:404
+msgid "Read Blocklane SEO site settings: sitemap toggle, Organization schema fields, and which verification services are configured."
+msgstr ""
+
+#: inc/seo/class-blocklane-pro-seo.php:427
+msgid "Update SEO settings"
+msgstr ""
+
+#: inc/seo/class-blocklane-pro-seo.php:428
+msgid "Update Blocklane SEO site settings. Accepts a partial map of: sitemap (bool), html_sitemap (bool), html_sitemap_page (page ID), llms_txt (bool; serves an llms.txt content manifest for AI crawlers), archive_canonicals (bool), noindex_author_archives (bool), noindex_date_archives (bool), default_og_image_id (attachment ID for the fallback share image), indexnow (bool; the key is generated automatically and not writable here), title_format (a token string; the tokens are title, site, tagline and sep, each wrapped in percent signs), title_separator, org_name, org_description, org_logo_id, org_profiles (URL list), and the local-business fields: local_business (bool switches the schema to LocalBusiness), local_address, local_city, local_region, local_postal_code, local_country, local_phone, local_latitude, local_longitude, local_hours (day key monday–sunday to {open, close} in 24h HH:MM)."
+msgstr ""
+
+#: inc/seo/runtime.php:111
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:138
+#: inc/seo/src/index.js:160
+msgid "Search title"
+msgstr ""
+
+#: inc/seo/runtime.php:112
+msgid "Replaces the page title in search results and the browser tab."
+msgstr ""
+
+#: inc/seo/runtime.php:126
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:155
+#: inc/seo/src/index.js:180
+msgid "Search description"
+msgstr ""
+
+#: inc/seo/runtime.php:127
+msgid "The summary search engines may show under the title."
+msgstr ""
+
+#: inc/seo/runtime.php:143
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:188
+#: inc/seo/src/index.js:214
+msgid "Hide from search engines"
+msgstr ""
+
+#: inc/seo/runtime.php:157
+#: inc/onboarding/src/screens/seo/ContentTab.js:75
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:174
+#: inc/seo/src/index.js:199
+msgid "Schema type"
+msgstr ""
+
+#: inc/seo/runtime.php:456
+msgid "Sitemap Page"
+msgstr ""
+
+#: inc/seo/runtime.php:669
+msgid "Site map"
+msgstr ""
+
+#: inc/seo/runtime.php:727
+msgid "Toggle child pages"
+msgstr ""
+
+#: inc/seo/runtime.php:2228
+#: inc/onboarding/src/screens/seo/ContentTab.js:278
+msgid "SEO title"
+msgstr ""
+
+#: inc/seo/runtime.php:2229
+msgid "SEO description"
+msgstr ""
+
+#: inc/seo/runtime.php:2230
+#: inc/onboarding/src/screens/seo/ContentTab.js:262
+msgid "Schema"
+msgstr ""
+
+#: inc/seo/runtime.php:2231
+#: inc/onboarding/src/screens/seo/ContentTab.js:316
+msgid "Search"
+msgstr ""
+
+#: inc/seo/runtime.php:2276
+#: inc/shared/seo-ui.js:47
+msgid "Article"
+msgstr ""
+
+#: inc/seo/runtime.php:2278
+#: inc/shared/seo-ui.js:48
+msgid "FAQ"
+msgstr ""
+
+#: inc/seo/runtime.php:2287
+#: inc/forms/src/form-input/edit.js:325
+#: inc/onboarding/src/screens/seo/ContentTab.js:321
+msgid "Hidden"
+msgstr ""
+
+#: inc/seo/runtime.php:2289
+#: inc/onboarding/src/screens/seo/ContentTab.js:325
+msgid "Visible"
+msgstr ""
+
+#: inc/seo/runtime.php:2323
+msgid "SEO filter"
+msgstr ""
+
+#: inc/seo/runtime.php:2324
+msgid "Missing SEO title"
+msgstr ""
+
+#: inc/seo/runtime.php:2325
+msgid "Missing description"
+msgstr ""
+
+#: inc/seo/runtime.php:2326
+msgid "Hidden from search"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-controller.php:95
+msgid "You do not have permission to manage site visibility."
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:137
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:391
+#: inc/site-lock/class-blocklane-pro-site-lock-theme-switch.php:87
+#: inc/site-lock/lifecycle.php:136
+msgid "Coming Soon"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:138
+msgid "Shown to visitors while the site is password-protected. Edit it in the Site Editor."
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:146
+msgid "Maintenance"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:147
+msgid "Shown to visitors while the site is in maintenance mode. Edit it in the Site Editor."
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:174
+msgid "The Coming Soon page renders without its password form, so visitors with the password cannot unlock the site, until the assets are rebuilt."
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:280
+msgid "This site is not currently available."
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:392
+#: inc/site-lock/class-blocklane-pro-site-lock-theme-switch.php:88
+#: inc/site-lock/lifecycle.php:135
+msgid "Maintenance Mode"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:394
+msgid "Your site is private — visitors see the Coming Soon page."
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:395
+msgid "Your site is in maintenance mode — visitors see the maintenance page."
+msgstr ""
+
+#. translators: %s: site name.
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:726
+#, php-format
+msgid "%s — Coming soon"
+msgstr ""
+
+#. translators: %s: site name.
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:728
+#, php-format
+msgid "%s — Under maintenance"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:944
+#: inc/site-lock/src/site-password/index.js:129
+msgid "Log in"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:964
+#: inc/site-lock/src/site-password/index.js:104
+msgid "Password"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:974
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:399
+msgid "Show password"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:982
+msgid "Too many attempts. Please wait a few minutes and try again."
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:984
+msgid "Your session expired — please refresh and try again."
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:986
+msgid "Sorry, that password is incorrect."
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1017
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1090
+msgid "We’ll be right back"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1018
+msgid "The site is briefly down for maintenance. Please check back shortly."
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1048
+msgid "Sales: (555) 123-4567"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1048
+msgid "Contact sales"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1049
+msgid "Support: (555) 765-4321"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1049
+msgid "Get help"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1050
+msgid "Guides &amp; training"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1050
+msgid "Learn more"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1051
+msgid "Office"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1051
+msgid "123 Example St, Suite 100, City, ST"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1057
+#: inc/onboarding/src/screens/HomeScreen.js:137
+#: inc/onboarding/src/screens/HomeScreen.js:150
+msgid "Coming soon"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1071
+msgid "Request website support"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1090
+msgid "Launching soon"
+msgstr ""
+
+#. translators: %s: the active site visibility mode, e.g. "Coming Soon".
+#: inc/site-lock/class-blocklane-pro-site-lock-theme-switch.php:98
+#, php-format
+msgid "Activating this theme turns off %s"
+msgstr ""
+
+#. translators: 1: theme name, 2: plugin name, 3: the active site visibility mode.
+#: inc/site-lock/class-blocklane-pro-site-lock-theme-switch.php:102
+#, php-format
+msgid "%1$s is a classic theme. %2$s only runs on a block theme, so activating %1$s stops %3$s from being enforced and your site becomes publicly visible immediately."
+msgstr ""
+
+#. translators: %s: the active site visibility mode, e.g. "Coming Soon".
+#: inc/site-lock/class-blocklane-pro-site-lock-theme-switch.php:105
+#, php-format
+msgid "Your %s settings are kept. Switching back to a block theme starts enforcing them again."
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-theme-switch.php:108
+msgid "Activate anyway"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-theme-switch.php:109
+#: inc/onboarding/src/screens/ChildThemeScreen.js:666
+#: inc/onboarding/src/screens/FormsScreen.js:226
+#: inc/onboarding/src/screens/seo/ContentTab.js:87
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:210
+msgid "Cancel"
+msgstr ""
+
+#: inc/site-lock/class-blocklane-pro-site-lock-theme-switch.php:113
+msgid "This theme"
+msgstr ""
+
+#. translators: 1: the site visibility mode, e.g. "Coming Soon".
+#: inc/site-lock/lifecycle.php:140
+#, php-format
+msgid "Your site is publicly visible. %1$s is still switched on, but it needs a block theme to be enforced — activate one and it starts working again. Nothing was lost: your settings and password are still saved."
+msgstr ""
+
+#: inc/extensions/src/components/custom-icon-modal.js:84
+msgid "Custom Icon"
+msgstr ""
+
+#: inc/extensions/src/components/custom-icon-modal.js:93
+msgid "Custom icon"
+msgstr ""
+
+#: inc/extensions/src/components/custom-icon-modal.js:97
+msgid "Paste the SVG code for your custom icon."
+msgstr ""
+
+#: inc/extensions/src/components/custom-icon-modal.js:110
+msgid "Label"
+msgstr ""
+
+#: inc/extensions/src/components/custom-icon-modal.js:111
+msgid "How the icon is listed in the library."
+msgstr ""
+
+#: inc/extensions/src/components/custom-icon-modal.js:143
+#: inc/extensions/src/components/custom-icon-modal.js:146
+msgid "Preview size"
+msgstr ""
+
+#: inc/extensions/src/components/custom-icon-modal.js:157
+msgid "This doesn’t appear to be valid SVG — only safe SVG elements and attributes are kept."
+msgstr ""
+
+#: inc/extensions/src/components/custom-icon-modal.js:173
+msgid "Clear custom icon"
+msgstr ""
+
+#: inc/extensions/src/components/custom-icon-modal.js:181
+#: inc/extensions/src/components/custom-icon-modal.js:185
+msgid "Insert custom icon"
+msgstr ""
+
+#: inc/extensions/src/components/dimension-control.js:79
+msgid "Degrees"
+msgstr ""
+
+#: inc/extensions/src/components/dimension-control.js:105
+#: inc/extensions/src/components/dimension-control.js:172
+msgid "Dimension"
+msgstr ""
+
+#: inc/extensions/src/controls/responsive-controls/index.js:183
+#: inc/onboarding/src/components/HelpTip.js:22
+#: inc/shared/seo-ui.js:108
+msgid "More information"
+msgstr ""
+
+#: inc/extensions/src/controls/responsive-controls/index.js:271
+msgid "Could not save. Please try again."
+msgstr ""
+
+#: inc/extensions/src/controls/responsive-controls/index.js:280
+msgid "Tablet breakpoint"
+msgstr ""
+
+#: inc/extensions/src/controls/responsive-controls/index.js:281
+msgid "Mobile breakpoint"
+msgstr ""
+
+#: inc/extensions/src/controls/responsive-controls/index.js:284
+msgid "Applies site-wide — including core responsive styles. Reload the editor to see core panels follow."
+msgstr ""
+
+#: inc/extensions/src/controls/responsive-controls/index.js:292
+#: inc/onboarding/src/screens/ExtensionsScreen.js:250
+msgid "Tablet (px)"
+msgstr ""
+
+#: inc/extensions/src/controls/responsive-controls/index.js:293
+#: inc/onboarding/src/screens/ExtensionsScreen.js:263
+msgid "Mobile (px)"
+msgstr ""
+
+#. translators: %d: mobile breakpoint width in px.
+#: inc/extensions/src/controls/responsive-controls/index.js:306
+#, js-format
+msgid "Must be larger than the mobile breakpoint (%dpx)."
+msgstr ""
+
+#. translators: %d: tablet breakpoint width in px.
+#: inc/extensions/src/controls/responsive-controls/index.js:314
+#, js-format
+msgid "Must be smaller than the tablet breakpoint (%dpx)."
+msgstr ""
+
+#: inc/extensions/src/controls/responsive-controls/index.js:333
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:230
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:573
+msgid "Save"
+msgstr ""
+
+#: inc/extensions/src/controls/responsive-controls/index.js:346
+msgid "Reset to default"
+msgstr ""
+
+#: inc/extensions/src/controls/responsive-controls/index.js:387
+#: inc/extensions/src/controls/responsive-controls/index.js:684
+msgid "Edit"
+msgstr ""
+
+#: inc/extensions/src/controls/responsive-controls/index.js:453
+msgid "Desktop"
+msgstr ""
+
+#: inc/extensions/src/controls/responsive-controls/index.js:454
+msgid "Tablet"
+msgstr ""
+
+#: inc/extensions/src/controls/responsive-controls/index.js:455
+msgid "Mobile"
+msgstr ""
+
+#. translators: %s: device (Desktop/Tablet/Mobile).
+#: inc/extensions/src/controls/responsive-controls/index.js:565
+#, js-format
+msgid "Hide on %s"
+msgstr ""
+
+#: inc/extensions/src/controls/responsive-controls/index.js:587
+msgid "Removes this block at this screen size on the front end (still editable here). Stored as core block visibility — core’s eye badge and options-menu Hide show the same state."
+msgstr ""
+
+#. translators: 1: device (Tablet/Mobile), 2: breakpoint width in px.
+#: inc/extensions/src/controls/responsive-controls/index.js:657
+#, js-format
+msgid "%1$s ≤ %2$dpx"
+msgstr ""
+
+#. translators: %s: device (Tablet/Mobile).
+#: inc/extensions/src/controls/responsive-controls/index.js:809
+#, js-format
+msgid "Display order (%s)"
+msgstr ""
+
+#: inc/extensions/src/controls/responsive-controls/index.js:824
+msgid "Reorders this item among its siblings at this screen size — works whether they sit in a row or stack. Visual only; keyboard and reading order are unchanged."
+msgstr ""
+
+#. translators: %s: device (Tablet/Mobile).
+#: inc/extensions/src/controls/responsive-controls/index.js:881
+#, js-format
+msgid "Max width (%s)"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:215
+msgid "Solid Background"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:221
+#: inc/extensions/src/controls/transparent-header/blocks.js:235
+#: inc/extensions/src/controls/transparent-header/blocks.js:241
+#: inc/extensions/src/controls/transparent-header/blocks.js:253
+#: inc/extensions/src/controls/transparent-header/blocks.js:259
+msgid "Transparent Text"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:225
+msgid "Transparent Hover"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:229
+msgid "Transparent Active"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:247
+msgid "Transparent Label"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:263
+#: inc/extensions/src/controls/transparent-header/colors-controls.js:37
+msgid "Transparent Background"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:269
+msgid "Transparent Icon"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:273
+msgid "Transparent Icon Background"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:375
+#: inc/extensions/src/controls/transparent-header/index.js:311
+#: inc/onboarding/src/screens/extensions/rows/transparent-header.js:16
+msgid "Transparent Header"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:386
+#: inc/extensions/src/controls/transparent-header/blocks.js:399
+msgid "Transparent logo"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:400
+msgid "Shown instead of the site logo while the header is transparent. Use a version of the logo made for dark or photographic backgrounds."
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:440
+#: inc/onboarding/src/screens/seo/SettingsTab.js:852
+msgid "Remove"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:461
+#: inc/extensions/src/controls/transparent-header/blocks.js:473
+msgid "Logo treatment"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:474
+msgid "Recolor the logo with a filter while the header is transparent. White suits dark heroes; a transparent logo image gives full control."
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:482
+#: inc/forms/src/form/edit.js:126
+#: inc/forms/src/form/edit.js:970
+msgid "Default"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:486
+msgid "White"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/blocks.js:490
+msgid "Black"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:280
+msgid "The header keeps its own background and stays out of the flow, so the section below starts at the top of the page. Sticky and hide-on-scroll on this group stay available."
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:284
+msgid "How the overlaid header paints at the top of the page. Solid on scroll brings its own background back — set one on this group — once the page scrolls past it."
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:329
+#: inc/extensions/src/controls/transparent-header/index.js:347
+msgid "Overlay the header"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:348
+msgid "Sit the header on top of the first section with its background removed. Give that first section enough top padding to clear it. Replaces sticky positioning on this group."
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:384
+#: inc/extensions/src/controls/transparent-header/index.js:392
+#: inc/onboarding/src/screens/seo/SettingsTab.js:696
+msgid "Preview"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:393
+msgid "Canvas preview only — never saved. Solid shows the header as it renders once scrolled; previewing Transparent while editing the header alone adds a dark placeholder background so light text stays visible."
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:408
+#: inc/extensions/src/controls/transparent-header/index.js:824
+msgid "Transparent"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:412
+#: inc/extensions/src/controls/transparent-header/index.js:453
+#: inc/extensions/src/controls/transparent-header/index.js:826
+msgid "Solid"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:420
+#: inc/extensions/src/controls/transparent-header/index.js:433
+#: inc/site-lock/src/site-password/index.js:78
+msgid "Background"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:439
+msgid "Transparent, solid on scroll"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:446
+msgid "Always transparent"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:476
+#: inc/extensions/src/controls/transparent-header/index.js:486
+msgid "Top offset"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:487
+msgid "Float the header below the top edge. The admin bar is compensated automatically."
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:508
+#: inc/extensions/src/controls/transparent-header/index.js:521
+msgid "Z-index"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:522
+msgid "Stacking order against the rest of the page. Defaults to 100 — raise it to clear another fixed element, such as a third-party bar or chat widget."
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:805
+#: inc/onboarding/src/screens/ScriptsScreen.js:260
+msgid "Header"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:810
+msgid "Style"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:819
+msgid "Default – Transparent"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:820
+msgid "Default – Solid"
+msgstr ""
+
+#: inc/extensions/src/controls/transparent-header/index.js:829
+msgid "Default follows the header itself. Transparent or Solid overrides it for this page only."
+msgstr ""
+
+#: inc/forms/src/form-file/edit.js:169
+#: inc/forms/src/form-group/edit.js:62
+#: inc/forms/src/form-input/edit.js:98
+#: inc/forms/src/form-select/edit.js:139
+#: inc/forms/src/form-textarea/edit.js:60
+msgid "Field settings"
+msgstr ""
+
+#: inc/forms/src/form-file/edit.js:206
+#: inc/forms/src/form-file/edit.js:214
+msgid "Allowed types"
+msgstr ""
+
+#: inc/forms/src/form-file/edit.js:236
+#: inc/forms/src/form-file/edit.js:244
+msgid "Multiple files"
+msgstr ""
+
+#: inc/forms/src/form-file/edit.js:253
+msgid "Maximum files"
+msgstr ""
+
+#: inc/forms/src/form-file/edit.js:279
+#: inc/forms/src/form-file/edit.js:284
+msgid "Maximum size (MB)"
+msgstr ""
+
+#. translators: %s: effective upload ceiling, e.g. "64 MB".
+#: inc/forms/src/form-file/edit.js:289
+#, js-format
+msgid "Uploads are capped at %s per file (server limit and Forms settings)."
+msgstr ""
+
+#: inc/forms/src/form-file/edit.js:323
+msgid "This form has submission storage turned off, so uploaded files are discarded — only their names reach the notification email."
+msgstr ""
+
+#: inc/forms/src/form-file/edit.js:339
+#: inc/forms/src/form-input/edit.js:84
+#: inc/forms/src/form-select/edit.js:224
+#: inc/forms/src/form-textarea/edit.js:184
+msgid "Add a label…"
+msgstr ""
+
+#: inc/forms/src/form-group/edit.js:81
+msgid "Legend"
+msgstr ""
+
+#: inc/forms/src/form-group/edit.js:88
+#: inc/forms/src/form-group/edit.js:95
+msgid "Choice type"
+msgstr ""
+
+#: inc/forms/src/form-group/edit.js:98
+msgid "Radio: pick one. Checkboxes: pick any."
+msgstr ""
+
+#: inc/forms/src/form-group/edit.js:108
+msgid "Radio"
+msgstr ""
+
+#: inc/forms/src/form-group/edit.js:112
+msgid "Checkboxes"
+msgstr ""
+
+#: inc/forms/src/form-group/edit.js:147
+msgid "Add a legend…"
+msgstr ""
+
+#: inc/forms/src/form-group/index.js:20
+msgid "Radio Group"
+msgstr ""
+
+#: inc/forms/src/form-group/index.js:21
+msgid "Pick one of several choices."
+msgstr ""
+
+#: inc/forms/src/form-group/index.js:31
+msgid "Checkbox Group"
+msgstr ""
+
+#: inc/forms/src/form-group/index.js:32
+msgid "Pick any of several choices."
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:149
+#: inc/forms/src/form-input/edit.js:157
+msgid "Use as reply-to"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:158
+msgid "Notification emails reply to this address; the auto-responder sends here."
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:172
+#: inc/forms/src/form-input/edit.js:180
+#: inc/forms/src/form-textarea/edit.js:99
+#: inc/forms/src/form-textarea/edit.js:107
+msgid "Placeholder"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:193
+msgid "Bounds"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:202
+msgid "Minimum"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:211
+msgid "Maximum"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:221
+#: inc/forms/src/form-step/edit.js:66
+msgid "Step"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:236
+#: inc/forms/src/form-input/edit.js:243
+#: inc/forms/src/form-textarea/edit.js:134
+#: inc/forms/src/form-textarea/edit.js:141
+msgid "Maximum length"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:259
+#: inc/forms/src/form-input/edit.js:267
+msgid "Autocomplete"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:268
+msgid "A HTML autocomplete token, e.g. name, email, tel, organization."
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:291
+#: inc/forms/src/form-input/edit.js:297
+msgid "Input type"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:301
+#: inc/site-lock/src/site-password/index.js:84
+msgid "Text"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:309
+#: inc/onboarding/src/screens/seo/SettingsTab.js:949
+msgid "Phone"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:313
+msgid "URL"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:317
+msgid "Number"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:329
+msgid "Checkbox"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:348
+msgid "Hidden field:"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:356
+#: inc/forms/src/shared/field-controls.js:238
+msgid "Value"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:358
+msgid "Value…"
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:21
+msgid "Text Field"
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:22
+msgid "A single line of text."
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:30
+msgid "Email Field"
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:31
+msgid "An email address."
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:38
+msgid "Phone Field"
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:39
+msgid "A phone number."
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:46
+msgid "URL Field"
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:47
+msgid "A web address."
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:54
+msgid "Number Field"
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:55
+msgid "A number, with optional bounds."
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:62
+msgid "Date Field"
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:63
+msgid "A date picker."
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:70
+msgid "Hidden Field"
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:71
+msgid "A fixed value submitted with the form, invisible to visitors."
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:81
+msgid "Consent Checkbox"
+msgstr ""
+
+#: inc/forms/src/form-input/variations.js:82
+msgid "A single checkbox, e.g. consent or opt-in."
+msgstr ""
+
+#: inc/forms/src/form-notification/edit.js:52
+msgid "Error message"
+msgstr ""
+
+#: inc/forms/src/form-notification/edit.js:53
+msgid "Success message"
+msgstr ""
+
+#: inc/forms/src/form-notification/index.js:20
+msgid "Success Message"
+msgstr ""
+
+#: inc/forms/src/form-notification/index.js:21
+msgid "Shown after a successful submission."
+msgstr ""
+
+#: inc/forms/src/form-notification/index.js:34
+msgid "Error Message"
+msgstr ""
+
+#: inc/forms/src/form-notification/index.js:35
+msgid "Shown when a submission fails."
+msgstr ""
+
+#: inc/forms/src/form-option/edit.js:43
+msgid "Add a choice…"
+msgstr ""
+
+#: inc/forms/src/form-option/edit.js:55
+msgid "Choice settings"
+msgstr ""
+
+#: inc/forms/src/form-option/edit.js:61
+#: inc/forms/src/form-option/edit.js:67
+msgid "Submitted value"
+msgstr ""
+
+#: inc/forms/src/form-option/edit.js:68
+msgid "Empty submits the label."
+msgstr ""
+
+#: inc/forms/src/form-select/edit.js:176
+#: inc/forms/src/form-select/edit.js:182
+msgid "Empty option label"
+msgstr ""
+
+#: inc/forms/src/form-select/edit.js:183
+msgid "The first, unselected choice. Empty shows a dash."
+msgstr ""
+
+#: inc/forms/src/form-step/edit.js:70
+msgid "Step label"
+msgstr ""
+
+#: inc/forms/src/form-step/edit.js:71
+msgid "Shown in the progress indicator above the form."
+msgstr ""
+
+#. translators: 1: step number, 2: step label.
+#: inc/forms/src/form-step/edit.js:90
+#, js-format
+msgid "Step %1$d — %2$s"
+msgstr ""
+
+#: inc/forms/src/form-submit-button/edit.js:34
+msgid "Button settings"
+msgstr ""
+
+#: inc/forms/src/form-submit-button/edit.js:40
+#: inc/forms/src/form-submit-button/edit.js:46
+msgid "Sending label"
+msgstr ""
+
+#: inc/forms/src/form-submit-button/edit.js:47
+msgid "Shown while the form submits. Empty uses “Sending…”."
+msgstr ""
+
+#: inc/forms/src/form-textarea/edit.js:116
+#: inc/forms/src/form-textarea/edit.js:121
+msgid "Rows"
+msgstr ""
+
+#. translators: %s: the resolved site default: On, Off, or the default action.
+#: inc/forms/src/form/edit.js:100
+#: inc/forms/src/form/edit.js:941
+#, js-format
+msgid "Site default: %s."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:102
+#: inc/forms/src/form/edit.js:130
+msgid "On"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:103
+#: inc/forms/src/form/edit.js:134
+#: inc/forms/src/form/edit.js:1358
+msgid "Off"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:690
+msgid "Input background"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:692
+msgid "Input text"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:693
+msgid "Input border"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:696
+msgid "Input focus border"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:698
+msgid "Asterisk"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:748
+msgid "Start from a ready-made form, or build one from blank."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:773
+msgid "Start blank"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:802
+msgid "Cloudflare Turnstile (only shown when needed)"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:806
+#: inc/onboarding/src/screens/FormsScreen.js:656
+msgid "Cloudflare Turnstile"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:812
+msgid "test mode"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:824
+#: inc/onboarding/src/screens/FormsScreen.js:1120
+msgid "Submission"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:842
+#: inc/forms/src/form/edit.js:849
+msgid "Form name"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:850
+msgid "Identifies this form in email subjects and the submissions inbox."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:862
+#: inc/forms/src/form/edit.js:868
+#: inc/onboarding/src/screens/FormsScreen.js:534
+msgid "Recipients"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:874
+msgid "Comma-separated email addresses. Empty uses the site default shown."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:878
+msgid "Comma-separated email addresses. Empty uses the site default."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:892
+#: inc/forms/src/form/edit.js:898
+#: inc/onboarding/src/screens/FormsScreen.js:545
+msgid "Email subject"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:901
+#: inc/forms/src/form/edit.js:989
+msgid "Empty uses the site default shown."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:905
+#: inc/onboarding/src/screens/FormsScreen.js:546
+msgid "Empty uses “New submission” with the form name and site title."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:923
+#: inc/forms/src/form/edit.js:936
+#: inc/onboarding/src/screens/FormsScreen.js:556
+msgid "After submission"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:946
+#: inc/forms/src/form/edit.js:978
+#: inc/onboarding/src/screens/FormsScreen.js:564
+msgid "Redirect"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:950
+msgid "Show message"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:985
+#: inc/onboarding/src/screens/FormsScreen.js:575
+msgid "Redirect URL"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1009
+#: inc/onboarding/src/screens/FormsScreen.js:583
+msgid "Replace form with message"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1013
+#: inc/onboarding/src/screens/FormsScreen.js:584
+msgid "After a successful submission, hide the form and leave only the success message."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1032
+#: inc/forms/src/form/edit.js:1038
+#: inc/onboarding/src/screens/FormsScreen.js:594
+msgid "Store submissions"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1039
+#: inc/onboarding/src/screens/FormsScreen.js:595
+msgid "Keep a copy in the submissions inbox. The inbox is the safety net when email fails."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1054
+#: inc/forms/src/form/edit.js:1060
+#: inc/onboarding/src/screens/FormsScreen.js:604
+msgid "Email notification"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1061
+#: inc/onboarding/src/screens/FormsScreen.js:605
+msgid "Email each submission to the recipients."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1074
+#: inc/forms/src/form/edit.js:1081
+#: inc/onboarding/src/screens/FormsScreen.js:614
+msgid "Auto-responder"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1082
+#: inc/onboarding/src/screens/FormsScreen.js:615
+msgid "Send a confirmation email to the submitter, using the field marked as reply-to."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1099
+#: inc/onboarding/src/screens/FormsScreen.js:627
+msgid "Auto-responder subject"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1116
+#: inc/onboarding/src/screens/FormsScreen.js:636
+msgid "Auto-responder message"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1120
+#: inc/onboarding/src/screens/FormsScreen.js:640
+msgid "A summary of the submitted values is appended."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1141
+msgid "Notices"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1151
+#: inc/forms/src/form/edit.js:1159
+msgid "Required-fields note"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1160
+msgid "The “Required fields are marked with an asterisk (*)” line above the fields."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1175
+msgid "Steps"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1183
+#: inc/forms/src/form/edit.js:1191
+msgid "Progress indicator"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1195
+msgid "Step labels above the form, with the current step highlighted."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1208
+msgid "Availability"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1224
+msgid "Schedule"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1236
+msgid "Only accept submissions between…"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1240
+msgid "Outside the window the form shows the closed message instead of its fields. Site timezone. Leave a side empty for no bound."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1255
+msgid "Opens"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1267
+msgid "Closes"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1281
+#: inc/forms/src/form/edit.js:1288
+msgid "Require login"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1289
+msgid "Logged-out visitors see the closed message instead of the form. Enforced again at submission."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1302
+#: inc/forms/src/form/edit.js:1310
+msgid "Closed message"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1311
+msgid "Shown in place of the form while it isn’t accepting submissions."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1328
+#: inc/forms/src/form/edit.js:1340
+msgid "One entry per…"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1346
+msgid "This field has a Visibility rule. While it is hidden its value is not collected, so the uniqueness check does not run and a visitor can submit again by changing the field the rule depends on. Pick a field that is always shown."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1350
+msgid "Rejects a submission whose value for this field matches an earlier one — one entry per email address, typically."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1374
+msgid "Duplicate message"
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1404
+msgid "Storing submissions is off for this form, so there is nothing to compare against — the unique check cannot run."
+msgstr ""
+
+#: inc/forms/src/form/edit.js:1444
+#: inc/forms/src/form/edit.js:1452
+msgid "Input radius"
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:33
+msgid "Field label"
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:63
+#: inc/forms/src/shared/field-controls.js:69
+msgid "Required"
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:90
+#: inc/forms/src/shared/field-controls.js:96
+msgid "Hide label"
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:97
+msgid "Visually hides the label; screen readers still announce it. Without a placeholder, the label text shows inside the field."
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:121
+#: inc/forms/src/shared/field-controls.js:127
+msgid "Field name"
+msgstr ""
+
+#. translators: %s: the field name the server will derive.
+#: inc/forms/src/shared/field-controls.js:130
+#, js-format
+msgid "The submitted name. Empty derives it from the label — currently: %s"
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:151
+#: inc/popups/src/index.js:181
+msgid "is"
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:152
+#: inc/popups/src/index.js:182
+msgid "is not"
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:153
+#: inc/popups/src/index.js:174
+msgid "contains"
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:154
+msgid "is empty"
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:155
+msgid "is not empty"
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:156
+msgid "is greater than"
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:157
+msgid "is less than"
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:191
+msgid "Visibility"
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:198
+msgid "Show only when…"
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:199
+msgid "Hidden fields aren’t required and their values are discarded — enforced on the server, not just on screen."
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:206
+#: inc/onboarding/src/screens/FormsScreen.js:754
+msgid "Always show"
+msgstr ""
+
+#: inc/forms/src/shared/field-controls.js:226
+#: inc/popups/src/index.js:785
+msgid "Condition"
+msgstr ""
+
+#: inc/onboarding/src/api/errors.js:26
+msgid "Something went wrong."
+msgstr ""
+
+#: inc/onboarding/src/components/CanvasHeader.js:57
+#: inc/onboarding/src/components/CanvasHeader.js:59
+msgid "Resources"
+msgstr ""
+
+#: inc/onboarding/src/components/ErrorBoundary.js:116
+msgid "This screen ran into a problem"
+msgstr ""
+
+#: inc/onboarding/src/components/ErrorBoundary.js:119
+msgid "Something on this screen failed to load. Try again, or switch to another screen from the sidebar — the rest of the dashboard still works. Copy the details to share with support."
+msgstr ""
+
+#: inc/onboarding/src/components/ErrorBoundary.js:130
+msgid "Error report"
+msgstr ""
+
+#: inc/onboarding/src/components/ErrorBoundary.js:146
+msgid "Try again"
+msgstr ""
+
+#: inc/onboarding/src/components/ErrorBoundary.js:154
+msgid "Copied!"
+msgstr ""
+
+#: inc/onboarding/src/components/ErrorBoundary.js:155
+msgid "Copy details"
+msgstr ""
+
+#: inc/onboarding/src/components/ErrorBoundary.js:162
+msgid "Reload dashboard"
+msgstr ""
+
+#: inc/onboarding/src/components/FeatureToolbar.js:46
+msgid "Disable All"
+msgstr ""
+
+#: inc/onboarding/src/components/FeatureToolbar.js:47
+msgid "Enable All"
+msgstr ""
+
+#: inc/onboarding/src/components/HelpTab.js:67
+msgid "Hide help"
+msgstr ""
+
+#: inc/onboarding/src/components/HelpTab.js:68
+#: inc/onboarding/src/components/HelpTab.js:81
+msgid "Help"
+msgstr ""
+
+#: inc/onboarding/src/components/ProCard.js:29
+msgid "Blocklane Pro"
+msgstr ""
+
+#. translators: %d: how many additional tools Blocklane Pro adds.
+#: inc/onboarding/src/components/ProCard.js:33
+#, js-format
+msgid "Pro adds %d more tools to the ones you already have — content modelling, dynamic values, a mega menu, a carousel, AI tools and a deeper set of editor controls."
+msgstr ""
+
+#: inc/onboarding/src/components/ProCard.js:49
+msgid "Your site keeps working when a license lapses. You stop receiving updates."
+msgstr ""
+
+#: inc/onboarding/src/components/ProCard.js:61
+msgid "See what Pro adds"
+msgstr ""
+
+#: inc/onboarding/src/components/ScreenDisabledNotice.js:49
+msgid "This screen is turned off."
+msgstr ""
+
+#: inc/onboarding/src/components/ScreenDisabledNotice.js:57
+#: inc/onboarding/src/screens/ChildThemeScreen.js:213
+msgid "Open Advanced settings"
+msgstr ""
+
+#: inc/onboarding/src/screens/advanced/rows/child-theme-tool.js:17
+msgid "Child Theme Generator"
+msgstr ""
+
+#: inc/onboarding/src/screens/advanced/rows/child-theme-tool.js:18
+msgid "Show the Create Child Theme tool in the menu."
+msgstr ""
+
+#. translators: %s: the plugin name (its wp-admin menu).
+#: inc/onboarding/src/screens/advanced/rows/child-theme-tool.js:23
+#, js-format
+msgid "Shows the Create Child Theme screen in the %s menu. It’s usually a one-time tool — turn this on when you need to generate a child theme, and off again after to tidy the menu and unregister the tool’s theme-writing endpoints. Turning it off never touches a child theme you’ve already generated."
+msgstr ""
+
+#: inc/onboarding/src/screens/advanced/rows/forms.js:16
+msgid "Build forms from blocks — fields, submit, messages."
+msgstr ""
+
+#: inc/onboarding/src/screens/advanced/rows/forms.js:20
+msgid "Adds a Form block suite to the editor: text, email, phone, URL, number, date, hidden, and consent fields, dropdowns, radio and checkbox groups, a submit button, and success and error messages authored as blocks. Forms live in your content — drop one in as a pattern, restyle it with the theme, no shortcodes. Submissions are validated on the server, emailed to you, and kept in a Forms inbox (with a per-form auto-responder) even when email delivery fails."
+msgstr ""
+
+#: inc/onboarding/src/screens/advanced/rows/popups.js:16
+msgid "Design popups and slide-ins in the block editor."
+msgstr ""
+
+#: inc/onboarding/src/screens/advanced/rows/popups.js:20
+msgid "Adds a Popups screen where each popup is a normal block-editor document — design it with any blocks, then set its position (a centered modal or a corner slide-in), trigger (time on page, scroll depth, exit intent, or a manual link), display rules, and how often returning visitors see it. Popups keep firing even if the plugin is later deactivated."
+msgstr ""
+
+#: inc/onboarding/src/screens/advanced/rows/scripts.js:16
+msgid "Show the Scripts editor in the menu."
+msgstr ""
+
+#: inc/onboarding/src/screens/advanced/rows/scripts.js:17
+msgid "Shows the Scripts screen for adding header, body, and footer code — analytics, pixels, and the like. Turning it off only hides the editor; your scripts keep printing on the front end. Use the master switch inside the Scripts screen to actually stop output."
+msgstr ""
+
+#: inc/onboarding/src/screens/advanced/rows/seo.js:15
+msgid "Basic SEO"
+msgstr ""
+
+#: inc/onboarding/src/screens/advanced/rows/seo.js:16
+msgid "Search titles, descriptions, schema, and a live preview."
+msgstr ""
+
+#: inc/onboarding/src/screens/advanced/rows/seo.js:20
+msgid "Adds an SEO panel to the page and post editor: a custom search title, a meta description, a schema type (Article or FAQ), a hide-from-search-engines switch, and a live preview of the search result. The front end emits the matching title tag, meta description, Open Graph tags for social sharing, and schema.org structured data. If a dedicated SEO plugin (Yoast, Rank Math, AIOSEO, SEOPress…) is active, Blocklane’s output stands down automatically so tags are never doubled."
+msgstr ""
+
+#: inc/onboarding/src/screens/advanced/rows/site-privacy.js:16
+msgid "Show the Site Visibility controls in the menu."
+msgstr ""
+
+#: inc/onboarding/src/screens/advanced/rows/site-privacy.js:17
+msgid "Shows the Site Visibility screen — a password or maintenance page for visitors, plus search-engine indexing. Turning it off only hides the screen; whatever visibility you’ve set stays in effect. While a lock is active the screen stays visible no matter this toggle, so a private site can never be stranded with no way to unlock it."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:105
+msgid "Duplicate Content"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:106
+msgid "Clone posts, pages, and custom post types."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:107
+msgid "Adds a “Clone” link to the row actions on Posts, Pages, and custom post types. Cloning copies the content, custom fields, and taxonomy terms into a new draft, ready to edit."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:114
+msgid "Reorder Content"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:115
+msgid "Drag to set a manual order — and group pages."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:119
+msgid "Adds a “Sort by Order” view where you can drag rows into a manual order, and orders the chosen post types by that on the front end. Queries that ask for a specific order — like recent posts or events — still win, so use it for content like team members, testimonials, or services. Pages (and other nestable types) also become a collapsible tree: a chevron on any parent page hides or shows everything nested under it, and Indent/Outdent row actions move pages into or out of a group — the same parent/child structure as the page editor’s Parent setting, just faster to arrange. With this on, the Pages screen shows the whole tree on one page; very large sites (500+ pages) stay paginated instead, and “Sort by Order” opens the full tree on demand."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:126
+msgid "Replace Media"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:127
+msgid "Swap a file in place, keeping the same URL."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:128
+msgid "Adds a “Replace file” action in the media library, next to Download. Upload a new file of the same type and it swaps in place — same URL and filename — so every post and reference keeps working. Thumbnails regenerate automatically."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:135
+msgid "Disable Comments"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:136
+msgid "Turn off the entire comment system site-wide."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:140
+msgid "Switches comments off everywhere: closes comments and pings on all content, hides the comment blocks and feeds on the front end, removes the Comments admin menu, metaboxes, dashboard widget, and toolbar item, and limits the comment REST endpoints to editor notes to cut spam and enumeration. Editor notes (WordPress 7.1) keep working — they are an editorial tool for logged-in editors, not public comments. Nothing is deleted — existing comments are just hidden and come back if you turn this off. Leave it off for blogs or news sites that need discussion."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:147
+msgid "Disable Blog Features"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:148
+msgid "Strip rarely-used blogging features for non-blogs."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:152
+msgid "Cleans up blogging leftovers most sites never use. Disables Post Formats (drops post-format theme support — hiding the editor’s format panel where a theme offers one — and removes the Default Post Format setting), and on Settings → Writing hides Post via Email and stops the default Update Services (ping-o-matic) pings sent when you publish. Your default category stays. Nothing is deleted and it all reverts when turned off — leave it off for blogs or news sites."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:161
+msgid "Auto-Update Plugins"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:162
+msgid "Install plugin updates automatically as they ship."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:166
+msgid "Outdated plugins are the #1 way WordPress sites get compromised, so this is the single highest-impact setting here. While on, it applies to all plugins and overrides their individual auto-update settings."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:174
+msgid "Auto-Update Themes"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:175
+msgid "Install theme updates automatically as they ship."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:179
+msgid "Keeps every installed theme current. While on, it applies to all themes and overrides their individual settings. (Core minor releases already auto-update by default.)"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:186
+msgid "Limit Post Revisions"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:187
+msgid "Cap stored revisions to keep the DB lean."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:188
+msgid "Caps how many revisions WordPress keeps per post so the database doesn’t grow without bound. Set the number below; use 0 to turn revisions off entirely."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:195
+msgid "Limit the WordPress Heartbeat"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:196
+msgid "Slow the admin polling that hits admin-ajax."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:200
+msgid "The WordPress Heartbeat polls admin-ajax.php every 15–60 seconds to power autosave and post-locking — steady background load, especially on shared hosting. This throttles it to the interval below and turns it off entirely on the front end (public pages don’t need it). Autosave and post-locking keep working, just less often. Set the interval below."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:209
+msgid "Limit Login Attempts"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:210
+msgid "Slow down brute-force attacks on the login form."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:214
+msgid "Locks out an IP address for a few minutes after 5 failed logins, blunting password brute-forcing on wp-login. Behind a reverse proxy or CDN this keys on the proxy address; some hosts already rate-limit logins at the edge."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:222
+msgid "Disable XML-RPC"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:223
+msgid "Turn off /xmlrpc.php to close a common attack surface."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:227
+msgid "Closes brute-force amplification and pingback abuse. Leave this off if you use the WordPress mobile app, Jetpack, or remote publishing, which rely on XML-RPC. Some managed hosts already block it."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:235
+msgid "Disable Theme & Plugin File Editing"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:236
+msgid "Remove the dashboard code editors."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:237
+msgid "Defines DISALLOW_FILE_EDIT so a compromised admin account can’t run PHP through the built-in Appearance and Plugins code editors. No effect on normal editing. Some managed hosts set this already."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:245
+msgid "Block User Enumeration"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:246
+msgid "Stop bots from harvesting your usernames."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:247
+msgid "Redirects ?author= probes and removes the public REST user list, so bots can’t collect your usernames to target brute-force attacks. Doesn’t affect logged-in editing or the block editor. Usually not covered by hosts."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:254
+msgid "Safe SVG Uploads"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:255
+msgid "Upload SVGs — sanitized automatically."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:256
+msgid "Allows SVG uploads in the media library and sanitizes every file on the way in, stripping scripts and other unsafe markup. Anything that can’t be cleaned is rejected, so a malicious SVG can’t carry code into your library."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:263
+msgid "Last Login Column"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:264
+msgid "See when each user last signed in."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:265
+msgid "Adds a “Last Login” column to the Users screen, showing when each account last signed in (and how long ago), so you can spot dormant or shared accounts."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:272
+msgid "Clean Uninstall"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:273
+msgid "Delete removes every remaining Blocklane setting too."
+msgstr ""
+
+#. translators: %s: the plugin name.
+#: inc/onboarding/src/screens/AdvancedScreen.js:280
+#, js-format
+msgid "Deleting %s always stops what it renders — forms, popups, menus, content types, dynamic values — because everything runs from the plugin itself. By default it leaves two things behind, because they are yours rather than plugin state: your uploaded SVG icons and your Custom Scripts code. A reinstall picks both back up. Turn this on and Delete clears those as well, along with every remaining Blocklane setting. Your content records — pages, entries, terms, form submissions — are kept either way. Leave this off unless you are removing Blocklane for good."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:353
+msgid "Content & Editing"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:354
+msgid "Site Tools"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:355
+msgid "Updates & Performance"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:356
+msgid "Security & Hardening"
+msgstr ""
+
+#. translators: %s: the feature or extension name.
+#: inc/onboarding/src/screens/AdvancedScreen.js:655
+#: inc/onboarding/src/screens/ExtensionsScreen.js:575
+#, js-format
+msgid "%s enabled"
+msgstr ""
+
+#. translators: %s: the feature or extension name.
+#: inc/onboarding/src/screens/AdvancedScreen.js:660
+#: inc/onboarding/src/screens/ExtensionsScreen.js:580
+#, js-format
+msgid "%s disabled"
+msgstr ""
+
+#. translators: %s: the tab (category) name.
+#: inc/onboarding/src/screens/AdvancedScreen.js:758
+#, js-format
+msgid "All %s features enabled"
+msgstr ""
+
+#. translators: %s: the tab (category) name.
+#: inc/onboarding/src/screens/AdvancedScreen.js:763
+#, js-format
+msgid "All %s features disabled"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:804
+msgid "Revisions to keep"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:824
+msgid "Heartbeat interval (seconds)"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:848
+msgid "Reorder Content is on, but it won’t do anything until you choose at least one post type below."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:855
+msgid "Enable manual ordering for:"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:888
+msgid "Advanced categories"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:919
+msgid "Search features"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:920
+msgid "Search…"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:944
+msgid "No features in this tab match your search."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:948
+msgid "No features in this tab."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:970
+msgid "Enforced"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:1025
+msgid "Enforced by your server configuration (wp-config.php) and can’t be changed here."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:1050
+#: inc/onboarding/src/screens/ChildThemeScreen.js:602
+#: inc/onboarding/src/screens/SeoScreen.js:35
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:593
+msgid "Overview"
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:1054
+msgid "Each of these shows up where you’d expect in WordPress — a Users column, a Clone or Sort-by-Order action on list tables, the media uploader, and a Replace action in the media library."
+msgstr ""
+
+#: inc/onboarding/src/screens/AdvancedScreen.js:1061
+msgid "Turn one on, then click it again to configure any extra options. The hardening switches are safe to leave on — where your host already covers one, the toggle simply does nothing."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:98
+msgid "Could not check the parent theme for Site Editor customizations — the import option is unavailable."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:115
+msgid "your global styles"
+msgstr ""
+
+#. translators: %d: number of edited templates
+#: inc/onboarding/src/screens/ChildThemeScreen.js:121
+#, js-format
+msgid "%d edited template"
+msgid_plural "%d edited templates"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of edited template parts
+#: inc/onboarding/src/screens/ChildThemeScreen.js:135
+#, js-format
+msgid "%d template part"
+msgid_plural "%d template parts"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:196
+#: inc/onboarding/src/screens/ChildThemeScreen.js:239
+msgid "Create a Child Theme"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:200
+msgid "This tool is turned off."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:203
+msgid "The Child Theme Generator is hidden and its endpoints are disabled. Turn it back on from the Advanced screen whenever you need to generate another child theme."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:268
+msgid "Your customizations were copied into the child theme’s files."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:276
+msgid "Some customizations could not be copied — check the child theme’s files."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:294
+msgid "Theme Name"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:304
+msgid "Theme URL"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:311
+#: inc/onboarding/src/screens/seo/SettingsTab.js:780
+msgid "Description"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:321
+msgid "Author"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:325
+msgid "Author URL"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:335
+msgid "Version"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:339
+msgid "Text Domain"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:352
+msgid "Child theme preview"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:361
+msgid "Done with this tool? You can hide it from the menu — flip “Child Theme Generator” off under Advanced, and back on whenever you need it again."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:366
+msgid "Open Advanced"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:373
+msgid "Theme Name (optional)"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:377
+msgid "The name of your child theme as it appears in the WordPress admin."
+msgstr ""
+
+#. translators: %s: parent theme name.
+#: inc/onboarding/src/screens/ChildThemeScreen.js:391
+#, js-format
+msgid "%s Child"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:397
+msgid "My Child Theme"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:406
+msgid "Theme URL (optional)"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:410
+msgid "The URL where users can learn more about your theme."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:426
+msgid "Description (optional)"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:430
+msgid "A brief description of your child theme."
+msgstr ""
+
+#. translators: %s: parent theme name.
+#: inc/onboarding/src/screens/ChildThemeScreen.js:443
+#, js-format
+msgid "A child theme of %s."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:449
+msgid "A child theme."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:458
+msgid "Author (optional)"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:459
+msgid "The name of the theme author."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:469
+msgid "Your name"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:477
+msgid "Author URL (optional)"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:481
+msgid "The URL of the theme author's website."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:497
+msgid "Version (optional)"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:501
+msgid "The version number of your child theme."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:516
+msgid "Text Domain (optional)"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:520
+msgid "The text domain used for theme translations."
+msgstr ""
+
+#. translators: %s: name of the theme being imported from
+#: inc/onboarding/src/screens/ChildThemeScreen.js:542
+#, js-format
+msgid "Import customizations from %s"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:547
+msgid "the parent theme"
+msgstr ""
+
+#. translators: %s: list of customizations, e.g. "your global styles, 2 edited templates"
+#: inc/onboarding/src/screens/ChildThemeScreen.js:558
+#, js-format
+msgid "Bakes %s into the child theme’s files so it keeps the look you’ve built. Your current theme is left unchanged."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:579
+msgid "Create and Activate Child Theme"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:605
+msgid "Create and activate a child theme based on your active theme so your customizations survive parent-theme updates."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:613
+msgid "What is a child theme?"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:617
+msgid "A child theme inherits the functionality and styling of another theme (the parent) while letting you make customizations that survive parent-theme updates."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:625
+msgid "Do I need a child theme?"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:629
+msgid "These days most users don’t — many customizations can be done directly in the block and site editor."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:637
+msgid "I lost my customizations!"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:641
+msgid "Global style changes are tied to your active theme. Activate your child theme first, then make customizations."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:651
+msgid "Heads up!"
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:656
+msgid "Global style changes (colors, typography, etc.) are tied to your active theme. If you activate a child theme after making customizations, those changes won't appear — you'd need to re-activate the previous theme to see them again."
+msgstr ""
+
+#: inc/onboarding/src/screens/ChildThemeScreen.js:675
+msgid "Create and Activate"
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/responsive-controls.js:16
+msgid "Responsive Controls"
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/responsive-controls.js:17
+msgid "Set a display order and a max width per breakpoint, inside core’s Layout and Dimensions panels."
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/responsive-controls.js:22
+msgid "Responsive Controls adds tablet and mobile overrides for the two things core’s style engine still leaves out: the display order of a block inside a Row, Stack or Columns parent, and a max width on any block with a minimum-height control. Both live inside the existing Layout and Dimensions panels and follow the editor’s device preview."
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/responsive-controls.js:26
+#: inc/onboarding/src/screens/extensions/rows/transparent-header.js:26
+msgid "Features"
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/responsive-controls.js:30
+msgid "Display order - Reorder a block per breakpoint without duplicating it"
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/responsive-controls.js:34
+msgid "Max width - Cap a block’s width per breakpoint"
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/responsive-controls.js:38
+msgid "Device preview - Switch the editor to tablet or mobile and the fields show that breakpoint’s values"
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/responsive-controls.js:42
+msgid "Your theme’s breakpoints - The tablet and mobile widths come from your theme settings and can be edited inline"
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/transparent-header.js:17
+msgid "Overlay the header on the first section of the page, solidifying on scroll."
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/transparent-header.js:22
+msgid "Transparent Header overlays your header on the first section of the page with its background removed — the classic hero treatment — and brings the background back once the page scrolls past it. The toggle appears in its own Transparent Header panel on the outermost Group of a header template part."
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/transparent-header.js:30
+msgid "Transparent at the top - The header sits on the first section with no background of its own"
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/transparent-header.js:34
+msgid "Solid on Scroll - Pin the header and restore its background once the page scrolls past it, or let it scroll away"
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/transparent-header.js:38
+msgid "Uses your design - The solid state brings back the background set on the Group itself; no separate color settings"
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/transparent-header.js:42
+msgid "Per-page override - A \"Style\" control in the page's Header panel overrides the header's default in either direction"
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/transparent-header.js:46
+msgid "Top Offset - Float the header below the top edge for an inset look"
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/transparent-header.js:50
+msgid "Editor preview - The Site Editor template view shows the overlay exactly as the front end renders it"
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/transparent-header.js:56
+msgid "Good to know"
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/transparent-header.js:60
+msgid "Give the first section of each page enough top padding to sit under the header"
+msgstr ""
+
+#: inc/onboarding/src/screens/extensions/rows/transparent-header.js:64
+msgid "Solid on Scroll needs a background on the header Group — without one the header stays transparent"
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:123
+msgid "Styling & Effects"
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:124
+msgid "Layout & Responsive"
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:125
+msgid "Workflow & Tools"
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:188
+#: inc/onboarding/src/screens/ExtensionsScreen.js:205
+#: inc/onboarding/src/screens/ExtensionsScreen.js:240
+msgid "Breakpoints"
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:190
+msgid "Could not load the breakpoints. Reload the page to try again."
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:224
+msgid "Saved. The front end uses these breakpoints; reload the editor to refresh previews."
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:231
+msgid "Could not save breakpoints."
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:242
+msgid "The max-widths where Tablet and Mobile overrides take effect on the front end. Global — applies to every block."
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:277
+msgid "Mobile must be smaller than Tablet — it will be adjusted on save."
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:291
+msgid "Save breakpoints"
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:299
+msgid "Reset to defaults"
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:353
+#: inc/onboarding/src/screens/ExtensionsScreen.js:368
+#: inc/onboarding/src/screens/ExtensionsScreen.js:402
+msgid "Canvas grid tools"
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:355
+msgid "Could not load this setting. Reload the page to try again."
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:386
+msgid "Saved. Reload the editor for the change to take effect."
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:393
+msgid "Could not save this setting."
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:404
+msgid "Drag grid items to move them, and drag their edges to resize — directly on the canvas, instead of setting spans in the sidebar."
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:410
+msgid "Enable canvas grid tools"
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:411
+msgid "These tools are built into WordPress but switched off while their keyboard support and performance on large grids are still being finished. They save standard WordPress grid settings, so anything you build keeps working if you switch them back off."
+msgstr ""
+
+#. translators: %s: the tab (category) name.
+#: inc/onboarding/src/screens/ExtensionsScreen.js:629
+#, js-format
+msgid "All %s extensions enabled"
+msgstr ""
+
+#. translators: %s: the tab (category) name.
+#: inc/onboarding/src/screens/ExtensionsScreen.js:634
+#, js-format
+msgid "All %s extensions disabled"
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:655
+msgid "Extension categories"
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:686
+msgid "Search extensions"
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:690
+msgid "Search extensions…"
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:729
+msgid "No extensions in this tab match your search."
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:733
+msgid "No extensions in this tab."
+msgstr ""
+
+#. translators: %s: the plugin name.
+#: inc/onboarding/src/screens/ExtensionsScreen.js:811
+#, js-format
+msgid "What are %s Extensions?"
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:820
+msgid "Extensions are powerful features that enhance your WordPress editing experience. Some add new settings to existing blocks, while others add entirely new blocks and creation tools."
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:826
+msgid "All extensions are enabled by default, but you can always disable the ones you don't need to curate your building experience."
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:834
+msgid "Learn about each extension"
+msgstr ""
+
+#: inc/onboarding/src/screens/ExtensionsScreen.js:841
+msgid "Click each feature to learn more about it and watch a video tutorial to learn how to use it."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:62
+msgid "Submissions"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:115
+#: inc/onboarding/src/screens/FormsScreen.js:1132
+msgid "Submitted from"
+msgstr ""
+
+#. translators: %s: the referrer URL.
+#: inc/onboarding/src/screens/FormsScreen.js:134
+#, js-format
+msgid "Referrer: %s"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:191
+#: inc/onboarding/src/screens/FormsScreen.js:236
+#: inc/onboarding/src/screens/FormsScreen.js:1207
+msgid "Delete"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:198
+#: inc/onboarding/src/screens/FormsScreen.js:1199
+msgid "Mark unread"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:199
+#: inc/onboarding/src/screens/FormsScreen.js:1191
+msgid "Mark read"
+msgstr ""
+
+#. translators: %d: number of submissions.
+#: inc/onboarding/src/screens/FormsScreen.js:215
+#, js-format
+msgid "Delete %d submission? This cannot be undone."
+msgid_plural "Delete %d submissions? This cannot be undone."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: deleted count, 2: remaining count.
+#: inc/onboarding/src/screens/FormsScreen.js:364
+#, js-format
+msgid "%1$d deleted, but %2$d could not be removed. Run it again to continue."
+msgstr ""
+
+#. translators: %d: number of deleted submissions.
+#: inc/onboarding/src/screens/FormsScreen.js:378
+#, js-format
+msgid "%d submission deleted."
+msgid_plural "%d submissions deleted."
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:399
+msgid "Cloudflare test key in use"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:401
+msgid "Saved — enter a new key to replace it"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:494
+msgid "Forms settings saved."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:499
+msgid "Form defaults"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:503
+msgid "Every form starts from these values. A form’s own Submission settings override them; changes here apply immediately to forms that don’t."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:511
+msgid "From name"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:512
+msgid "The sender name on form emails. Empty uses the site title."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:523
+msgid "From address"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:524
+msgid "The sender address on form emails. Empty uses the WordPress default. Use an address at a domain this site is allowed to send for (SPF/DKIM), or providers will flag the mail."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:535
+msgid "Comma-separated email addresses. Empty sends to the site admin email."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:560
+msgid "Show a message"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:651
+msgid "Spam protection"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:657
+msgid "A privacy-friendly human check on every form, on top of the built-in silent protections. Free — create a widget at Cloudflare to get keys."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:668
+msgid "Test mode"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:669
+msgid "Runs Turnstile on Cloudflare’s test keys: the widget renders and every check passes, no keys needed. For building and previewing — turn it off and enter real keys before the site takes real traffic."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:678
+msgid "Test mode is on: every visitor passes the human check. Your saved keys are kept and come back when it’s off."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:692
+msgid "Site key"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:706
+msgid "Secret key"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:721
+msgid "Widget theme"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:722
+msgid "Auto follows each visitor’s system dark-mode preference. Pick Light or Dark to match a fixed site design."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:729
+msgid "Auto"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:733
+msgid "Light"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:737
+msgid "Dark"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:746
+msgid "Widget visibility"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:747
+msgid "“Only when needed” keeps the widget hidden unless Cloudflare asks the visitor to interact. The widget style itself (Managed, Non-Interactive, or Invisible) is set on the widget in your Cloudflare dashboard."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:758
+msgid "Only when needed"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:770
+msgid "Widget size"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:774
+msgid "Normal (300px)"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:778
+msgid "Flexible (full width)"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:785
+msgid "Compact"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:793
+msgid "Both keys are required. Until they are set, forms keep working without Turnstile."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:803
+msgid "Storage"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:808
+msgid "Auto-delete submissions after (days)"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:812
+msgid "0 keeps submissions forever. Deletion runs daily and cannot be undone."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:825
+msgid "Maximum upload size (MB)"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:826
+msgid "Caps every File Upload field site-wide. 0 lets each field use its own limit, up to the server maximum."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:839
+msgid "Delete data on uninstall"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:840
+msgid "Off keeps submissions and uploaded files if the plugin is ever uninstalled — they belong to the site. Turn on only if this site must leave nothing behind."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:859
+#: inc/onboarding/src/screens/FormsScreen.js:879
+msgid "Delete all submissions"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:860
+msgid "Removes every submission and its uploaded files, permanently. Type DELETE to arm the button."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:878
+msgid "Deleting…"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:893
+msgid "Save Forms Settings"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1160
+#: inc/onboarding/src/screens/FormsScreen.js:1166
+msgid "Unread"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1161
+#: inc/onboarding/src/screens/FormsScreen.js:1167
+msgid "Read"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1184
+msgid "View"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1211
+msgid "Delete submissions"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1228
+msgid "Turning it off unregisters the form blocks and this inbox; stored submissions stay in the database, untouched."
+msgstr ""
+
+#. translators: %s: the mailer's error message.
+#: inc/onboarding/src/screens/FormsScreen.js:1259
+#, js-format
+msgid "Form emails are failing to send (“%s”)."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1265
+msgid "Form emails are failing to send."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1269
+msgid "Store submissions is off in the site defaults, so new submissions may not be kept anywhere — turn storage back on or fix the mailer."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1273
+msgid "Nothing is lost — every submission is stored in this inbox."
+msgstr ""
+
+#. translators: %s: the mailer's error message.
+#: inc/onboarding/src/screens/FormsScreen.js:1283
+#, js-format
+msgid "The auto-responder is failing to send (“%s”) — visitors are not getting their confirmation emails."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1289
+msgid "The auto-responder is failing to send — visitors are not getting their confirmation emails."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1296
+msgid "An SMTP plugin usually fixes delivery; this clears automatically once an email sends."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1376
+msgid "Forms sections"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1392
+#: inc/onboarding/src/screens/FormsScreen.js:1411
+#: inc/onboarding/src/screens/FormsScreen.js:1430
+#: inc/onboarding/src/screens/FormsScreen.js:1454
+msgid "Open settings"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1398
+msgid "Turnstile test mode is on — the test widget shows and every visitor passes the human check. Turn it off and enter real keys before this site takes real traffic."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1417
+msgid "Turnstile is configured with Cloudflare’s test keys, which accept every visitor — the site has no real spam protection. Enter real keys, or turn on Test mode while building."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1437
+msgid "Turnstile is enabled but the stored secret key can no longer be read — the site’s security keys changed, so it must be entered again. Forms are submitting without it."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1441
+msgid "Turnstile is enabled but a key is missing — forms are submitting without it."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1461
+msgid "Cloudflare could not be reached for Turnstile verification — forms are accepting submissions without the human check. This clears automatically once verification succeeds."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1465
+msgid "Cloudflare rejected the Turnstile secret key — verification is failing and forms are accepting submissions without the human check. Re-enter the secret key."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1496
+msgid "No mailer customization detected. Form notifications use PHP mail, which many hosts deliver poorly — an SMTP plugin makes delivery reliable. Submissions are always stored here either way."
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1541
+msgid "Exporting…"
+msgstr ""
+
+#: inc/onboarding/src/screens/FormsScreen.js:1542
+msgid "Export CSV"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:47
+msgid "Welcome to Blocklane"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:50
+msgid "Build faster with Blocklane"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:53
+msgid "SEO, forms, popups, site visibility and security tools, all on WordPress’s own blocks and settings. Every tool is off until you turn it on."
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:119
+msgid "Blocklane Docs, Guides, and Videos"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:125
+msgid "Comprehensive tutorials and references to help you build faster and smarter."
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:133
+msgid "Blocklane Documentation"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:139
+msgid "Everything you need to know about working with the Blocklane block theme — patterns, blocks, theme.json, and more."
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:143
+msgid "Browse the Docs"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:146
+msgid "Blocklane Video Library"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:152
+msgid "Step-by-step video walkthroughs of the extensions, child-theme generator, and other features."
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:156
+msgid "Watch the Videos"
+msgstr ""
+
+#. translators: %s: companion theme name.
+#: inc/onboarding/src/screens/HomeScreen.js:162
+#, js-format
+msgid "The %s theme"
+msgstr ""
+
+#. translators: %s: the plugin name.
+#: inc/onboarding/src/screens/HomeScreen.js:167
+#, js-format
+msgid "The free companion theme these tools are designed around. %s works with any block theme — this one is just built to fit it."
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:181
+msgid "Activate the theme"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:185
+msgid "Get the theme"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:190
+msgid "Get help with Blocklane"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:194
+msgid "Stuck on something or want to report an issue? Submit a request and we’ll help out."
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:199
+msgid "Get Help with Blocklane"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:212
+msgid "Essential Tools"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:215
+msgid "Use these tools to get your site up and running in just a few minutes."
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:229
+msgid "Control who can see the site — public, private, or password-gated while you build."
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:233
+msgid "Manage Visibility"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:246
+msgid "Define reusable values once — phone, email, logo — then use them anywhere on the site."
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:250
+msgid "Manage Values"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:260
+msgid "Add header, body, and footer scripts — analytics, pixels, embeds — without touching code."
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:264
+msgid "Manage Scripts"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:277
+msgid "What’s New in Blocklane"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:280
+msgid "Stay up to date with the latest improvements and features."
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:288
+msgid "Blocklane Blocks"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:292
+msgid "Accessible, server-rendered breadcrumbs block"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:298
+msgid "Renders automatically through the theme’s breadcrumbs template part"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:304
+msgid "Stays with the site — works even with the theme suite removed"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:317
+msgid "Every tool off by default — turn on only what you use"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:323
+msgid "Opt-in block editor extensions suite"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:329
+msgid "Full-bleed dashboard mirroring the WP Site Editor"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:342
+msgid "0.3.0 refinement pass — token vocabulary, fluid typography"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:348
+msgid "Native theme.json fluid typography"
+msgstr ""
+
+#: inc/onboarding/src/screens/HomeScreen.js:354
+msgid "8-slot brand-guide palette, 7-step spacing scale"
+msgstr ""
+
+#: inc/onboarding/src/screens/registry.js:63
+msgid "Quickly access the tools and resources you need to build with FSE."
+msgstr ""
+
+#: inc/onboarding/src/screens/registry.js:75
+msgid "Define reusable values once and bind blocks to them across the site."
+msgstr ""
+
+#: inc/onboarding/src/screens/registry.js:86
+msgid "Build custom post types with fields and taxonomies — locations, team, testimonials — that survive deactivation."
+msgstr ""
+
+#: inc/onboarding/src/screens/registry.js:100
+msgid "Visibility tools for your site — sitemaps, search-engine settings, and more, in one place."
+msgstr ""
+
+#: inc/onboarding/src/screens/registry.js:113
+msgid "Submissions from your forms — every entry is kept here even when email fails."
+msgstr ""
+
+#: inc/onboarding/src/screens/registry.js:126
+msgid "Add custom header, body, and footer code — analytics, pixels, and more."
+msgstr ""
+
+#: inc/onboarding/src/screens/registry.js:137
+msgid "Control who can see the site — a password or maintenance page for visitors, plus search-engine indexing."
+msgstr ""
+
+#: inc/onboarding/src/screens/registry.js:148
+msgid "Toggle block-editor enhancements for the core blocks you already use."
+msgstr ""
+
+#: inc/onboarding/src/screens/registry.js:162
+msgid "Opt-in admin, content, and security enhancements that work right inside core WordPress."
+msgstr ""
+
+#: inc/onboarding/src/screens/registry.js:176
+msgid "Generate a child theme so you can fork without touching the parent."
+msgstr ""
+
+#: inc/onboarding/src/screens/registry.js:187
+msgid "Connect your site to an external AI tool through the WordPress Abilities API and MCP."
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:98
+msgid "Enabled"
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:190
+msgid "Turning it off only hides this editor; your scripts keep printing on the front end."
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:234
+msgid "Scripts saved."
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:246
+msgid "Enable all custom scripts"
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:250
+msgid "Master kill switch — when off, nothing is output regardless of the per-section switches below. Your code is kept."
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:266
+msgid "Output inside <head> (wp_head) — meta tags, site verification, analytics loaders."
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:273
+msgid "Body — after the opening <body> tag"
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:282
+msgid "Output immediately after <body> opens (wp_body_open) — e.g. a Tag Manager noscript."
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:289
+msgid "Footer"
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:295
+msgid "Output before </body> (wp_footer) — deferred scripts, chat widgets."
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:312
+msgid "Save Scripts"
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:332
+#: inc/onboarding/src/screens/SeoScreen.js:171
+msgid "What is this?"
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:335
+msgid "Insert code into three spots site-wide: the header, right after the body opens, and the footer. Handy for analytics (GA4, Tag Manager), ad/conversion pixels, and site-verification meta."
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:343
+msgid "Master + per-section switches"
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:350
+msgid "Each section has its own switch, so you can disable just one (e.g. to isolate a footer script that’s misbehaving) without touching the others. The master switch turns everything off at once. A section only runs when both it and the master are on — and turning anything off keeps your code for later."
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:358
+msgid "Only add code you trust"
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:362
+msgid "This runs on every front-end page exactly as written — there is no sanitizing. Pasting untrusted code can compromise your site."
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:370
+msgid "Where this code lives"
+msgstr ""
+
+#. translators: %s: the plugin name.
+#: inc/onboarding/src/screens/ScriptsScreen.js:376
+#, js-format
+msgid "Your code is stored as a normal WordPress setting and printed by %s on each page load, so it runs while the plugin is active and stops when it is deactivated. To stop it sooner, clear the boxes here or switch the master toggle off."
+msgstr ""
+
+#: inc/onboarding/src/screens/ScriptsScreen.js:384
+msgid "Deleting the plugin keeps your code: it is yours, not plugin state, so a reinstall picks it back up. Use Clean Uninstall in Advanced if you want it removed along with the plugin."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/ContentTab.js:95
+msgid "Apply"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/ContentTab.js:240
+msgid "Title"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/ContentTab.js:248
+msgid "Type"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/ContentTab.js:292
+#: inc/onboarding/src/screens/seo/ContentTab.js:310
+#: inc/onboarding/src/screens/seo/OverviewTab.js:202
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1080
+msgid "Not set"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/ContentTab.js:298
+msgid "Meta description"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/ContentTab.js:341
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:86
+msgid "Edit SEO"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/ContentTab.js:348
+msgid "Hide from search"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/ContentTab.js:362
+msgid "Show in search"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/ContentTab.js:374
+#: inc/onboarding/src/screens/seo/ContentTab.js:376
+msgid "Set schema type"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/ContentTab.js:387
+msgid "Edit page"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/ContentTab.js:395
+msgid "View page"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/ContentTab.js:415
+msgid "Retry"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:95
+msgid "Previous item"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:102
+msgid "Next item"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:139
+#: inc/seo/src/index.js:161
+msgid "Replaces the title in search results and the browser tab. Leave blank to use the page title."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:156
+#: inc/seo/src/index.js:181
+msgid "The summary search engines may show under the title. Leave blank to use the excerpt or page content."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:175
+#: inc/seo/src/index.js:200
+msgid "Structured data that helps search engines understand the page. For FAQ, questions and answers are read from the Accordion and Details blocks on the page."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:189
+#: inc/seo/src/index.js:218
+msgid "Adds a noindex directive and leaves this content out of the sitemap."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:220
+msgid "Save & next"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:91
+msgid "Could not load the overview."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:105
+msgid "Content SEO"
+msgstr ""
+
+#. translators: %d: number of published posts and pages.
+#: inc/onboarding/src/screens/seo/OverviewTab.js:109
+#, js-format
+msgid "Across %d published items — what has each SEO field set."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:120
+msgid "Schema applied"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:125
+msgid "SEO title set"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:130
+msgid "Meta description added"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:138
+msgid "Visible to search engines"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:149
+msgid "Manage content"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:154
+#: inc/onboarding/src/screens/seo/SettingsTab.js:391
+msgid "Site visibility"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:161
+msgid "Search engines allowed"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:162
+msgid "Search engines discouraged"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:169
+msgid "Sitemap active"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:170
+msgid "Sitemap off"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:174
+msgid "Site locked — crawlers can’t reach it"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:186
+msgid "Manage visibility"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:191
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1066
+msgid "Site verification"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:201
+msgid "Set"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:214
+msgid "Manage verification"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:220
+msgid "Using a different SEO solution?"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/OverviewTab.js:222
+msgid "Disable Blocklane SEO"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:49
+msgid "Monday"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:50
+msgid "Tuesday"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:51
+msgid "Wednesday"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:52
+msgid "Thursday"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:53
+msgid "Friday"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:54
+msgid "Saturday"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:55
+msgid "Sunday"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:106
+msgid "Replace"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:141
+msgid "Search engines will pick a snippet from the homepage content."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:150
+msgid "Google search result"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:163
+msgid "Social share card"
+msgstr ""
+
+#. translators: %s: weekday name(s).
+#: inc/onboarding/src/screens/seo/SettingsTab.js:308
+#, js-format
+msgid "Opening hours for %s need both times — set an opening and a closing time, or clear both."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:347
+msgid "Could not load the SEO settings."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:382
+msgid "SEO settings saved."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:397
+msgid "Site Visibility has this site locked, so crawlers can’t reach it right now regardless of these settings."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:405
+msgid "Allow search engines to index this site"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:409
+msgid "The same switch as Settings → Reading and the Site Visibility screen. Turning it off asks search engines to skip the whole site — use only for staging or pre-launch."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:418
+msgid "Add canonical URLs on archives"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:422
+msgid "Points search engines at the clean URL for category, tag, author, and date pages (paginated pages keep their own). Posts and pages already get one from WordPress."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:431
+msgid "Hide author archives from search engines"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:435
+msgid "Author pages mostly repeat your post lists, and their URLs expose usernames. Search engines still follow the links on them."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:444
+msgid "Hide date archives from search engines"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:448
+msgid "Monthly and yearly archives repeat the same posts under many URLs. Search engines still follow the links on them."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:458
+msgid "Sitemaps"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:463
+msgid "Generate an XML sitemap"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:467
+msgid "View the sitemap"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:470
+msgid "WordPress builds the sitemap (wp-sitemap.xml) automatically from your published content."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:482
+msgid "Include in the sitemap"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:485
+msgid "Anything unchecked stays out of the XML sitemap. Individual items are hidden per page with “Hide from search engines”."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:545
+msgid "Author archives"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:546
+msgid "Author pages are often thin content, and their URLs expose usernames."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:557
+msgid "HTML sitemap"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:558
+msgid "A human-readable list of your published content — pages as a tree, other types grouped — added to a page of your choice."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:569
+msgid "Sitemap page"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:584
+msgid "View the sitemap page"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:590
+msgid "The sitemap renders after the page’s own content."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:599
+msgid "Select a page…"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:614
+msgid "llms.txt for AI assistants"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:618
+msgid "A curated index of your published content, so AI crawlers and assistants get a map instead of scraping menus."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:623
+msgid "View llms.txt"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:627
+msgid "Serves a curated index of your published content at /llms.txt, so AI crawlers and assistants get a map instead of scraping menus."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:639
+msgid "Search titles"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:643
+msgid "How titles appear in search results and the browser tab for posts and pages without a custom search title. Leave the format blank to keep WordPress’s own (\"Title – Site\")."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:651
+msgid "Title format"
+msgstr ""
+
+#. translators: 1: the page-title token, 2: the site-title token, 3: the tagline token, 4: the separator token — the title format's own syntax, inserted untranslated.
+#: inc/onboarding/src/screens/seo/SettingsTab.js:654
+#, js-format
+msgid "Tokens: %1$s (page title), %2$s (site title), %3$s, %4$s (separator)."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:670
+msgid "Separator"
+msgstr ""
+
+#. translators: %sep% is a literal token, not a placeholder.
+#: inc/onboarding/src/screens/seo/SettingsTab.js:673
+#, js-format
+msgid "Used for %sep% and everywhere WordPress joins title parts (archives, search, the front page)."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:681
+msgid "Default (–)"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:702
+msgid "Sample Page"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:717
+msgid "Search & social previews"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:722
+msgid "Default share image"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:725
+msgid "The card image links unfurl with when the shared page has no featured image of its own."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:738
+msgid "Replace share image"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:742
+msgid "Remove share image"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:746
+msgid "How your homepage can look in search results and when shared. The description comes from your front page’s own SEO (Content tab) or, for a posts homepage, the site tagline."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:755
+msgid "Organization schema"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:759
+msgid "Structured data describing who is behind the site. Blank fields fall back to your site title, tagline, and logo."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:766
+msgid "Defaults"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:772
+msgid "Organization name"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:787
+msgid "Logo"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:790
+msgid "Shown next to your organization in search results. Leave empty to use the site logo."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:802
+msgid "Select logo"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:803
+msgid "Replace logo"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:804
+msgid "Remove logo"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:809
+msgid "Social profiles"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:812
+msgid "Links to this organization’s official profiles (Facebook, X, LinkedIn, …)."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:827
+msgid "Profile URL"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:864
+msgid "Add profile"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:870
+msgid "This is a local business"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:871
+msgid "Adds the address, phone number, and opening hours to your structured data — the details search engines can show in local and map results."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:883
+msgid "Street address"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:896
+msgid "City"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:905
+msgid "State / Region"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:923
+msgid "Postal code"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:939
+msgid "Country"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:955
+msgid "Opening hours"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:958
+msgid "Leave a day blank if you’re closed."
+msgstr ""
+
+#. translators: %s: weekday name.
+#: inc/onboarding/src/screens/seo/SettingsTab.js:980
+#, js-format
+msgid "%s opens at"
+msgstr ""
+
+#. translators: %s: weekday name.
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1004
+#, js-format
+msgid "%s closes at"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1033
+msgid "Latitude"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1045
+msgid "Longitude"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1055
+msgid "Coordinates are optional — they pin the business on the map when search engines can’t place the address."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1071
+msgid "Paste the verification code — or the whole meta tag — each service gives you. The matching tag is printed on your homepage."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1102
+msgid "IndexNow"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1107
+msgid "Notify search engines of content changes"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1114
+msgid "Bing, Yandex, and other IndexNow engines are pinged the moment content is published, updated, or removed."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1121
+msgid "View the key file"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1125
+msgid "Pings Bing, Yandex, and other IndexNow search engines the moment content is published, updated, or removed, instead of waiting for a crawl. Google doesn’t use IndexNow."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1137
+msgid "Import from another SEO plugin"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1141
+msgid "Copies each post’s search title, description, hidden-from-search flag, and schema type into Blocklane. Nothing you’ve already set here is overwritten, so it’s safe to run more than once."
+msgstr ""
+
+#. translators: 1: posts, 2: titles, 3: descriptions, 4: noindex flags, 5: schema types, 6: skipped values.
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1161
+#, js-format
+msgid "Imported %1$d post(s): %2$d title(s), %3$d description(s), %4$d hidden flag(s), %5$d schema type(s). %6$d value(s) already set here were kept."
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1181
+msgid "No SEO data from other plugins was found on this site."
+msgstr ""
+
+#. translators: %d: number of posts with importable data.
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1199
+#, js-format
+msgid "%d post(s)"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1210
+msgid "Import"
+msgstr ""
+
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1227
+msgid "Save SEO Settings"
+msgstr ""
+
+#: inc/onboarding/src/screens/SeoScreen.js:36
+msgid "Content"
+msgstr ""
+
+#: inc/onboarding/src/screens/SeoScreen.js:90
+msgid "Turn on Basic SEO to manage site-wide search settings here. Anything already configured keeps working on the front end."
+msgstr ""
+
+#: inc/onboarding/src/screens/SeoScreen.js:113
+msgid "SEO sections"
+msgstr ""
+
+#: inc/onboarding/src/screens/SeoScreen.js:175
+msgid "The site-wide half of Basic SEO: an overview of your search state, indexing and the XML sitemap, verification, Organization schema, your homepage description — and every page’s SEO in one table. Nothing here needs an extra SEO plugin; it’s the baseline every site should ship with."
+msgstr ""
+
+#: inc/onboarding/src/screens/SeoScreen.js:183
+msgid "Per-page SEO lives in the editor too"
+msgstr ""
+
+#: inc/onboarding/src/screens/SeoScreen.js:190
+msgid "The Content tab edits the same fields as the editor’s SEO sidebar — open any page and click the SEO icon in the editor’s top bar, or edit right here from the table."
+msgstr ""
+
+#: inc/onboarding/src/screens/SeoScreen.js:198
+msgid "Plays fair with SEO plugins"
+msgstr ""
+
+#: inc/onboarding/src/screens/SeoScreen.js:205
+msgid "If a dedicated SEO plugin (Yoast, Rank Math, AIOSEO, SEOPress…) is active, Blocklane stops printing its own tags automatically so nothing is doubled. Your settings are kept for when you switch back."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:195
+msgid "Public — anyone can view the site."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:198
+msgid "Removing the password returns the site to public."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:204
+msgid "Coming Soon needs a site password to go live."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:210
+msgid "Coming Soon — visitors see a 200 password page."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:216
+msgid "Maintenance — visitors see a 503 “be right back” page."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:224
+msgid "Visitors enter this to view the site. Coming Soon won’t go live until you set one."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:229
+msgid "The saved password will be removed and Coming Soon switched off, returning the site to public."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:234
+msgid "Saving will set the site password to this value. Or remove it below."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:239
+msgid "A site password is set — use the eye to reveal it, type to replace it, or remove it below."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:244
+msgid "A password was set before this update, so it can’t be shown — type a new one to change and reveal it."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:254
+msgid "Turning it off only hides this screen; whatever visibility you set stays in effect."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:298
+msgid "Site visibility saved."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:316
+msgid "Restrict access to this site"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:320
+msgid "You and other editors always keep full access while signed in."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:336
+msgid "Mode"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:340
+msgid "Coming soon (password to enter)"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:347
+msgid "Maintenance (closed to everyone)"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:369
+msgid "Site password"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:395
+msgid "Hide password"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:421
+msgid "Remove the current password"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:439
+msgid "Edit the Coming Soon page in the Site Editor →"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:443
+msgid "Edit the Maintenance page in the Site Editor →"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:454
+msgid "Shareable preview link"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:460
+msgid "Anyone with this link can view the site without the password. Regenerate it to revoke links you’ve already shared."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:487
+msgid "Copied"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:491
+msgid "Copy"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:503
+msgid "Regenerate link"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:521
+msgid "Discourage search engines from indexing this site"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:526
+msgid "It is up to search engines to honor this request."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:537
+msgid "Where this setting lives"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:543
+msgid "This is the same setting as Settings → Reading — changing it in either place updates the other."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:552
+msgid "Open Settings → Reading"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:596
+msgid "Put the whole front end behind a shared password (Coming soon) or temporarily close it for everyone (Maintenance) — like a pre-launch gate. Your dashboard and editing are never affected."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:604
+msgid "Design the page"
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:608
+msgid "The splash is an editable block template — open it in the Site Editor to add your logo, headline, and message. Drop in the “Password Form” block wherever you want the entry field."
+msgstr ""
+
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:615
+msgid "Safe by design"
+msgstr ""
+
+#. translators: %s: the plugin name.
+#: inc/onboarding/src/screens/SitePrivacyScreen.js:620
+#, js-format
+msgid "Signed-in editors always bypass the gate, search engines are told not to index it, and deactivating %s makes the site public again — so you can never lock yourself out."
+msgstr ""
+
+#: inc/popups/src/index.js:70
+msgid "Time on page"
+msgstr ""
+
+#: inc/popups/src/index.js:71
+msgid "Scroll percentage"
+msgstr ""
+
+#: inc/popups/src/index.js:72
+msgid "Exit intent"
+msgstr ""
+
+#: inc/popups/src/index.js:73
+msgid "Manual only"
+msgstr ""
+
+#: inc/popups/src/index.js:77
+msgid "Everywhere"
+msgstr ""
+
+#: inc/popups/src/index.js:78
+msgid "Front page"
+msgstr ""
+
+#: inc/popups/src/index.js:79
+msgid "Page"
+msgstr ""
+
+#: inc/popups/src/index.js:80
+msgid "Post"
+msgstr ""
+
+#: inc/popups/src/index.js:81
+msgid "Post type"
+msgstr ""
+
+#: inc/popups/src/index.js:82
+msgid "URL path"
+msgstr ""
+
+#: inc/popups/src/index.js:83
+msgid "Logged in"
+msgstr ""
+
+#: inc/popups/src/index.js:176
+msgid "does not contain"
+msgstr ""
+
+#: inc/popups/src/index.js:196
+msgid "Bind any Button, Navigation Link, Image, or Cover from its Popup panel — or point a link at #blocklane-popup-{ID}, or add a blocklane-popup-open-{ID} class to any element."
+msgstr ""
+
+#: inc/popups/src/index.js:202
+msgid "Fires when the pointer leaves through the top of the window (desktop)."
+msgstr ""
+
+#: inc/popups/src/index.js:382
+#: inc/popups/src/index.js:389
+#: inc/popups/src/index.js:397
+msgid "Position"
+msgstr ""
+
+#: inc/popups/src/index.js:390
+msgid "Center opens as a modal; every other position is a floating slide-in."
+msgstr ""
+
+#: inc/popups/src/index.js:408
+#: inc/popups/src/index.js:414
+msgid "Max width"
+msgstr ""
+
+#: inc/popups/src/index.js:415
+msgid "Caps the popup card’s width — the canvas follows, so you design at popup size. Empty: content width when centered, fit-content in corners."
+msgstr ""
+
+#: inc/popups/src/index.js:426
+#: inc/popups/src/index.js:431
+msgid "Minimum screen width"
+msgstr ""
+
+#: inc/popups/src/index.js:432
+msgid "Only show on screens at least this wide. 0 shows everywhere."
+msgstr ""
+
+#: inc/popups/src/index.js:446
+msgid "Closing"
+msgstr ""
+
+#: inc/popups/src/index.js:455
+msgid "Visitors can close it"
+msgstr ""
+
+#: inc/popups/src/index.js:466
+msgid "Show close button"
+msgstr ""
+
+#: inc/popups/src/index.js:493
+#: inc/popups/src/index.js:496
+msgid "Trigger"
+msgstr ""
+
+#: inc/popups/src/index.js:510
+#: inc/popups/src/index.js:521
+#: inc/popups/src/index.js:759
+msgid "Show when"
+msgstr ""
+
+#: inc/popups/src/index.js:544
+msgid "Seconds on page"
+msgstr ""
+
+#: inc/popups/src/index.js:559
+msgid "Page scrolled (%)"
+msgstr ""
+
+#: inc/popups/src/index.js:578
+msgid "Frequency"
+msgstr ""
+
+#: inc/popups/src/index.js:588
+msgid "Days to hide after seen"
+msgstr ""
+
+#: inc/popups/src/index.js:592
+msgid "0 shows it on every visit until dismissed."
+msgstr ""
+
+#: inc/popups/src/index.js:608
+msgid "Days to hide after dismissed"
+msgstr ""
+
+#: inc/popups/src/index.js:612
+msgid "0 ignores dismissals entirely."
+msgstr ""
+
+#: inc/popups/src/index.js:640
+#: inc/popups/src/index.js:643
+msgid "Animation"
+msgstr ""
+
+#: inc/popups/src/index.js:652
+#: inc/popups/src/index.js:662
+msgid "Open animation"
+msgstr ""
+
+#: inc/popups/src/index.js:674
+msgid "Duration"
+msgstr ""
+
+#: inc/popups/src/index.js:675
+#: inc/popups/src/index.js:693
+msgid "Seconds"
+msgstr ""
+
+#: inc/popups/src/index.js:692
+msgid "Delay"
+msgstr ""
+
+#: inc/popups/src/index.js:732
+#: inc/popups/src/index.js:735
+msgid "Display Rules"
+msgstr ""
+
+#: inc/popups/src/index.js:747
+msgid "Rules"
+msgstr ""
+
+#: inc/popups/src/index.js:767
+msgid "Any rule"
+msgstr ""
+
+#: inc/popups/src/index.js:771
+msgid "All rules"
+msgstr ""
+
+#: inc/popups/src/index.js:803
+msgid "Qualifier"
+msgstr ""
+
+#: inc/popups/src/index.js:816
+msgid "Remove rule"
+msgstr ""
+
+#: inc/popups/src/index.js:834
+msgid "This condition needs no value — it matches on its own."
+msgstr ""
+
+#: inc/popups/src/index.js:843
+msgid "IDs, slugs, or paths"
+msgstr ""
+
+#: inc/popups/src/index.js:884
+msgid "Add rule"
+msgstr ""
+
+#: inc/popups/src/index.js:888
+msgid "No rules — the popup shows everywhere."
+msgstr ""
+
+#: inc/popups/src/index.js:899
+msgid "Coming Soon & Maintenance"
+msgstr ""
+
+#: inc/popups/src/index.js:905
+msgid "Show while the site is locked"
+msgstr ""
+
+#: inc/popups/src/index.js:909
+msgid "By default, popups never appear on the Coming Soon or Maintenance screen. Enable to allow this popup there — display rules still apply."
+msgstr ""
+
+#: inc/seo/src/index.js:96
+msgid "You are currently editing the page that shows your site map."
+msgstr ""
+
+#: inc/seo/src/index.js:232
+msgid "This page asks search engines not to index it and is left out of the sitemap."
+msgstr ""
+
+#: inc/shared/animation-options.js:11
+#: inc/shared/seo-ui.js:46
+msgid "None"
+msgstr ""
+
+#: inc/shared/animation-options.js:12
+msgid "Fade"
+msgstr ""
+
+#: inc/shared/animation-options.js:13
+msgid "Slide down"
+msgstr ""
+
+#: inc/shared/animation-options.js:14
+msgid "Slide up"
+msgstr ""
+
+#: inc/shared/animation-options.js:15
+msgid "Slide from left"
+msgstr ""
+
+#: inc/shared/animation-options.js:17
+msgid "Slide from right"
+msgstr ""
+
+#: inc/shared/animation-options.js:20
+msgid "Zoom"
+msgstr ""
+
+#: inc/shared/seo-ui.js:58
+msgid "Google"
+msgstr ""
+
+#: inc/shared/seo-ui.js:59
+msgid "Bing"
+msgstr ""
+
+#: inc/shared/seo-ui.js:60
+msgid "Pinterest"
+msgstr ""
+
+#: inc/shared/seo-ui.js:61
+msgid "Yandex"
+msgstr ""
+
+#: inc/shared/seo-ui.js:62
+msgid "Facebook"
+msgstr ""
+
+#: inc/shared/seo-ui.js:194
+msgid "Search engines will pick a snippet from the page content."
+msgstr ""
+
+#: inc/site-lock/src/site-password/index.js:69
+msgid "Button"
+msgstr ""
+
+#: inc/site-lock/src/site-password/index.js:90
+msgid "Border radius"
+msgstr ""
+
+#: inc/site-lock/src/site-password/index.js:110
+msgid "Enter password"
+msgstr ""
+
+#: inc/site-lock/src/site-password/index.js:128
+msgid "Button label"
+msgstr ""
+
+#: inc/forms/src/form-file/block.json
+msgctxt "block title"
+msgid "File Upload"
+msgstr ""
+
+#: inc/forms/src/form-file/block.json
+msgctxt "block description"
+msgid "Let visitors attach files — types, count, and size are capped and every upload is verified server-side."
+msgstr ""
+
+#: inc/forms/src/form-file/block.json
+msgctxt "block keyword"
+msgid "file"
+msgstr ""
+
+#: inc/forms/src/form-file/block.json
+msgctxt "block keyword"
+msgid "upload"
+msgstr ""
+
+#: inc/forms/src/form-file/block.json
+msgctxt "block keyword"
+msgid "attachment"
+msgstr ""
+
+#: inc/forms/src/form-group/block.json
+msgctxt "block title"
+msgid "Choice Group"
+msgstr ""
+
+#: inc/forms/src/form-group/block.json
+msgctxt "block description"
+msgid "A group of radio buttons or checkboxes inside a fieldset with a legend."
+msgstr ""
+
+#: inc/forms/src/form-group/block.json
+msgctxt "block keyword"
+msgid "radio"
+msgstr ""
+
+#: inc/forms/src/form-group/block.json
+msgctxt "block keyword"
+msgid "checkbox"
+msgstr ""
+
+#: inc/forms/src/form-group/block.json
+msgctxt "block keyword"
+msgid "choices"
+msgstr ""
+
+#: inc/forms/src/form-group/block.json
+msgctxt "block keyword"
+msgid "fieldset"
+msgstr ""
+
+#: inc/forms/src/form-input/block.json
+msgctxt "block title"
+msgid "Text Field"
+msgstr ""
+
+#: inc/forms/src/form-input/block.json
+msgctxt "block description"
+msgid "A single-line form field — text, email, phone, URL, number, date, hidden, or consent checkbox."
+msgstr ""
+
+#: inc/forms/src/form-input/block.json
+msgctxt "block keyword"
+msgid "input"
+msgstr ""
+
+#: inc/forms/src/form-input/block.json
+#: inc/forms/src/form-textarea/block.json
+msgctxt "block keyword"
+msgid "field"
+msgstr ""
+
+#: inc/forms/src/form-input/block.json
+#: inc/forms/src/form/block.json
+msgctxt "block keyword"
+msgid "email"
+msgstr ""
+
+#: inc/forms/src/form-input/block.json
+msgctxt "block keyword"
+msgid "phone"
+msgstr ""
+
+#: inc/forms/src/form-input/block.json
+msgctxt "block keyword"
+msgid "date"
+msgstr ""
+
+#: inc/forms/src/form-notification/block.json
+msgctxt "block title"
+msgid "Form Notification"
+msgstr ""
+
+#: inc/forms/src/form-notification/block.json
+msgctxt "block description"
+msgid "The message shown after submitting — authored as blocks, revealed on success or error."
+msgstr ""
+
+#: inc/forms/src/form-notification/block.json
+msgctxt "block keyword"
+msgid "success"
+msgstr ""
+
+#: inc/forms/src/form-notification/block.json
+msgctxt "block keyword"
+msgid "error"
+msgstr ""
+
+#: inc/forms/src/form-notification/block.json
+#: inc/forms/src/form-textarea/block.json
+msgctxt "block keyword"
+msgid "message"
+msgstr ""
+
+#: inc/forms/src/form-notification/block.json
+msgctxt "block keyword"
+msgid "confirmation"
+msgstr ""
+
+#: inc/forms/src/form-option/block.json
+msgctxt "block title"
+msgid "Choice"
+msgstr ""
+
+#: inc/forms/src/form-option/block.json
+msgctxt "block description"
+msgid "One choice inside a group or dropdown of choices."
+msgstr ""
+
+#: inc/forms/src/form-select/block.json
+msgctxt "block title"
+msgid "Dropdown Field"
+msgstr ""
+
+#: inc/forms/src/form-select/block.json
+msgctxt "block description"
+msgid "A dropdown of choices."
+msgstr ""
+
+#: inc/forms/src/form-select/block.json
+msgctxt "block keyword"
+msgid "select"
+msgstr ""
+
+#: inc/forms/src/form-select/block.json
+msgctxt "block keyword"
+msgid "dropdown"
+msgstr ""
+
+#: inc/forms/src/form-select/block.json
+msgctxt "block keyword"
+msgid "choice"
+msgstr ""
+
+#: inc/forms/src/form-step/block.json
+msgctxt "block title"
+msgid "Form Step"
+msgstr ""
+
+#: inc/forms/src/form-step/block.json
+msgctxt "block description"
+msgid "One step of a multi-step form. Add two or more to a Form and visitors move through them one at a time."
+msgstr ""
+
+#: inc/forms/src/form-step/block.json
+msgctxt "block keyword"
+msgid "step"
+msgstr ""
+
+#: inc/forms/src/form-step/block.json
+msgctxt "block keyword"
+msgid "page"
+msgstr ""
+
+#: inc/forms/src/form-step/block.json
+msgctxt "block keyword"
+msgid "wizard"
+msgstr ""
+
+#: inc/forms/src/form-submit-button/block.json
+msgctxt "block title"
+msgid "Submit Button"
+msgstr ""
+
+#: inc/forms/src/form-submit-button/block.json
+msgctxt "block description"
+msgid "Submits the form. Inherits the theme’s button styles."
+msgstr ""
+
+#: inc/forms/src/form-submit-button/block.json
+#: inc/forms/src/form/block.json
+msgctxt "block keyword"
+msgid "submit"
+msgstr ""
+
+#: inc/forms/src/form-submit-button/block.json
+msgctxt "block keyword"
+msgid "send"
+msgstr ""
+
+#: inc/forms/src/form-submit-button/block.json
+msgctxt "block keyword"
+msgid "button"
+msgstr ""
+
+#: inc/forms/src/form-textarea/block.json
+msgctxt "block title"
+msgid "Message Field"
+msgstr ""
+
+#: inc/forms/src/form-textarea/block.json
+msgctxt "block description"
+msgid "A multi-line text field."
+msgstr ""
+
+#: inc/forms/src/form-textarea/block.json
+msgctxt "block keyword"
+msgid "textarea"
+msgstr ""
+
+#: inc/forms/src/form/block.json
+msgctxt "block title"
+msgid "Form"
+msgstr ""
+
+#: inc/forms/src/form/block.json
+msgctxt "block description"
+msgid "A form built from blocks — fields, a submit button, and success and error messages, submitted without a page reload."
+msgstr ""
+
+#: inc/forms/src/form/block.json
+msgctxt "block keyword"
+msgid "contact"
+msgstr ""
+
+#: inc/forms/src/form/block.json
+msgctxt "block keyword"
+msgid "form"
+msgstr ""
+
+#: inc/site-lock/src/site-password/block.json
+msgctxt "block title"
+msgid "Password Form"
+msgstr ""
+
+#: inc/site-lock/src/site-password/block.json
+msgctxt "block description"
+msgid "Visitors enter the site password here to unlock the Coming Soon page. Only appears while Coming Soon mode is active; rendered on the front end by Blocklane Pro. Style it like any block — the button follows your theme."
+msgstr ""
+
+#: inc/site-lock/src/site-password/block.json
+msgctxt "block keyword"
+msgid "password"
+msgstr ""
+
+#: inc/site-lock/src/site-password/block.json
+msgctxt "block keyword"
+msgid "coming soon"
+msgstr ""
+
+#: inc/site-lock/src/site-password/block.json
+msgctxt "block keyword"
+msgid "private"
+msgstr ""

@@ -1,0 +1,309 @@
+/**
+ * Transparent Header — front-end + canvas styles.
+ *
+ * These ride the shared style-index.css bundle on purpose: the bundle loads
+ * in the head (a footer-printed stylesheet would flash the header solid and
+ * in-flow before painting the overlay) and in the editor canvas, where the
+ * same classes — added by withTransparentHeaderClasses — keep the template
+ * view truthful. The !important declarations are deliberate: they must beat
+ * core's per-block position (sticky) styles and any background the group
+ * carries while in the transparent state.
+ */
+
+// Overlay the header on the content below it.
+.wp-block-group.blocklane-pro-transparent-header {
+	position: absolute !important;
+	// The optional Top Offset rides a custom property (set inline by the
+	// render pass) because this rule must stay !important to beat core's
+	// serialized sticky inline style. Admin-bar compensation reads
+	// --wp-admin--admin-bar--height directly rather than core's derived
+	// --wp-admin--admin-bar--position-offset: core only sets THAT var under
+	// .is-position-sticky (block-library/common.css), and the toggle's own
+	// help text says the overlay "replaces sticky positioning" — the one
+	// state it steers users away from. --height is the primitive var
+	// admin-bar.css sets on <html> unconditionally whenever the bar is
+	// showing (and updates at the 782px breakpoint), so it compensates
+	// correctly whether or not the group is also core-sticky.
+	// ---
+	// That compensation is correct only while this group hangs off the INITIAL
+	// containing block. In the always-solid mode the behavior script may make
+	// the <header> wrapper `sticky`/`relative` so it can pin and slide it —
+	// and a positioned wrapper becomes this group's containing block, one that
+	// already sits below the admin bar. Compensating again there renders the
+	// bar at 2× the offset. So the term is reachable through
+	// --blocklane-pro-th-adminbar, which defaults to the compensation and is
+	// zeroed inline by whichever script repositioned the wrapper: the code that
+	// invalidates the assumption is the code that cancels it.
+	// Cannot wrap: sass lints a wrapped calc `+` as its own operator.
+	// stylelint-disable-next-line @stylistic/max-line-length
+	top: calc(var(--blocklane-pro-th-offset, 0px) + var(--blocklane-pro-th-adminbar, var(--wp-admin--admin-bar--height, 0px))) !important;
+	right: 0 !important;
+	left: 0 !important;
+	margin-top: 0 !important;
+	// Above page content, below the popups overlay (99999) and the video
+	// modal (999999). Overridable per header — this rule has to stay
+	// !important to beat core's serialized sticky inline style, so the value
+	// rides a custom property rather than the declaration itself (same reason
+	// as the offset above). Raise it to clear another fixed element.
+	z-index: var(--blocklane-pro-th-z, 100) !important;
+}
+
+// Always-solid mode whose group paints nothing of its own — a floating bar,
+// where the visible bar is an INNER group and this one is the empty space
+// around it. Out of flow it still covers the full width and height of that
+// space, so without this it swallows every click across the top of the page it
+// overlays (measured: a 1440x104 dead band over the hero). Children opt back
+// in, so the bar itself, its links and its buttons all behave normally.
+// ---
+// Solid mode only, and only when nothing is painted: a group WITH a background
+// really is a bar that wide, and clicks on it should stop there rather than
+// falling through. The transparent modes are untouched — what they paint
+// changes at run time, so a render-time decision could not stay true.
+.wp-block-group.blocklane-pro-th-opaque.blocklane-pro-th-nobg {
+	pointer-events: none;
+
+	> * {
+		pointer-events: auto;
+	}
+}
+
+// The at-top state: background stripped — or replaced by the Transparent
+// Background slot (the scrim), whose value rides a custom property set at
+// render. Unset computes to `transparent`, byte-equivalent to the shipped
+// behavior. Standalone class (not chained to the positioning class) so the
+// part-isolation editor can mirror the strip without the overlay
+// positioning. The shorthand is on purpose — it clears color, gradient AND
+// image backgrounds in one declaration.
+
+// EVERY state-color rule in this file chains to .is-th-transparent — the one
+// class frontend.js toggles — and NEVER to the persistent positioning class:
+// keyed there, transparent-state colors would leak into the solid state.
+.wp-block-group.is-th-transparent {
+	background: var(--blocklane-pro-th-bg, transparent) !important;
+}
+
+// ─── The one SOLID-state slot ───────────────────────────────────────────────
+// A row inside the header — a floating bar, a pill — that carries no
+// background of its own is already transparent over the hero. What it lacks is
+// a color for after the header solidifies, which is the exact inverse of every
+// other slot in this file: nothing is stripped at the top, a color switches on
+// once scrolled.
+// ---
+// Scoped to `.blocklane-pro-th-solidify`, the only mode with a scroll
+// transition to switch on at. Set on an always-transparent or always-solid
+// header it is inert rather than broken — the same outcome ruling D4 already
+// accepts for a slot set outside a transparent header at all.
+// ---
+// `!important` is the bounded same-element exception the tagline and button
+// background slots already carry: core puts an authored background ON the
+// element (`.has-x-background-color { background-color: … !important }`), so a
+// row that has both must let the slot win, or the control silently does
+// nothing on exactly the rows most likely to use it.
+// stylelint-disable-next-line @stylistic/max-line-length
+.blocklane-pro-th-solidify:not(.is-th-transparent) .wp-block-group.blocklane-pro-th-row-has-solidbg {
+	background: var(--blocklane-pro-th-row-solid-bg) !important;
+}
+
+// ─── Per-block transparent-state styling ────────────────────────────────────
+// (spec 2026-08-20-transparent-header-block-extensions)
+
+// The old delivery was one `color: !important` on `*:not(<denylist>)` — a
+// blanket that forced enumerating every self-painting container and missed
+// Pro's own mega panel (the 0.9.1 leak). These rules invert that: every
+// selector NAMES the element it styles and chains a render-added marker
+// class under `.is-th-transparent`, so a block that is never named is never
+// touched and nothing here needs `!important`.
+
+// Why no `!important` is needed: core's authored preset classes
+// (`.has-x-color { color: … !important }`) land on the block WRAPPER — the
+// nav element, the site-title heading — while the visible text lives in leaf
+// elements that only `inherit`. A plain rule on the leaf beats inheritance
+// from any wrapper, however loudly the wrapper's own value won.
+
+// The `:not(.is-menu-open)` below is a two-state gate on ONE named container
+// (core's mobile overlay paints its own background and supplies its own
+// colors), not a reincarnation of the denylist: it subtracts a state of an
+// element the selector already names, never "everything else on the page".
+
+// Navigation text: top-level item labels and submenu chevrons. White by
+// default (ruling D3 — literal, Pro cannot assume a theme preset); the
+// Transparent Text slot overrides via the instance var. Two chains because
+// overlayMenu:never renders the list as a direct child of the nav while
+// responsive navs interpose the (closed) responsive container. Submenu
+// dropdown contents are untouched by construction: their list carries
+// `__submenu-container`, not `__container`.
+.is-th-transparent .wp-block-navigation.blocklane-pro-th-nav > .wp-block-navigation__container > .wp-block-navigation-item > .wp-block-navigation-item__content,
+.is-th-transparent .wp-block-navigation.blocklane-pro-th-nav > .wp-block-navigation__container > .wp-block-navigation-item > .wp-block-navigation__submenu-icon,
+.is-th-transparent .blocklane-pro-th-nav .wp-block-navigation__responsive-container:not(.is-menu-open) .wp-block-navigation__container > .wp-block-navigation-item > .wp-block-navigation-item__content,
+.is-th-transparent .blocklane-pro-th-nav .wp-block-navigation__responsive-container:not(.is-menu-open) .wp-block-navigation__container > .wp-block-navigation-item > .wp-block-navigation__submenu-icon {
+	color: var(--blocklane-pro-th-nav-text, #fff);
+}
+
+// The closed-state hamburger sits outside the responsive container, directly
+// on the stripped background — recolor it with the nav text. The close
+// button lives inside the open overlay and keeps the overlay's own color.
+.is-th-transparent .wp-block-navigation.blocklane-pro-th-nav > .wp-block-navigation__responsive-container-open {
+	color: var(--blocklane-pro-th-nav-text, #fff);
+}
+
+// Hover + focus: only when the slot is set (the marker), so an unset slot
+// leaves the header's own authored hover working — which the old blanket's
+// `!important` made unwinnable.
+.is-th-transparent .wp-block-navigation.blocklane-pro-th-nav-has-hover > .wp-block-navigation__container > .wp-block-navigation-item > .wp-block-navigation-item__content:hover,
+.is-th-transparent .wp-block-navigation.blocklane-pro-th-nav-has-hover > .wp-block-navigation__container > .wp-block-navigation-item > .wp-block-navigation-item__content:focus-visible,
+.is-th-transparent .blocklane-pro-th-nav-has-hover .wp-block-navigation__responsive-container:not(.is-menu-open) .wp-block-navigation__container > .wp-block-navigation-item > .wp-block-navigation-item__content:hover,
+.is-th-transparent .blocklane-pro-th-nav-has-hover .wp-block-navigation__responsive-container:not(.is-menu-open) .wp-block-navigation__container > .wp-block-navigation-item > .wp-block-navigation-item__content:focus-visible {
+	color: var(--blocklane-pro-th-nav-hover);
+}
+
+// Current page: core stamps `aria-current="page"` on the anchor itself
+// (navigation-link.php) — the attribute is the marker core owns.
+.is-th-transparent .wp-block-navigation.blocklane-pro-th-nav-has-current > .wp-block-navigation__container > .wp-block-navigation-item > .wp-block-navigation-item__content[aria-current="page"],
+.is-th-transparent .blocklane-pro-th-nav-has-current .wp-block-navigation__responsive-container:not(.is-menu-open) .wp-block-navigation__container > .wp-block-navigation-item > .wp-block-navigation-item__content[aria-current="page"] {
+	color: var(--blocklane-pro-th-nav-current);
+}
+
+// Site title: the link is the leaf; the heading wrapper may carry an
+// authored preset (`!important`) that the link only inherits.
+.is-th-transparent .wp-block-site-title.blocklane-pro-th-title a {
+	color: var(--blocklane-pro-th-title-text, #fff);
+}
+
+// Site tagline: chrome text, white default. THE SAME-ELEMENT EXCEPTION —
+// the tagline has no inner leaf: an authored preset's `!important` lands on
+// the very <p> this rule must color, and only `!important` beats
+// `!important`. Scoped to one NAMED instance under the state class, this is
+// core's own weapon aimed at one element — not the banned universal blanket.
+.is-th-transparent .wp-block-site-tagline.blocklane-pro-th-tagline {
+	color: var(--blocklane-pro-th-tagline-text, #fff) !important;
+}
+
+// Search: only the LABEL sits bare on the stripped background — the input
+// and button paint their own surfaces and are untouched by construction.
+// The label is a leaf (an authored search text color lands on the button,
+// not here), so no !important.
+.is-th-transparent .wp-block-search.blocklane-pro-th-search .wp-block-search__label {
+	color: var(--blocklane-pro-th-search-text, #fff);
+}
+
+// Login/out: chrome text, white default. The link is a leaf in link mode;
+// in form mode (has-login-form) the labels sit bare on the stripped
+// background while the inputs and the submit button paint their own
+// surfaces and are untouched by construction. The anchor rule also covers
+// the form's lost-password/register links.
+.is-th-transparent .wp-block-loginout.blocklane-pro-th-loginout a,
+.is-th-transparent .wp-block-loginout.blocklane-pro-th-loginout label {
+	color: var(--blocklane-pro-th-loginout-text, #fff);
+}
+
+// Buttons: OPT-IN only, no default — filled CTAs stay branded (ruling D1).
+// Same-element exception again: core serializes preset classes and inline
+// colors on the link itself. `background` shorthand on purpose — it clears
+// color, gradient AND image in one declaration (the group-scrim precedent).
+.is-th-transparent .wp-block-button.blocklane-pro-th-btn-has-text > .wp-block-button__link {
+	color: var(--blocklane-pro-th-btn-text) !important;
+}
+
+.is-th-transparent .wp-block-button.blocklane-pro-th-btn-has-bg > .wp-block-button__link {
+	background: var(--blocklane-pro-th-btn-bg) !important;
+}
+
+// Social icons: OPT-IN only — brand colors are deliberate. The anchor is a
+// leaf: authored icon color rides the <li> (inline style + preset class)
+// and the anchor/svg only inherit via currentColor, so no !important.
+.is-th-transparent .wp-block-social-links.blocklane-pro-th-social-has-icon .wp-block-social-link a {
+	color: var(--blocklane-pro-th-social-icon);
+}
+
+.is-th-transparent .wp-block-social-links.blocklane-pro-th-social-has-iconbg .wp-block-social-link a {
+	background-color: var(--blocklane-pro-th-social-iconbg);
+}
+
+// Logo treatment while at top: a CSS filter, zero markup, swaps atomically
+// with the state class. Applied only when no alternate image is set — the
+// image IS the transparent look, and a filter would flatten it.
+.is-th-transparent .wp-block-site-logo.blocklane-pro-th-logo-white img {
+	filter: brightness(0) invert(1);
+}
+
+.is-th-transparent .wp-block-site-logo.blocklane-pro-th-logo-black img {
+	filter: brightness(0);
+}
+
+// Alternate transparent logo (#135): both images render (a `src` swap would
+// flash on first scroll while the other image loads); the state class picks
+// which is visible. The alternate is permanently `aria-hidden` with an empty
+// alt — a decorative duplicate — so assistive tech announces one logo in
+// both states.
+.blocklane-pro-th-alt-logo {
+	display: none;
+}
+
+.is-th-transparent .wp-block-site-logo.blocklane-pro-th-has-alt img.custom-logo {
+	display: none;
+}
+
+.is-th-transparent .wp-block-site-logo.blocklane-pro-th-has-alt img.blocklane-pro-th-alt-logo {
+	display: inline-block;
+}
+
+// Solid on scroll — front end only: pinned the whole way, the group's own
+// background restored once past the header (frontend.js swaps the state
+// classes). The canvas keeps the header absolute instead, so it scrolls with
+// the template while editing and the at-top view stays pixel-true.
+
+// Gated on blocklane-pro-th-js, not just blocklane-pro-th-solidify: the
+// server renders solidify's markup transparent unconditionally, and the ONLY
+// thing that ever restores the background is this script's observer. If it
+// never runs — blocked, JS disabled, 404 on a stale bake — a plain solidify
+// selector here would pin a permanently see-through header over the page.
+// Requiring the script's own confirmation class means that failure instead
+// falls back to the base rule's position: absolute, which — like solid on
+// scroll turned off — simply scrolls away.
+// ---
+// `:not(.blocklane-pro-th-wrapper-pinned)`: this promotion exists so a
+// solid-on-scroll header pins WITHOUT the author configuring anything. When the
+// author has configured sticky, advanced-group pins the <header> wrapper
+// instead — and then pinning here too is not merely redundant, it is the thing
+// that breaks hide-on-scroll, because a wrapper transform hijacks `fixed`
+// descendants into the wrapper (the 2026-07-26 admin-bar double-offset). Stand
+// down and let the wrapper own it; `absolute` inside a pinned wrapper is pinned
+// just the same, and it slides.
+body:not(.editor-styles-wrapper)
+.wp-block-group.blocklane-pro-transparent-header.blocklane-pro-th-solidify.blocklane-pro-th-js:not(.blocklane-pro-th-wrapper-pinned) {
+	position: fixed !important;
+	transition:
+		background-color 0.25s ease,
+		color 0.25s ease;
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
+}
+
+// The liveness gate above protects by withholding `position: fixed` — which
+// protects nothing once the WRAPPER is the pinned element, because advanced-
+// group pins that regardless of whether this extension's script ever ran. Same
+// hazard, so the same refusal, moved to the wrapper: a solid-on-scroll header
+// whose script never confirmed itself must not be pinned see-through over the
+// page. It scrolls away instead, exactly as it does when the promotion is
+// withheld.
+// stylelint-disable-next-line @stylistic/max-line-length
+body:not(.editor-styles-wrapper) header:has(> .blocklane-pro-th-solidify.blocklane-pro-th-wrapper-pinned:not(.blocklane-pro-th-js)) {
+	position: static !important;
+	transform: none !important;
+}
+
+// The logo filter swaps with the same state toggle; gated on the script's
+// liveness class for the same reason position: fixed is, and honoring
+// reduced motion the same way.
+body:not(.editor-styles-wrapper)
+.wp-block-group.blocklane-pro-transparent-header.blocklane-pro-th-js
+.wp-block-site-logo
+img {
+	transition: filter 0.25s ease;
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
+}
