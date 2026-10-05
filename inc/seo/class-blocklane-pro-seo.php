@@ -121,9 +121,9 @@ class Seo implements Bootable {
 	 * one place instead of the call sites this consolidated.
 	 *
 	 * Defers to the emission runtime's copy when that file is loaded; the
-	 * runtime is baked into mu-plugins and self-contained by contract
-	 * (docs/archive/bake-contract.md), so it cannot call back into this class and the
-	 * rule has exactly two homes. Keep the fallback below identical to
+	 * runtime is self-contained, a contract from the bake era when it also ran
+	 * as a generated copy outside the plugin (docs/archive/bake-contract.md), so
+	 * it cannot call back into this class and the rule has exactly two homes. Keep the fallback below identical to
 	 * blocklane_pro_seo_og_image_url().
 	 *
 	 * @param int $att_id Attachment ID.

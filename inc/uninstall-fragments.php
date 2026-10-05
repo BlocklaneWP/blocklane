@@ -48,8 +48,9 @@ if ( ! function_exists( 'blocklane_pro_uninstall_fragments' ) ) {
 	 * other — wp-includes/compat.php's rule. The signature line is pinned as
 	 * an exact string in bin/uninstall-battery.php (U16), with every other
 	 * lent declaration: blocklane_pro_uninstall_plan(), the five functions of
-	 * inc/edition-identity.php, File_Ops and Bake_Reaper, which uninstall.php
-	 * reaches through the same function_exists/class_exists shape. What the
+	 * inc/edition-identity.php and File_Ops, which uninstall.php reaches
+	 * through the same function_exists/class_exists shape (and Pro's two
+	 * bake-leftovers classes, which that unit's fragment reaches the same way). What the
 	 * pin does not cover: a body-only change under the same signature runs
 	 * the LENDER's body for the caller at mismatched versions (#829). And the
 	 * caller's side of the contract: the function_exists probe in front of a

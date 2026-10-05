@@ -6,7 +6,7 @@
  *
  * One home: this file lives in the plugin (inc/extensions/loader/) and is
  * required in-process, so the extensions render only while Blocklane Pro is
- * active. It was also stamped into wp-content/mu-plugins/ until 2026-08; the
+ * active. Until 2026-08 a generated must-use copy of it ran too; the
  * single-load guard below survives that removal because the file is still
  * reachable from more than one require path. Editor and REST surfaces (the
  * builder half) stay plugin-only — see Extensions_Handler.

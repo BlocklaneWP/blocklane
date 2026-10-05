@@ -103,6 +103,7 @@ return array(
 		'security:auto-update-themes' => false,
 		'module:advanced' => array( 'boot' ),
 		'service:textdomain' => false,
+		'service:bake-leftovers' => false,
 		'service:scripts' => false,
 		'service:child-theme' => array( 'lifecycle', 'admin' ),
 		'runtime:content-types' => array( 'content', 'lifecycle' ),

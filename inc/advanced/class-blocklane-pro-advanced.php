@@ -183,8 +183,9 @@ final class Advanced implements Bootable {
 	 * invariant 5 lists — Settings::advanced_stored() (the fallback for both
 	 * toggle polarities when this class is not loaded), Modules::toggle_on_stored()
 	 * (the boot gate's fallback), Content_Toggle::on() (the content runtimes'
-	 * mirror of get()'s isset() semantics) and uninstall.php's final read. Each
-	 * reads only and never writes; a fifth reader anywhere under inc/ fails
+	 * mirror of get()'s isset() semantics), uninstall.php's final read and the
+	 * Clean Uninstall read in Pro's bake-leftovers uninstall fragment. Each
+	 * reads only and never writes; a sixth reader anywhere under inc/ fails
 	 * that check by name (#1004). This class is final so the member rule's
 	 * "referenced class" resolution cannot be walked around by a subclass
 	 * reading DEFAULTS through its own name (#1006).

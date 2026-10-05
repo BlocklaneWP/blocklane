@@ -480,6 +480,11 @@ class Modules {
 			'module:site-lock'           => 'site-lock/lifecycle.php',
 			'service:scripts'            => 'scripts/lifecycle.php',
 			'service:child-theme'        => 'child-theme-tool/lifecycle.php',
+			// Pro only: the bake era's leftovers. Its listener reaps the
+			// generated bootstraps once per version change; it was the last
+			// listener blocklane_pro_boot_lifecycle() registered, and it is
+			// the last row here for the same order among these files.
+			'service:bake-leftovers'     => 'bake-leftovers/lifecycle.php',
 		);
 	}
 

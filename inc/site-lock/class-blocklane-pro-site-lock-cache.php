@@ -93,7 +93,7 @@ class Site_Lock_Cache {
 			}
 		}
 
-		// Kinsta's mu-plugin exposes a purge object rather than a function.
+		// Kinsta's must-use plugin exposes a purge object rather than a function.
 		$kinsta = isset( $GLOBALS['kinsta_cache'] ) && is_object( $GLOBALS['kinsta_cache'] )
 			? $GLOBALS['kinsta_cache']
 			: null;

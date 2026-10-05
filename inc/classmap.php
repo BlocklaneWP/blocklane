@@ -15,7 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 return array(
 	'blocklane_pro\\Advanced' => 'inc/advanced/class-blocklane-pro-advanced.php',
 	'blocklane_pro\\Advanced_Controller' => 'inc/advanced/class-blocklane-pro-advanced-controller.php',
-	'blocklane_pro\\Bake_Reaper' => 'inc/class-blocklane-pro-bake-reaper.php',
 	'blocklane_pro\\Block_Branding' => 'inc/class-blocklane-pro-block-branding.php',
 	'blocklane_pro\\Block_Suite' => 'inc/class-blocklane-pro-block-suite.php',
 	'blocklane_pro\\Blog_Features_Disabler' => 'inc/advanced/class-blocklane-pro-blog-features-disabler.php',

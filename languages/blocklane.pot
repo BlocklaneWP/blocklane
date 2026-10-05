@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-05T21:42:39+00:00\n"
+"POT-Creation-Date: 2026-10-05T22:57:53+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: blocklane\n"
@@ -47,181 +47,181 @@ msgid "No file was received."
 msgstr ""
 
 #. translators: %s: the setting key.
-#: inc/advanced/class-blocklane-pro-advanced.php:255
+#: inc/advanced/class-blocklane-pro-advanced.php:256
 #, php-format
 msgid "The \"%s\" setting belongs to a feature this edition does not include."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:558
+#: inc/advanced/class-blocklane-pro-advanced.php:559
 msgid "Sort by Order"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:643
+#: inc/advanced/class-blocklane-pro-advanced.php:644
 msgid "Couldn’t save the new order. Please refresh and try again."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:644
+#: inc/advanced/class-blocklane-pro-advanced.php:645
 msgid "Indent"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:645
+#: inc/advanced/class-blocklane-pro-advanced.php:646
 msgid "Outdent"
 msgstr ""
 
 #. translators: 1: page title, 2: new parent page title.
-#: inc/advanced/class-blocklane-pro-advanced.php:647
+#: inc/advanced/class-blocklane-pro-advanced.php:648
 #, php-format
 msgid "%1$s is now nested under %2$s."
 msgstr ""
 
 #. translators: %s: page title.
-#: inc/advanced/class-blocklane-pro-advanced.php:649
+#: inc/advanced/class-blocklane-pro-advanced.php:650
 #, php-format
 msgid "%s moved up one level."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:650
+#: inc/advanced/class-blocklane-pro-advanced.php:651
 msgid "Move up"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:651
+#: inc/advanced/class-blocklane-pro-advanced.php:652
 msgid "Move down"
 msgstr ""
 
 #. translators: %s: item title.
-#: inc/advanced/class-blocklane-pro-advanced.php:653
+#: inc/advanced/class-blocklane-pro-advanced.php:654
 #, php-format
 msgid "%s moved up."
 msgstr ""
 
 #. translators: %s: item title.
-#: inc/advanced/class-blocklane-pro-advanced.php:655
+#: inc/advanced/class-blocklane-pro-advanced.php:656
 #, php-format
 msgid "%s moved down."
 msgstr ""
 
 #. translators: %s: page title.
-#: inc/advanced/class-blocklane-pro-advanced.php:657
+#: inc/advanced/class-blocklane-pro-advanced.php:658
 #, php-format
 msgid "Collapse %s"
 msgstr ""
 
 #. translators: %s: page title.
-#: inc/advanced/class-blocklane-pro-advanced.php:659
+#: inc/advanced/class-blocklane-pro-advanced.php:660
 #, php-format
 msgid "Expand %s"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:660
+#: inc/advanced/class-blocklane-pro-advanced.php:661
 msgid "Collapse All"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:661
+#: inc/advanced/class-blocklane-pro-advanced.php:662
 msgid "Expand All"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:662
+#: inc/advanced/class-blocklane-pro-advanced.php:663
 msgid "The Sort by Order view shows every item so the full order can be arranged at once. This setting applies to the other views."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:784
+#: inc/advanced/class-blocklane-pro-advanced.php:785
 msgid "This content type doesn’t support nesting."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:793
+#: inc/advanced/class-blocklane-pro-advanced.php:794
 msgid "That item can’t be moved."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:804
+#: inc/advanced/class-blocklane-pro-advanced.php:805
 msgid "That item can’t be nested there."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:888
+#: inc/advanced/class-blocklane-pro-advanced.php:889
 msgid "Last Login"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:907
+#: inc/advanced/class-blocklane-pro-advanced.php:908
 msgid "Never"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:908
+#: inc/advanced/class-blocklane-pro-advanced.php:909
 msgid "Never logged in"
 msgstr ""
 
 #. translators: %s: human-readable time difference, e.g. "2 hours".
-#: inc/advanced/class-blocklane-pro-advanced.php:917
+#: inc/advanced/class-blocklane-pro-advanced.php:918
 #, php-format
 msgid "%s ago"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:948
+#: inc/advanced/class-blocklane-pro-advanced.php:949
 msgid "Clone"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:963
+#: inc/advanced/class-blocklane-pro-advanced.php:964
 msgid "Invalid or expired duplicate request."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:968
+#: inc/advanced/class-blocklane-pro-advanced.php:969
 msgid "You are not allowed to duplicate this item."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:973
+#: inc/advanced/class-blocklane-pro-advanced.php:974
 msgid "You are not allowed to create items of this type."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:978
+#: inc/advanced/class-blocklane-pro-advanced.php:979
 msgid "The item could not be duplicated."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1095
+#: inc/advanced/class-blocklane-pro-advanced.php:1096
 msgid "The SVG sanitizer is unavailable, so this file was not uploaded."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1102
+#: inc/advanced/class-blocklane-pro-advanced.php:1103
 msgid "The SVG file could not be read."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1116
+#: inc/advanced/class-blocklane-pro-advanced.php:1117
 msgid "This SVG could not be sanitized safely, so it was not uploaded."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1124
+#: inc/advanced/class-blocklane-pro-advanced.php:1125
 msgid "The sanitized SVG could not be saved."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1337
+#: inc/advanced/class-blocklane-pro-advanced.php:1338
 msgid "Replace file"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1338
+#: inc/advanced/class-blocklane-pro-advanced.php:1339
 msgid "Replacing…"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1339
+#: inc/advanced/class-blocklane-pro-advanced.php:1340
 msgid "Replaced ✓"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1340
+#: inc/advanced/class-blocklane-pro-advanced.php:1341
 msgid "Replace failed"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1363
+#: inc/advanced/class-blocklane-pro-advanced.php:1364
 msgid "The file could not be uploaded."
 msgstr ""
 
 #. translators: %s: the original file's mime type.
-#: inc/advanced/class-blocklane-pro-advanced.php:1374
+#: inc/advanced/class-blocklane-pro-advanced.php:1375
 #, php-format
 msgid "The replacement must be the same type (%s) so the URL stays valid."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1387
+#: inc/advanced/class-blocklane-pro-advanced.php:1388
 msgid "The file was uploaded but could not replace the original. Please try again."
 msgstr ""
 
 #. translators: %s: file name of the previous copy left in the uploads folder.
-#: inc/advanced/class-blocklane-pro-advanced.php:1400
+#: inc/advanced/class-blocklane-pro-advanced.php:1401
 #, php-format
 msgid "Replaced, but the previous file could not be removed: %s"
 msgstr ""
@@ -258,34 +258,34 @@ msgid "The image could not be saved."
 msgstr ""
 
 #. translators: 1: this plugin's name, 2: the other copy's directory name.
-#: inc/bootstrap.php:119
+#: inc/bootstrap.php:120
 #, php-format
 msgid "%1$s: a second Blocklane plugin at %2$s/ is active but not running, because this one already is. Deactivate or delete one of them."
 msgstr ""
 
 #. translators: %s: plugin name.
-#: inc/bootstrap.php:247
+#: inc/bootstrap.php:248
 #, php-format
 msgid "%s could not finish checking your customized templates for retired presets; it will retry automatically."
 msgstr ""
 
 #. translators: 1: plugin name, 2: comma-separated template and template-part names.
-#: inc/bootstrap.php:263
+#: inc/bootstrap.php:264
 #, php-format
 msgid "%1$s: these customized templates and template parts still use text and spacing presets retired by the current theme, so their sizes no longer apply: %2$s. Open each in the Site Editor and reapply current sizes, or reset it to its default."
 msgstr ""
 
-#: inc/bootstrap.php:267
+#: inc/bootstrap.php:268
 msgid "Dismiss"
 msgstr ""
 
 #. translators: 1: plugin name, 2: link to manage themes
-#: inc/bootstrap.php:535
+#: inc/bootstrap.php:530
 #, php-format
 msgid "%1$s needs a block theme. Activate any block theme to use its editing tools. %2$s"
 msgstr ""
 
-#: inc/bootstrap.php:537
+#: inc/bootstrap.php:532
 msgid "Manage themes"
 msgstr ""
 
@@ -350,55 +350,55 @@ msgid "The generated theme could not be validated."
 msgstr ""
 
 #. translators: %s: a file path inside the plugin.
-#: inc/class-blocklane-pro-modules.php:835
+#: inc/class-blocklane-pro-modules.php:840
 #, php-format
 msgid "the file %s is missing"
 msgstr ""
 
 #. translators: %s: a PHP class name.
-#: inc/class-blocklane-pro-modules.php:838
+#: inc/class-blocklane-pro-modules.php:843
 #, php-format
 msgid "the class %s is not in inc/classmap.php"
 msgstr ""
 
 #. translators: 1: a PHP class name, 2: a file path inside the plugin.
-#: inc/class-blocklane-pro-modules.php:841
+#: inc/class-blocklane-pro-modules.php:846
 #, php-format
 msgid "the file %2$s for the class %1$s is missing"
 msgstr ""
 
 #. translators: 1: a PHP class name, 2: a file path inside the plugin.
-#: inc/class-blocklane-pro-modules.php:844
+#: inc/class-blocklane-pro-modules.php:849
 #, php-format
 msgid "the file %2$s no longer declares the class %1$s (inc/classmap.php is stale)"
 msgstr ""
 
 #. translators: 1: plugin name, 2: module slug, 3: the reason clause (e.g. "the class X is not in inc/classmap.php").
-#: inc/class-blocklane-pro-modules.php:884
+#: inc/class-blocklane-pro-modules.php:889
 #, php-format
 msgid "%1$s: the %2$s module is running, but its REST routes did not register — %3$s. Its dashboard screen will not work until the plugin is reinstalled."
 msgstr ""
 
 #. translators: 1: plugin name, 2: unit id, 3: the reason clause.
-#: inc/class-blocklane-pro-modules.php:892
+#: inc/class-blocklane-pro-modules.php:897
 #, php-format
 msgid "%1$s: the %2$s content runtime did not load — %3$s. Content you have already built with it will not render until the plugin is reinstalled."
 msgstr ""
 
 #. translators: 1: plugin name, 2: unit id, 3: the reason clause.
-#: inc/class-blocklane-pro-modules.php:900
+#: inc/class-blocklane-pro-modules.php:905
 #, php-format
 msgid "%1$s: the %2$s lifecycle file did not load — %3$s. Its once-per-version housekeeping was skipped and will run by itself once the file is back; reinstall the plugin to restore it."
 msgstr ""
 
 #. translators: 1: plugin name, 2: unit id, 3: the reason clause.
-#: inc/class-blocklane-pro-modules.php:908
+#: inc/class-blocklane-pro-modules.php:913
 #, php-format
 msgid "%1$s: the %2$s extension's editor controls did not load — %3$s. Content you have already built with it still renders, but it cannot be edited until the plugin is reinstalled."
 msgstr ""
 
 #. translators: 1: plugin name, 2: module slug, 3: the reason clause.
-#: inc/class-blocklane-pro-modules.php:916
+#: inc/class-blocklane-pro-modules.php:921
 #, php-format
 msgid "%1$s: the %2$s module did not load — %3$s. The plugin's files are incomplete; reinstall the plugin. In development, run php bin/generate-classmap.php."
 msgstr ""
@@ -1311,80 +1311,80 @@ msgstr ""
 msgid "(no title)"
 msgstr ""
 
-#: inc/popups/runtime.php:238
+#: inc/popups/runtime.php:239
 #: inc/onboarding/src/screens/advanced/rows/popups.js:15
 msgid "Popups"
 msgstr ""
 
-#: inc/popups/runtime.php:239
+#: inc/popups/runtime.php:240
 #: inc/popups/src/index.js:320
 #: inc/popups/src/index.js:323
 msgid "Popup"
 msgstr ""
 
-#: inc/popups/runtime.php:240
+#: inc/popups/runtime.php:241
 msgid "Add New Popup"
 msgstr ""
 
-#: inc/popups/runtime.php:241
+#: inc/popups/runtime.php:242
 msgid "Edit Popup"
 msgstr ""
 
-#: inc/popups/runtime.php:242
+#: inc/popups/runtime.php:243
 msgid "No popups yet."
 msgstr ""
 
 #. translators: 1: a rule condition key, 2: a PHP type name.
-#: inc/popups/runtime.php:471
+#: inc/popups/runtime.php:472
 #, php-format
 msgid "The resolver for \"%1$s\" is a %2$s, not a callable. Every entry must be callable; this one was ignored."
 msgstr ""
 
-#: inc/popups/runtime.php:550
+#: inc/popups/runtime.php:551
 msgid "Time on page"
 msgstr ""
 
-#: inc/popups/runtime.php:551
+#: inc/popups/runtime.php:552
 msgid "Manual only"
 msgstr ""
 
-#: inc/popups/runtime.php:551
+#: inc/popups/runtime.php:552
 msgid "Point a link at #blocklane-popup-{ID}, or add a blocklane-popup-open-{ID} class to any element."
 msgstr ""
 
-#: inc/popups/runtime.php:554
+#: inc/popups/runtime.php:555
 msgid "Everywhere"
 msgstr ""
 
-#: inc/popups/runtime.php:555
+#: inc/popups/runtime.php:556
 msgid "Page"
 msgstr ""
 
-#: inc/popups/runtime.php:556
+#: inc/popups/runtime.php:557
 msgid "Post"
 msgstr ""
 
-#: inc/popups/runtime.php:597
+#: inc/popups/runtime.php:598
 #: inc/forms/src/shared/field-controls.js:151
 msgid "is"
 msgstr ""
 
-#: inc/popups/runtime.php:598
+#: inc/popups/runtime.php:599
 #: inc/forms/src/shared/field-controls.js:152
 msgid "is not"
 msgstr ""
 
-#: inc/popups/runtime.php:599
+#: inc/popups/runtime.php:600
 #: inc/forms/src/shared/field-controls.js:153
 msgid "contains"
 msgstr ""
 
-#: inc/popups/runtime.php:600
+#: inc/popups/runtime.php:601
 msgid "does not contain"
 msgstr ""
 
 #. translators: 1: a trigger label, e.g. "Time on page", 2: a number of seconds.
-#: inc/popups/runtime.php:650
+#: inc/popups/runtime.php:651
 #, php-format
 msgid "%1$s, %2$d second"
 msgid_plural "%1$s, %2$d seconds"
@@ -1392,22 +1392,22 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: a trigger label, e.g. "Scroll percentage", 2: a percentage.
-#: inc/popups/runtime.php:658
+#: inc/popups/runtime.php:659
 #, php-format
 msgid "%1$s, %2$d%%"
 msgstr ""
 
 #. translators: %s: popup title.
-#: inc/popups/runtime.php:831
+#: inc/popups/runtime.php:832
 #, php-format
 msgid "Open popup: %s"
 msgstr ""
 
-#: inc/popups/runtime.php:832
+#: inc/popups/runtime.php:833
 msgid "Open popup"
 msgstr ""
 
-#: inc/popups/runtime.php:1013
+#: inc/popups/runtime.php:1014
 #: inc/onboarding/src/screens/FormsScreen.js:203
 #: inc/onboarding/src/screens/seo/EditSeoPanel.js:111
 msgid "Close"
@@ -1504,59 +1504,59 @@ msgstr ""
 msgid "Toggle child pages"
 msgstr ""
 
-#: inc/seo/runtime.php:2228
+#: inc/seo/runtime.php:2229
 #: inc/onboarding/src/screens/seo/ContentTab.js:278
 msgid "SEO title"
 msgstr ""
 
-#: inc/seo/runtime.php:2229
+#: inc/seo/runtime.php:2230
 msgid "SEO description"
 msgstr ""
 
-#: inc/seo/runtime.php:2230
+#: inc/seo/runtime.php:2231
 #: inc/onboarding/src/screens/seo/ContentTab.js:262
 msgid "Schema"
 msgstr ""
 
-#: inc/seo/runtime.php:2231
+#: inc/seo/runtime.php:2232
 #: inc/onboarding/src/screens/seo/ContentTab.js:316
 msgid "Search"
 msgstr ""
 
-#: inc/seo/runtime.php:2276
+#: inc/seo/runtime.php:2277
 #: inc/shared/seo-ui.js:47
 msgid "Article"
 msgstr ""
 
-#: inc/seo/runtime.php:2278
+#: inc/seo/runtime.php:2279
 #: inc/shared/seo-ui.js:48
 msgid "FAQ"
 msgstr ""
 
-#: inc/seo/runtime.php:2287
+#: inc/seo/runtime.php:2288
 #: inc/forms/src/form-input/edit.js:325
 #: inc/onboarding/src/screens/seo/ContentTab.js:321
 msgid "Hidden"
 msgstr ""
 
-#: inc/seo/runtime.php:2289
+#: inc/seo/runtime.php:2290
 #: inc/onboarding/src/screens/seo/ContentTab.js:325
 msgid "Visible"
 msgstr ""
 
-#: inc/seo/runtime.php:2323
+#: inc/seo/runtime.php:2324
 msgid "SEO filter"
 msgstr ""
 
-#: inc/seo/runtime.php:2324
+#: inc/seo/runtime.php:2325
 msgid "Missing SEO title"
 msgstr ""
 
-#: inc/seo/runtime.php:2325
+#: inc/seo/runtime.php:2326
 msgid "Missing description"
 msgstr ""
 
-#: inc/seo/runtime.php:2326
+#: inc/seo/runtime.php:2327
 msgid "Hidden from search"
 msgstr ""
 

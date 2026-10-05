@@ -7,8 +7,9 @@
  * Content_Toggle — is resolved by the classmap autoloader registered at
  * plugin-file scope before any runtime loads, so no load order can trip it.
  * (The old "core WordPress only" letter of the rule outlived its reason —
- * this file used to be copied into wp-content/mu-plugins/ and run outside
- * the plugin; the spirit, no dependence on a booted module, still holds.)
+ * this file used to be copied into a generated must-use plugin and run
+ * outside the plugin; the spirit, no dependence on a booted module, still
+ * holds.)
  * (The gate chain below is safe mode → Advanced toggle, nothing else: nothing
  * in this plugin gates on the license at runtime — enforcement is server-side
  * at the update gateway; see inc/license/class-blocklane-pro-license.php.)
@@ -16,8 +17,8 @@
  * One home now: the plugin requires this file in-process (once, from
  * Modules), so it runs only while Blocklane Pro is active. The single-load
  * guard below is kept anyway — it costs nothing, and on a site upgrading from
- * a pre-2026-08 version a leftover baked copy in mu-plugins would still load
- * first and define these symbols. Assets resolve via plugins_url().
+ * a pre-2026-08 version a leftover baked copy outside the plugin would still
+ * load first and define these symbols. Assets resolve via plugins_url().
  *
  * It provides: the blocklane_popup CPT + settings meta, the display-rules
  * evaluation, the wp_footer render (markup + per-popup animation CSS + the
@@ -40,7 +41,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Single-load guard. The plugin requires this file once, from the Modules
 // manifest; the guard matters on a site upgrading from a pre-2026-08 version,
-// where a leftover baked copy in mu-plugins loads first and wins.
+// where a leftover baked copy outside the plugin loads first and wins.
 if ( defined( 'BLOCKLANE_PRO_POPUPS_RUNTIME_LOADED' ) ) {
 	return;
 }
@@ -1079,9 +1080,10 @@ if ( ! function_exists( 'blocklane_pro_popups_register' ) ) {
 
 	/**
 	 * Autoload budget for a cache row, mirroring
-	 * blocklane_pro\Helper::autoload_ok(). Duplicated by contract: this file
-	 * is baked into mu-plugins and must never reach into the plugin
-	 * (docs/archive/bake-contract.md). Keep the number in sync with the Helper.
+	 * blocklane_pro\Helper::autoload_ok(). Duplicated since the bake era, when
+	 * this file also ran as a generated copy outside the plugin and could not
+	 * reach into it (docs/archive/bake-contract.md). Keep the number in sync
+	 * with the Helper.
 	 *
 	 * @param mixed $value The value about to be stored.
 	 * @return bool Whether the option should autoload.

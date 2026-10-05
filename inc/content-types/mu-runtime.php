@@ -102,7 +102,7 @@ if ( ! function_exists( 'blocklane_pro_ct_register' ) ) {
 	 * Read the type definitions from the option Blocklane Pro maintains.
 	 *
 	 * An absent row means no types are defined. There is no second source to
-	 * consult: the snapshot fallback belonged to the generated mu-plugin, and
+	 * consult: the snapshot fallback belonged to the generated must-use copy, and
 	 * that whole system was removed in 2026-08.
 	 *
 	 * @return array
@@ -479,7 +479,7 @@ if ( ! function_exists( 'blocklane_pro_ct_register' ) ) {
 
 	/**
 	 * Register all custom taxonomies from the option. There is no second
-	 * source: the snapshot fallback belonged to the generated mu-plugin and
+	 * source: the snapshot fallback belonged to the generated must-use copy and
 	 * that whole system was removed in 2026-08 (see the type-side note above).
 	 * An absent option row means no taxonomies, and clearing it is final.
 	 */

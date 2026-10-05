@@ -41,10 +41,11 @@ require_once __DIR__ . '/log.php';
  * The plugin's ONE loading regime: every first-party class under the
  * blocklane_pro namespace is found through the committed, generated
  * inc/classmap.php (bin/generate-classmap.php). No hand-placed require of a
- * class file exists anywhere in the plugin except the five exceptions
+ * class file exists anywhere in the plugin except the exceptions
  * bin/wiring-check.php allowlists (inc/license/lifecycle.php's License,
- * uninstall.php's Bake_Reaper and File_Ops, Advanced's deferred
- * Svg_Image_Editor, the content-rewrite ability), so load
+ * uninstall.php's File_Ops, the classes Pro's bake-leftovers uninstall
+ * fragment needs, Advanced's deferred Svg_Image_Editor, the content-rewrite
+ * ability), so load
  * order is no longer a per-call-site
  * fact. A miss is a defect, never a soft skip: the class is logged by name and
  * PHP fails at the referencing line. A class_exists() with autoload=true would
@@ -281,7 +282,7 @@ function blocklane_pro_run_plugin() {
  * feature modules); it must never withhold obligations — and the lifecycle
  * units' OWN REST routes (license, scripts, abilities, the child-theme tool)
  * register above the gate, each behind its own toggle read fail-closed from
- * the stored row (#873): a baked mu-plugin executes on classic themes, a
+ * the stored row (#873): a baked must-use copy executes on classic themes, a
  * wipe job's rows sit in the options table on classic themes, and a version
  * bump happened whatever theme is active. Everything here ran below the gate
  * until #142/#155 proved that starves it silently.
@@ -338,12 +339,6 @@ function blocklane_pro_boot_lifecycle() {
 			}
 		}
 	);
-
-	// Stale baked runtimes: reap once per version change. The list and the
-	// sweep live in Bake_Reaper — ONE body, shared verbatim with
-	// uninstall.php (#155, #156); per-node provenance per #154.
-	add_action( 'blocklane_pro_version_changed', array( 'blocklane_pro\\Bake_Reaper', 'reap' ) );
-
 }
 
 /**
@@ -470,7 +465,7 @@ function blocklane_pro_scan_stale_forks() {
  * down: content must never depend on plugin state the user did not choose.
  *
  * Theme state is exactly that kind of dependency. Until 2026-08 these ran
- * from generated mu-plugins, which loaded outside the plugin and therefore
+ * from generated must-use copies, which loaded outside the plugin and therefore
  * outside its theme guard, so switching themes never took someone's content
  * types off the air. Removing the bake quietly moved them inside the guard;
  * calling them here restores the property deliberately rather than by

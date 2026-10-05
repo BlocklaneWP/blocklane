@@ -56,7 +56,7 @@ if ( ! function_exists( 'blocklane_pro_dv_tokens' ) ) {
 	 * Read the token list from the option Blocklane Pro maintains.
 	 *
 	 * An absent row means no tokens are defined. There is no second source to
-	 * consult: the snapshot fallback belonged to the generated mu-plugin, and
+	 * consult: the snapshot fallback belonged to the generated must-use copy, and
 	 * that whole system was removed in 2026-08.
 	 *
 	 * @return array<int,array{key:string,label:string,value:string,type:string}>

@@ -8,17 +8,15 @@
  * The rule: uninstall removes PLUGIN STATE, never USER CONTENT. Blocklane Pro
  * is a builder, and what someone builds with it is theirs.
  *
- * As of 2026-08 the plugin generates no NEW code files — no mu-plugins, no
- * runtimes stamped anywhere — but files written by PREVIOUS versions can
- * still be on disk: the retired bake system's mu-plugins bootstraps survive
- * on any site that updated while deactivated (the version-change reaper
- * never fired), and they would keep executing after this plugin is deleted.
- * The default path sweeps them via Bake_Reaper — the same single body the
- * lifecycle boot uses, self-identification belt included (#156). Beyond
- * that the cleanup is almost entirely a database one. It is not quite "no
- * files": Forms keeps uploaded attachments under uploads/blocklane-forms,
- * and the child-theme generator writes a theme. Both are user content by
- * any reading, are left alone on both paths, and are the user's to remove.
+ * The plugin generates no code files outside its own folder. The cleanup is
+ * almost entirely a database one. It is not quite "no files": Forms keeps
+ * uploaded attachments under uploads/blocklane-forms, and the child-theme
+ * generator writes a theme. Both are user content by any reading, are left
+ * alone on both paths, and are the user's to remove. Files that pre-2026-08
+ * Pro builds generated outside the plugin are a Pro-only unit's teardown
+ * (service:bake-leftovers, inc/bake-leftovers/uninstall.php), run through the
+ * fragments below like every other unit's: the wordpress.org build carries
+ * none of that code, because it never wrote those files.
  *
  * PLUGIN STATE (settings, stamps, caches, license session) is swept
  * unconditionally.
@@ -31,13 +29,6 @@
  * option — the uploaded SVG icons and the Custom Scripts code. They are kept
  * on the default path and removed only under the explicit Clean Uninstall
  * opt-in, alongside this install's license-seat identity.
- *
- * One code file can still be on disk: a Custom Scripts mu-plugin written by a
- * pre-2026-08 version on a site that was deleted before it ever upgraded.
- * Under Clean Uninstall it is retired out of the load path — renamed, never
- * deleted, see the block at the bottom for why. On the default path it is
- * left exactly where it is, still running, because the option that would have
- * replaced it is kept too.
  *
  * @package blocklane_pro
  */
@@ -76,12 +67,10 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
  * already bound and must not compile them again — an unconditional require
  * of a declaring file is a redeclare fatal halfway through the second
  * uninstall (#855; bin/generate-edition.php rule 10 refuses one). (2) The
- * reaper runs unconditionally: it removes plugin-generated code from
- * mu-plugins and needs no edition data. (3) The plan. (4) This edition's own
- * fragments. (5) The guard: refuse the shared sweep and say what was FOUND.
- * (6) The sweep — everything of this tree, shared and Pro-only alike, so a
- * fragment that never ran (Pro removed over SFTP) is still caught the day
- * the last build leaves.
+ * plan. (3) This edition's own fragments. (4) The guard: refuse the shared
+ * sweep and say what was FOUND. (5) The sweep — everything of this tree,
+ * shared and Pro-only alike, so a fragment that never ran (Pro removed over
+ * SFTP) is still caught the day the last build leaves.
  *
  * NOTHING ABOVE THE GUARD DELETES. Every delete, clear and unschedule sits
  * below it; the uninstall battery's U15 holds the file to that, because a
@@ -109,44 +98,11 @@ if ( ! function_exists( 'blocklane_pro_uninstall_plan' ) ) {
 }
 $blocklane_pro_edition_data = is_file( __DIR__ . '/inc/edition.php' ) ? (array) require __DIR__ . '/inc/edition.php' : null;
 
-/*
- * THE REAPER RUNS BEFORE THE GUARD, whatever the plan says. It is not shared
- * state: it removes plugin-GENERATED copies of plugin code from mu-plugins
- * (pre-2026-08 baked
- * bootstraps) that would otherwise keep executing against a directory that is
- * about to be deleted — the class of the 2026-08-05 site-wide fatal. It is safe
- * with a sibling installed: it enumerates only blocklane-pro-* mu-plugins that
- * carry its marker, and the other edition lives under plugins/, never there.
- * The scoped review of 2026-09-18 (#819) found the guard's early return had
- * silently removed this from every uninstall where the sibling was on disk.
- */
-/*
- * Legacy baked runtimes (#156): a plugin updated while DEACTIVATED never
- * fires the version-change reaper, so the pre-2026-08 baked mu-plugins
- * bootstraps can still be on disk here — executing against a plugin that is
- * about to not exist. Sweep them on the DEFAULT path: they are
- * plugin-generated copies of plugin code — state, not user output — and the
- * reaper's per-file self-identification belt keeps anything unmarked (and
- * blocklane-pro-scripts.php, excluded from its list entirely) untouched.
- * ONE body: the same Bake_Reaper the lifecycle boot uses, loadable here
- * because it uses no plugin constants. Hand-required, not autoloaded:
- * uninstall runs without blocklane-pro.php, so the classmap autoloader does
- * not exist here — the one permanent exception (allowlisted in
- * bin/wiring-check.php), and Bake_Reaper references no other plugin class for
- * exactly this reason. Behind class_exists, like every lent file: a bulk
- * delete compiles both editions' copies in one process, and the bare require
- * fataled on redeclare inside the second uninstall (#855).
- */
-if ( ! class_exists( '\blocklane_pro\Bake_Reaper', false ) ) {
-	require_once __DIR__ . '/inc/class-blocklane-pro-bake-reaper.php';
-}
-\blocklane_pro\Bake_Reaper::reap();
-
 $blocklane_pro_plan = blocklane_pro_uninstall_plan( $blocklane_pro_edition_data, __DIR__, WP_PLUGIN_DIR );
 
 // This edition's own unit fragments (the seat release, the updater's option
-// and cron), from this edition's own list — unless a twin of the same rank
-// remains on disk and still reads them.
+// and cron, Pro's bake-era leftovers), from this edition's own list — unless
+// a twin of the same rank remains on disk and still reads them.
 if ( $blocklane_pro_plan['fragments'] ) {
 	blocklane_pro_uninstall_fragments( (array) $blocklane_pro_edition_data, __DIR__ );
 }
@@ -191,9 +147,8 @@ if ( ! $blocklane_pro_plan['shared'] ) {
  * module's state). Leaving these behind would be sloppy: the site-lock option
  * holds the encrypted password + preview key, and the auth option holds the
  * Supabase session tokens, so a full uninstall must clear them. Nothing of
- * ours is left running to need them: as of 2026-08 the plugin writes no NEW
- * code outside its own folder, and the legacy bake sweep below retires what
- * earlier versions wrote — so deleting it stops every Blocklane surface.
+ * ours is left running to need them: the plugin writes no code outside its
+ * own folder, so deleting it stops every Blocklane surface.
  *
  * What this list must NOT contain is user content. Custom Scripts moved out of
  * a generated file and into blocklane_pro_scripts in the same release that
@@ -219,8 +174,8 @@ if ( ! $blocklane_pro_plan['shared'] ) {
  * copy: Scripts::migrate_legacy_file() writes it and then deletes the old
  * generated file, so there is no longer anything on disk behind it. Deleting
  * the row on the default path would destroy authored content — the same line
- * the clean-uninstall block below refuses to cross for the file form of this
- * exact data, which it renames rather than deletes. The row carries the
+ * Pro's bake-leftovers fragment refuses to cross for the pre-2026-08 file form
+ * of this exact data, which it moves rather than deletes. The row carries the
  * feature's toggles too; that is a fair price for not eating someone's
  * analytics and verification tags on a routine reinstall.
  *
@@ -280,9 +235,7 @@ delete_site_option( 'external_updates-blocklane-pro' );
 wp_clear_scheduled_hook( 'puc_cron_check_updates-blocklane-pro' );
 
 /*
- * One filesystem connection for every File_Ops operation below. (Bake_Reaper
- * is the exception: it deletes with wp_delete_file() as the web user, so on a
- * non-direct host its removals can fail without landing in the log — #824.)
+ * One filesystem connection for every File_Ops operation below.
  *
  * On the wp-admin Delete path delete_plugins() has already opened this with
  * whatever credentials the host required — FTP and SSH included — and bails
@@ -296,9 +249,9 @@ wp_clear_scheduled_hook( 'puc_cron_check_updates-blocklane-pro' );
  * here may call that. There, the FILE work is skipped
  * and named in the log, and the database sweep still completes in full — the
  * secrets (site-lock password, auth tokens, SEO identity) are options, and they
- * go regardless. Skipping file work leaves the user's own scripts where they
+ * go regardless. Skipping file work leaves the user's uploads where they
  * already are on every non-opt-in site, which is a known state; deleting them
- * or half-moving them would not be.
+ * halfway would not be.
  */
 // class_exists-guarded like the fragments function, and under the same
 // cross-version contract: its name and method signatures are frozen, because
@@ -494,74 +447,16 @@ wp_clear_scheduled_hook( 'blocklane_pro_ct_wipe_watchdog' );
 /*
  * Clean Uninstall (Advanced toggle, ships OFF).
  * When the user opted in, "Delete" means delete: the options the default path
- * deliberately keeps (the install id, custom icons) go too, and the generated
- * Custom Scripts file is retired out of the load path. Runs LAST — the
- * gateway seat release and the standard cleanup above already happened.
+ * deliberately keeps (the install id, custom icons, the Custom Scripts row) go
+ * too. Runs LAST — the gateway seat release and the standard cleanup above
+ * already happened. (Pro's bake-leftovers fragment, above the guard, retires
+ * a pre-2026-08 Custom Scripts file under the same opt-in and the same plan.)
  * Content records (posts, the submissions table) are still kept: files and
  * settings are ours to remove, content is not.
  * $blocklane_pro_advanced_final was read above, before its option was
  * deleted.
  */
 if ( is_array( $blocklane_pro_advanced_final ) && ! empty( $blocklane_pro_advanced_final['clean-uninstall'] ) ) {
-	// WPMU_PLUGIN_DIR, not WP_CONTENT_DIR . '/mu-plugins/' — the constant is
-	// overridable and some managed hosts relocate it. Hardcoding the path
-	// makes the whole opt-in silently delete nothing on those sites, which is
-	// the one outcome this feature must not have.
-	$blocklane_pro_mu_base = trailingslashit( WPMU_PLUGIN_DIR );
-
-	/*
-	 * Blocklane generates no files at all as of 2026-08. What can still be on
-	 * disk here is a Custom Scripts mu-plugin written by an OLDER version, on
-	 * a site whose migration never got to run (deleted before it upgraded).
-	 *
-	 * That file is not ours to delete: it holds code the USER wrote, and the
-	 * migration that would have copied it into an option never ran, so nothing
-	 * mirrors it. Deleting it destroys authored content — the line this
-	 * feature promises not to cross ("files and settings are ours to remove,
-	 * content is not").
-	 *
-	 * Leaving it untouched is no better: with the plugin gone it would keep
-	 * executing on every request forever, with nothing left to manage it.
-	 *
-	 * So: rename it out of mu-plugins' load path. Nothing of ours runs
-	 * afterwards, and the user's code is still sitting there in plain text.
-	 */
-
-	// Mirrors Scripts::LEGACY_MU_FILENAME.
-	$blocklane_pro_scripts_filename = 'blocklane-pro-scripts.php';
-
-	// Retire that legacy file rather than delete it (see above): out of the
-	// mu-plugins load path so it stops executing, still on disk so the user's
-	// own code is recoverable.
-	//
-	// It keeps its .php extension and moves into a SUBDIRECTORY. Both halves
-	// matter. WordPress auto-loads only *.php at the TOP level of mu-plugins,
-	// so a subdirectory is what stops it executing. And the extension has to
-	// stay .php because wp-content is web-served: renaming it to .txt (as an
-	// earlier revision did) published the user's own code at a predictable URL
-	// — verified 200 with the file body. A .php is executed instead, and the
-	// generated file opens with an ABSPATH guard, so a direct request gets
-	// nothing.
-	// One body, shared with Scripts::retire_legacy_file(): File_Ops. It never
-	// calls a delete on any path, so the worst it can do is leave the file
-	// where it already is.
-	if ( is_wp_error( $blocklane_pro_fs ) ) {
-		$blocklane_pro_left[] = $blocklane_pro_mu_base . $blocklane_pro_scripts_filename;
-	} else {
-		$blocklane_pro_scripts_retired = \blocklane_pro\File_Ops::retire_legacy_scripts(
-			$blocklane_pro_fs,
-			$blocklane_pro_mu_base,
-			$blocklane_pro_scripts_filename
-		);
-		if ( is_wp_error( $blocklane_pro_scripts_retired ) ) {
-			$blocklane_pro_left[] = $blocklane_pro_mu_base . $blocklane_pro_scripts_filename
-				. ' (' . $blocklane_pro_scripts_retired->get_error_message() . ')';
-		}
-		unset( $blocklane_pro_scripts_retired );
-	}
-
-	// The custom icons' uploads mirror goes with its option row (same
-	// pattern as the forms uploads above; missing dir is a no-op).
 	// The custom icons' uploads mirror goes with its option row (same body as
 	// the forms uploads above; a missing directory is a no-op).
 	$blocklane_pro_icons_uploads = wp_get_upload_dir();
@@ -583,7 +478,6 @@ if ( is_array( $blocklane_pro_advanced_final ) && ! empty( $blocklane_pro_advanc
 	delete_option( 'blocklane_pro_install_id' );
 	delete_option( 'blocklane_pro_custom_icons' );
 	// The user's header/body/footer code. Only the explicit opt-in removes it —
-	// this is the option-form twin of the legacy file retired just above, and
 	// clean-uninstall is exactly the "yes, remove everything" signal that
 	// justifies dropping authored content.
 	delete_option( 'blocklane_pro_scripts' );
@@ -596,9 +490,7 @@ if ( is_array( $blocklane_pro_advanced_final ) && ! empty( $blocklane_pro_advanc
  * Anything the filesystem would not let go of is NAMED, once. Uninstall
  * cannot ask the user anything and cannot be re-run, so a line in the log
  * is the only way a site owner (or we) can find out that a file is still
- * sitting there — and for the legacy scripts file, "still there" means the
- * user's own code is still recoverable, which is the outcome we chose over
- * deleting it.
+ * sitting there.
  *
  * AT FILE SCOPE, not inside the clean-uninstall opt-in: the forms uploads
  * removal is gated by the Forms delete_on_uninstall setting, which is a

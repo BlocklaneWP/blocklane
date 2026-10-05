@@ -22,7 +22,7 @@
  * any runtime loads, resolves this class on first reference — a runtime
  * cannot be tripped by load order. That is the live half of the old "core
  * WordPress only" rule; the other half ("no plugin classes, so the file can
- * be baked into an mu-plugin") died with the bake.
+ * be baked into a generated must-use copy") died with the bake.
  *
  * Institutional memory carried from inc/forms/runtime.php (v3): until v3 a
  * stale build fataled on a missing helper, which at least announced itself;

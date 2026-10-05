@@ -430,9 +430,8 @@ function blocklane_pro_responsive_order_markers( array $block ): array {
 }
 
 /**
- * The global responsive breakpoints. Read via the runtime helpers (option
- * first, baked snapshot after uninstall) so this loader works from either
- * home — the plugin or the generated mu-plugin.
+ * The global responsive breakpoints. Read via the runtime helpers: the
+ * option first, the shipped default when there is none.
  *
  * @return array{tablet:int,mobile:int}
  */

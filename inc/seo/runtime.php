@@ -849,8 +849,9 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 	 *
 	 * Plugin-side callers reach it through blocklane_pro\Seo::og_image_url(),
 	 * which defers here when the runtime is loaded and mirrors this line when
-	 * it is not; the runtime is baked into mu-plugins and must never reach
-	 * into the plugin (docs/archive/bake-contract.md).
+	 * it is not; the runtime is self-contained and must never reach into the
+	 * plugin, a contract from the bake era when it also ran as a generated
+	 * copy outside the plugin (docs/archive/bake-contract.md).
 	 *
 	 * @param int $att_id Attachment ID.
 	 * @return string Absolute URL, or '' when it cannot be resolved.
