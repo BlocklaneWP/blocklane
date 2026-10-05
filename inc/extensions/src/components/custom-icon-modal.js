@@ -45,15 +45,15 @@ const PREVIEW_MAX = 400;
 const PREVIEW_DEFAULT = 100;
 
 /**
- * @param {Object}   props
- * @param {Function} props.onInsert       Called with ( sanitizedSvg, label ).
- * @param {Function} props.onClose        Closes the modal.
- * @param {string}   props.initialSvg     Existing SVG markup when editing.
- * @param {string}   props.title          Modal title.
- * @param {string}   props.insertLabel    Insert button label.
- * @param {boolean}  props.showLabelField Show the library Label field.
- * @param {boolean}  props.isSaving       Disables actions while saving.
- * @param {string}   props.errorMessage   Save failure from the caller.
+ * @param {Object}                               props
+ * @param {(svg: string, label: string) => void} props.onInsert       Called with ( sanitizedSvg, label ).
+ * @param {() => void}                           props.onClose        Closes the modal.
+ * @param {string}                               props.initialSvg     Existing SVG markup when editing.
+ * @param {string}                               props.title          Modal title.
+ * @param {string}                               props.insertLabel    Insert button label.
+ * @param {boolean}                              props.showLabelField Show the library Label field.
+ * @param {boolean}                              props.isSaving       Disables actions while saving.
+ * @param {string}                               props.errorMessage   Save failure from the caller.
  */
 export default function CustomIconModal( {
 	onInsert,

@@ -280,6 +280,7 @@ class Helper {
 			set_transient( $key, 0, $window );
 		}
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- an atomic increment of the throttle counter; get_transient() + set_transient() would race between requests.
 		$wpdb->query(
 			$wpdb->prepare(
 				"UPDATE {$wpdb->options} SET option_value = option_value + 1 WHERE option_name = %s",

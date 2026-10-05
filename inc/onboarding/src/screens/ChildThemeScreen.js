@@ -27,6 +27,40 @@ import { buildRouteUrl } from '../router';
 import { HelpTab, useHelpPreference } from '../components/HelpTab';
 import { errorMessage } from '../api/errors';
 
+const Field = ( { label, required, help, children } ) => {
+	// Associate the label with the control inside (TextControl and
+	// TextareaControl forward `id` to their native input).
+	const fieldId = useInstanceId( Field, 'blocklane-pro-child-theme-field' );
+	return (
+		<div className="blocklane-pro-child-theme__field">
+			<label
+				htmlFor={ fieldId }
+				className={ required ? 'is-required' : '' }
+			>
+				{ label }
+			</label>
+			{ cloneElement( children, { id: fieldId } ) }
+			{ help ? (
+				<p className="blocklane-pro-child-theme__help">{ help }</p>
+			) : null }
+		</div>
+	);
+};
+
+const SummaryRow = ( { label, value, last } ) => (
+	<>
+		<Flex gap={ 4 } className="blocklane-pro-child-theme__summary-row">
+			<FlexItem>
+				<strong>{ label }</strong>
+			</FlexItem>
+			<FlexItem>
+				<span>{ value }</span>
+			</FlexItem>
+		</Flex>
+		{ ! last ? <Divider /> : null }
+	</>
+);
+
 export const ChildThemeScreen = () => {
 	const settings = window.blocklaneProAdmin || {};
 	// Server-resolved fallbacks (what generation writes when a field is left
@@ -680,37 +714,3 @@ export const ChildThemeScreen = () => {
 		</Flex>
 	);
 };
-
-const Field = ( { label, required, help, children } ) => {
-	// Associate the label with the control inside (TextControl and
-	// TextareaControl forward `id` to their native input).
-	const fieldId = useInstanceId( Field, 'blocklane-pro-child-theme-field' );
-	return (
-		<div className="blocklane-pro-child-theme__field">
-			<label
-				htmlFor={ fieldId }
-				className={ required ? 'is-required' : '' }
-			>
-				{ label }
-			</label>
-			{ cloneElement( children, { id: fieldId } ) }
-			{ help ? (
-				<p className="blocklane-pro-child-theme__help">{ help }</p>
-			) : null }
-		</div>
-	);
-};
-
-const SummaryRow = ( { label, value, last } ) => (
-	<>
-		<Flex gap={ 4 } className="blocklane-pro-child-theme__summary-row">
-			<FlexItem>
-				<strong>{ label }</strong>
-			</FlexItem>
-			<FlexItem>
-				<span>{ value }</span>
-			</FlexItem>
-		</Flex>
-		{ ! last ? <Divider /> : null }
-	</>
-);

@@ -9,6 +9,10 @@
  * unit that owns the extension, registered on the core blocks by
  * inc/extensions/loader/attribute-schema.php in BOTH editions, so a page saved
  * in either edition writes back every attribute it was opened with (#858).
+ * Each attribute is written in the compact form the registrar expands
+ * (blocklane_pro_ext_attribute_definition()): 'name' => 'type' when it has
+ * only a type, 'name' => array( 'type', default ) when it also has a default,
+ * and the sidecar's full map for anything else.
  * IDENTICAL BYTES in both editions: this is data preservation, never a
  * capability, and it declares no control, no save filter, no render and no
  * stylesheet.
@@ -32,12 +36,12 @@ return array(
 			),
 			'attributes' => array(
 				'gridBreakpoints' => array(
-					'type' => 'array',
-					'default' => array(),
+					'array',
+					array(),
 				),
 				'gridBreakpointSettings' => array(
-					'type' => 'object',
-					'default' => array(),
+					'object',
+					array(),
 				),
 			),
 		),
@@ -50,15 +54,9 @@ return array(
 				'core/cover',
 			),
 			'attributes' => array(
-				'href' => array(
-					'type' => 'string',
-				),
-				'linkDestination' => array(
-					'type' => 'string',
-				),
-				'linkTarget' => array(
-					'type' => 'string',
-				),
+				'href' => 'string',
+				'linkDestination' => 'string',
+				'linkTarget' => 'string',
 			),
 		),
 		array(
@@ -67,27 +65,25 @@ return array(
 			),
 			'attributes' => array(
 				'stickyScrollOffset' => array(
-					'type' => 'string',
-					'default' => '0px',
+					'string',
+					'0px',
 				),
 				'stickyZIndex' => array(
-					'type' => 'number',
-					'default' => NULL,
+					'number',
+					NULL,
 				),
 				'stickyOnScrollUp' => array(
-					'type' => 'boolean',
-					'default' => false,
+					'boolean',
+					false,
 				),
 				'unstickOnMobile' => array(
-					'type' => 'boolean',
-					'default' => false,
+					'boolean',
+					false,
 				),
-				'blocklaneProMaxWidth' => array(
-					'type' => 'string',
-				),
+				'blocklaneProMaxWidth' => 'string',
 				'blocklaneProMaxWidthCenter' => array(
-					'type' => 'boolean',
-					'default' => false,
+					'boolean',
+					false,
 				),
 			),
 		),
@@ -99,8 +95,8 @@ return array(
 			),
 			'attributes' => array(
 				'blocklaneProTabDescription' => array(
-					'type' => 'string',
-					'default' => '',
+					'string',
+					'',
 				),
 			),
 		),
@@ -110,8 +106,8 @@ return array(
 			),
 			'attributes' => array(
 				'blocklaneProTabDescriptionFontSize' => array(
-					'type' => 'string',
-					'default' => '',
+					'string',
+					'',
 				),
 			),
 		),
@@ -121,20 +117,20 @@ return array(
 			),
 			'attributes' => array(
 				'blocklaneProTabListPosition' => array(
-					'type' => 'string',
-					'default' => '',
+					'string',
+					'',
 				),
 				'blocklaneProTabListVerticalAlignment' => array(
-					'type' => 'string',
-					'default' => '',
+					'string',
+					'',
 				),
 				'blocklaneProTabListWidth' => array(
-					'type' => 'number',
-					'default' => 0,
+					'number',
+					0,
 				),
 				'blocklaneProTabDescriptionsAlwaysVisible' => array(
-					'type' => 'boolean',
-					'default' => false,
+					'boolean',
+					false,
 				),
 			),
 		),
@@ -154,52 +150,52 @@ return array(
 			),
 			'attributes' => array(
 				'animationType' => array(
-					'type' => 'string',
-					'default' => '',
+					'string',
+					'',
 				),
 				'animationDuration' => array(
-					'type' => 'number',
-					'default' => 1,
+					'number',
+					1,
 				),
 				'animationDelay' => array(
-					'type' => 'number',
-					'default' => 0,
+					'number',
+					0,
 				),
 				'animationDistance' => array(
-					'type' => 'number',
-					'default' => 30,
+					'number',
+					30,
 				),
 				'animationScale' => array(
-					'type' => 'number',
-					'default' => 1.05,
+					'number',
+					1.05,
 				),
 				'animateOnScroll' => array(
-					'type' => 'boolean',
-					'default' => false,
+					'boolean',
+					false,
 				),
 				'animateOnce' => array(
-					'type' => 'boolean',
-					'default' => true,
+					'boolean',
+					true,
 				),
 				'scrollOffset' => array(
-					'type' => 'number',
-					'default' => -50,
+					'number',
+					-50,
 				),
 				'animationPresetId' => array(
-					'type' => 'string',
-					'default' => '',
+					'string',
+					'',
 				),
 				'animateSequentially' => array(
-					'type' => 'boolean',
-					'default' => false,
+					'boolean',
+					false,
 				),
 				'sequentialDelay' => array(
-					'type' => 'number',
-					'default' => 0.2,
+					'number',
+					0.2,
 				),
 				'wordDelay' => array(
-					'type' => 'number',
-					'default' => 0.2,
+					'number',
+					0.2,
 				),
 			),
 		),
@@ -210,32 +206,22 @@ return array(
 				'core/button',
 			),
 			'attributes' => array(
-				'icon' => array(
-					'type' => 'string',
-				),
+				'icon' => 'string',
 				'iconPositionLeft' => array(
-					'type' => 'boolean',
-					'default' => false,
+					'boolean',
+					false,
 				),
 				'iconWeight' => array(
-					'type' => 'string',
-					'default' => 'regular',
+					'string',
+					'regular',
 				),
-				'iconColor' => array(
-					'type' => 'string',
-				),
-				'customIconColor' => array(
-					'type' => 'string',
-				),
-				'iconSize' => array(
-					'type' => 'string',
-				),
-				'iconSpacing' => array(
-					'type' => 'string',
-				),
+				'iconColor' => 'string',
+				'customIconColor' => 'string',
+				'iconSize' => 'string',
+				'iconSpacing' => 'string',
 				'customIconSvg' => array(
-					'type' => 'string',
-					'default' => '',
+					'string',
+					'',
 				),
 			),
 		),
@@ -245,8 +231,8 @@ return array(
 			'blocks' => '*',
 			'attributes' => array(
 				'blocklaneProCustomClasses' => array(
-					'type' => 'array',
-					'default' => array(),
+					'array',
+					array(),
 				),
 			),
 		),
@@ -257,31 +243,19 @@ return array(
 				'support' => 'color.text',
 			),
 			'attributes' => array(
-				'hoverTextColor' => array(
-					'type' => 'string',
-				),
-				'customHoverTextColor' => array(
-					'type' => 'string',
-				),
-				'hoverBackgroundColor' => array(
-					'type' => 'string',
-				),
-				'customHoverBackgroundColor' => array(
-					'type' => 'string',
-				),
-				'hoverBorderColor' => array(
-					'type' => 'string',
-				),
-				'customHoverBorderColor' => array(
-					'type' => 'string',
-				),
+				'hoverTextColor' => 'string',
+				'customHoverTextColor' => 'string',
+				'hoverBackgroundColor' => 'string',
+				'customHoverBackgroundColor' => 'string',
+				'hoverBorderColor' => 'string',
+				'customHoverBorderColor' => 'string',
 				'hoverTransitionDuration' => array(
-					'type' => 'number',
-					'default' => 200,
+					'number',
+					200,
 				),
 				'hoverTransitionTiming' => array(
-					'type' => 'string',
-					'default' => 'ease',
+					'string',
+					'ease',
 				),
 			),
 		),
@@ -295,8 +269,8 @@ return array(
 			),
 			'attributes' => array(
 				'textDecorationHover' => array(
-					'type' => 'string',
-					'default' => '',
+					'string',
+					'',
 				),
 			),
 		),
@@ -309,8 +283,8 @@ return array(
 			),
 			'attributes' => array(
 				'blocklaneProPopupId' => array(
-					'type' => 'number',
-					'default' => 0,
+					'number',
+					0,
 				),
 			),
 		),
@@ -320,8 +294,8 @@ return array(
 			),
 			'attributes' => array(
 				'blocklaneProPopupClose' => array(
-					'type' => 'boolean',
-					'default' => false,
+					'boolean',
+					false,
 				),
 			),
 		),
@@ -351,8 +325,8 @@ return array(
 			),
 			'attributes' => array(
 				'blocklaneProResponsive' => array(
-					'type' => 'object',
-					'default' => array(),
+					'object',
+					array(),
 				),
 			),
 		),
@@ -365,8 +339,8 @@ return array(
 			),
 			'attributes' => array(
 				'smartSync' => array(
-					'type' => 'boolean',
-					'default' => false,
+					'boolean',
+					false,
 				),
 			),
 		),
@@ -382,8 +356,8 @@ return array(
 			),
 			'attributes' => array(
 				'textWrap' => array(
-					'type' => 'string',
-					'default' => '',
+					'string',
+					'',
 				),
 			),
 		),
@@ -395,32 +369,22 @@ return array(
 			),
 			'attributes' => array(
 				'blocklaneProTransparentHeader' => array(
-					'type' => 'boolean',
-					'default' => false,
+					'boolean',
+					false,
 				),
 				'blocklaneProThBackground' => array(
-					'type' => 'string',
-					'default' => '',
+					'string',
+					'',
 				),
 				'blocklaneProTransparentSolidOnScroll' => array(
-					'type' => 'boolean',
-					'default' => true,
+					'boolean',
+					true,
 				),
-				'blocklaneProTransparentTopOffset' => array(
-					'type' => 'string',
-				),
-				'blocklaneProTransparentZIndex' => array(
-					'type' => 'number',
-				),
-				'blocklaneProTransparentBackground' => array(
-					'type' => 'string',
-				),
-				'blocklaneProTransparentTextColor' => array(
-					'type' => 'string',
-				),
-				'blocklaneProTransparentLogo' => array(
-					'type' => 'string',
-				),
+				'blocklaneProTransparentTopOffset' => 'string',
+				'blocklaneProTransparentZIndex' => 'number',
+				'blocklaneProTransparentBackground' => 'string',
+				'blocklaneProTransparentTextColor' => 'string',
+				'blocklaneProTransparentLogo' => 'string',
 			),
 		),
 		array(
@@ -428,9 +392,7 @@ return array(
 				'core/group',
 			),
 			'attributes' => array(
-				'blocklaneProThSolidBackground' => array(
-					'type' => 'string',
-				),
+				'blocklaneProThSolidBackground' => 'string',
 			),
 		),
 		array(
@@ -438,15 +400,9 @@ return array(
 				'core/navigation',
 			),
 			'attributes' => array(
-				'blocklaneProTransparentTextColor' => array(
-					'type' => 'string',
-				),
-				'blocklaneProTransparentHoverColor' => array(
-					'type' => 'string',
-				),
-				'blocklaneProTransparentCurrentColor' => array(
-					'type' => 'string',
-				),
+				'blocklaneProTransparentTextColor' => 'string',
+				'blocklaneProTransparentHoverColor' => 'string',
+				'blocklaneProTransparentCurrentColor' => 'string',
 			),
 		),
 		array(
@@ -457,9 +413,7 @@ return array(
 				'core/loginout',
 			),
 			'attributes' => array(
-				'blocklaneProTransparentTextColor' => array(
-					'type' => 'string',
-				),
+				'blocklaneProTransparentTextColor' => 'string',
 			),
 		),
 		array(
@@ -467,12 +421,8 @@ return array(
 				'core/button',
 			),
 			'attributes' => array(
-				'blocklaneProTransparentTextColor' => array(
-					'type' => 'string',
-				),
-				'blocklaneProTransparentBackground' => array(
-					'type' => 'string',
-				),
+				'blocklaneProTransparentTextColor' => 'string',
+				'blocklaneProTransparentBackground' => 'string',
 			),
 		),
 		array(
@@ -480,12 +430,8 @@ return array(
 				'core/social-links',
 			),
 			'attributes' => array(
-				'blocklaneProTransparentIconColor' => array(
-					'type' => 'string',
-				),
-				'blocklaneProTransparentIconBackground' => array(
-					'type' => 'string',
-				),
+				'blocklaneProTransparentIconColor' => 'string',
+				'blocklaneProTransparentIconBackground' => 'string',
 			),
 		),
 		array(
@@ -493,12 +439,8 @@ return array(
 				'core/site-logo',
 			),
 			'attributes' => array(
-				'blocklaneProTransparentLogo' => array(
-					'type' => 'string',
-				),
-				'blocklaneProTransparentLogoId' => array(
-					'type' => 'number',
-				),
+				'blocklaneProTransparentLogo' => 'string',
+				'blocklaneProTransparentLogoId' => 'number',
 			),
 		),
 	),
@@ -511,32 +453,32 @@ return array(
 			),
 			'attributes' => array(
 				'blocklaneProVideoModal' => array(
-					'type' => 'boolean',
-					'default' => false,
+					'boolean',
+					false,
 				),
 				'blocklaneProVideoSource' => array(
-					'type' => 'string',
-					'default' => 'youtube',
+					'string',
+					'youtube',
 				),
 				'blocklaneProVideoUrl' => array(
-					'type' => 'string',
-					'default' => '',
+					'string',
+					'',
 				),
 				'blocklaneProVideoId' => array(
-					'type' => 'number',
-					'default' => 0,
+					'number',
+					0,
 				),
 				'blocklaneProVideoAutoplay' => array(
-					'type' => 'boolean',
-					'default' => true,
+					'boolean',
+					true,
 				),
 				'blocklaneProVideoStartTime' => array(
-					'type' => 'number',
-					'default' => 0,
+					'number',
+					0,
 				),
 				'blocklaneProPlayIcon' => array(
-					'type' => 'string',
-					'default' => 'always',
+					'string',
+					'always',
 				),
 			),
 		),

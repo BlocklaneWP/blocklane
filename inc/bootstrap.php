@@ -34,6 +34,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// The one door to the error log (debug-only), before anything that logs.
+require_once __DIR__ . '/log.php';
+
 /**
  * The plugin's ONE loading regime: every first-party class under the
  * blocklane_pro namespace is found through the committed, generated
@@ -78,8 +81,10 @@ function blocklane_pro_autoload( string $class ): void {
 	}
 	$map = blocklane_pro_classmap();
 	if ( ! isset( $map[ $class ] ) ) {
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- a classmap miss is a shipped-build defect; when the reference was a probe this line is its only trace.
-		error_log( 'Blocklane: autoload miss for class ' . $class . ' - not in inc/classmap.php. Regenerate with `php bin/generate-classmap.php`; a stale map cannot pass CI or the dist build.' );
+		// A classmap miss is a shipped-build defect, but a class_exists()
+		// probe for a class this edition does not carry misses the same way
+		// on every request, so this stays a debug line (WP_DEBUG only).
+		blocklane_pro_log( 'Blocklane: autoload miss for class ' . $class . ' - not in inc/classmap.php. Regenerate with `php bin/generate-classmap.php`; a stale map cannot pass CI or the dist build.' );
 		return;
 	}
 	// require_once: a file that declares two classes is never included twice;
@@ -183,7 +188,7 @@ function blocklane_pro_run_plugin() {
 	// never protected anything; what people pay for is the license key —
 	// installs, updates and support, enforced by the update gateway, not by
 	// anything in the running plugin.
-	if ( ! function_exists( 'wp_is_block_theme' ) || ! wp_is_block_theme() ) {
+	if ( ! wp_is_block_theme() ) {
 		add_action( is_multisite() ? 'network_admin_notices' : 'admin_notices', 'blocklane_pro_admin_notice_requires_block_theme' );
 		return;
 	}
@@ -272,8 +277,11 @@ function blocklane_pro_run_plugin() {
 /**
  * Boot the plugin's OBLIGATIONS — the lifecycle machinery whose work exists
  * whatever theme is active. The block-theme gate in blocklane_pro_run_plugin()
- * may withhold SURFACES (UI, editor assets, REST, feature modules); it must
- * never withhold obligations: a baked mu-plugin executes on classic themes, a
+ * may withhold SURFACES (UI, editor assets, the modules' REST controllers,
+ * feature modules); it must never withhold obligations — and the lifecycle
+ * units' OWN REST routes (license, scripts, abilities, the child-theme tool)
+ * register above the gate, each behind its own toggle read fail-closed from
+ * the stored row (#873): a baked mu-plugin executes on classic themes, a
  * wipe job's rows sit in the options table on classic themes, and a version
  * bump happened whatever theme is active. Everything here ran below the gate
  * until #142/#155 proved that starves it silently.
@@ -492,8 +500,21 @@ function blocklane_pro_scan_stale_forks() {
  * silent skip.
  *
  * Safe mode is not a gate here, deliberately: each runtime checks it itself
- * and returns, which is the shipped contract, and several declare functions
- * other code calls whether or not they do any work.
+ * and returns (the two editor stand-ins inside Standin::register(), the one
+ * call their files make), which is the shipped contract, and several declare
+ * functions other code calls whether or not they do any work.
+ *
+ * The mega menu's editor stand-in (runtime:mega-menu-standin) is content —
+ * data preservation carried by both editions — and boots here, before the
+ * theme gate; the real mega menu block boots behind that gate as before and
+ * the stand-in yields to it through the server registry. Both stand-ins (the
+ * form step's is runtime:form-step-standin) go through one door,
+ * blocklane_pro\Standin, which owns their hooks, their alarm and their
+ * registry read.
+ *
+ * The icon collection's registrar (runtime:icon-collection) boots here for the
+ * same reason: a core/icon block naming blocklane-pro/* must keep rendering
+ * under either edition, whatever the Icon Library extension's toggle says.
  *
  * @return void
  */

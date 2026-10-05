@@ -11,8 +11,15 @@
  * migration at parse time, persisting it on save).
  *
  * What stays Blocklane-rendered — via render_block vars/classes + the static
- * media-query stylesheet — are the extras core has no property for: per-
- * breakpoint display `order` and `maxWidth`.
+ * media-query stylesheet — is whatever the shim did not convert. Where
+ * render_block_data runs (do_blocks, render_block(), every inner block of a
+ * block core renders whole) that is only the extras core has no property
+ * for: per-breakpoint display `order` and `maxWidth`. But core also renders
+ * blocks through WP_Block::render() with no render_block_data pass — a
+ * core/navigation block's children read from its wp_navigation post, and the
+ * top-level blocks of its overlay template part — and there the legacy bag
+ * reaches render_block whole. So the render path below keeps a branch for
+ * every legacy property; edition-battery row E46d pins that it is reachable.
  *
  * @package blocklane_pro
  */
@@ -26,27 +33,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 // default) that used to live here is now the generated attribute schema
 // (inc/extensions/attribute-schema.php, from this control's attributes.json)
 // registered by inc/extensions/loader/attribute-schema.php in BOTH editions (#858).
-
-/**
- * Convert a WordPress preset shorthand value to a CSS custom property.
- *
- * e.g. "var:preset|spacing|60" → "var(--wp--preset--spacing--60)"
- * Plain CSS values like "1rem" or "20px" pass through unchanged.
- *
- * @param string $value Raw value from block attributes.
- * @return string CSS-safe value.
- */
-function blocklane_pro_responsive_resolve_preset_value( $value ) {
-	if ( ! is_string( $value ) || strpos( $value, 'var:preset|' ) !== 0 ) {
-		return $value;
-	}
-
-	// "var:preset|spacing|60" → "--wp--preset--spacing--60"
-	$path = substr( $value, 4 ); // Remove "var:"
-	$path = str_replace( '|', '--', $path );
-
-	return 'var(--wp--' . $path . ')';
-}
 
 /**
  * Resolve a tablet → mobile cascade: mobile inherits the tablet value unless it
@@ -87,9 +73,11 @@ function blocklane_pro_responsive_cascade( $data ) {
  *
  * The legacy tablet→mobile cascade is materialized (core's @tablet band is
  * exclusive: mobile < width <= tablet), existing core-format values are never
- * clobbered, and migrated keys are stripped from the bag so the legacy
- * render_block filter below only ever emits the Blocklane extras
- * (order/maxWidth) — exactly one engine renders each property.
+ * clobbered, and migrated keys are stripped from the bag, so wherever this
+ * filter runs the legacy render_block filter below emits only the Blocklane
+ * extras (order/maxWidth). Where core skips this filter (the file header
+ * names the paths) the legacy filter renders the whole bag and core paints
+ * none of it — either way exactly one engine renders each property.
  *
  * @param array<string,mixed> $parsed_block The parsed block.
  * @return array<string,mixed> The parsed block, migrated.
@@ -217,197 +205,228 @@ function blocklane_pro_responsive_migrate_parsed_block( $parsed_block ) {
 add_filter( 'render_block_data', 'blocklane_pro_responsive_migrate_parsed_block' );
 
 /**
- * Filter block content to add responsive CSS custom properties
- * and marker classes on the frontend.
+ * render_block: write the bag's custom properties and marker classes onto the block's first tag.
  *
- * Each property emits, per breakpoint, a `--blocklane-pro-*` custom property and a
- * matching `has-blocklane-pro-*` marker class; the static stylesheet's media queries
- * do the rest. Tablet values cascade to mobile (see the cascade helper).
+ * Every legacy property is handled here, not only order/maxWidth: where core
+ * renders a block without a render_block_data pass (see the file header) the
+ * whole bag arrives. Each emitted value becomes a custom property
+ * `--blocklane-pro-{infix}-{bp}` plus a `has-blocklane-pro-{infix}-{bp}`
+ * class — the names responsive-controls.css reads. The added declarations go
+ * IN FRONT of the tag's own style, which is kept verbatim so the author's
+ * inline style still has the last word. Only the first tag is touched.
  *
- * @param string $block_content The block content.
- * @param array  $block         The block data.
- * @return string Modified block content.
+ * A non-string $block_content (an earlier filter's doing) passes through.
+ *
+ * @param mixed                $block_content The block content.
+ * @param array<string, mixed> $block         The parsed block.
+ * @return mixed The content with the additions, or $block_content unchanged.
  */
-function blocklane_pro_responsive_render_block( $block_content, $block ) {
-	$responsive = $block['attrs']['blocklaneProResponsive'] ?? null;
-	$responsive = is_array( $responsive ) ? $responsive : array();
-
-	// A flex container whose children carry order overrides gets a marker so the
-	// stylesheet can push its un-ordered children last (scoped per container, so
-	// it never touches the columns reorder or other flex rows).
-	$child_order_classes = blocklane_pro_responsive_child_order_classes( $block );
-
-	if ( empty( $responsive ) && empty( $child_order_classes ) ) {
+function blocklane_pro_responsive_render_block( mixed $block_content, array $block ): mixed {
+	if ( ! is_string( $block_content ) ) {
 		return $block_content;
 	}
 
-	$processor = new WP_HTML_Tag_Processor( $block_content );
+	$attrs = is_array( $block['attrs'] ?? null ) ? $block['attrs'] : array();
+	$bag   = is_array( $attrs['blocklaneProResponsive'] ?? null ) ? $attrs['blocklaneProResponsive'] : array();
 
-	if ( ! $processor->next_tag() ) {
+	$paint   = blocklane_pro_responsive_paint( $bag );
+	$classes = array_merge( $paint['classes'], blocklane_pro_responsive_order_markers( $block ) );
+
+	if ( array() === $paint['declarations'] && array() === $classes ) {
 		return $block_content;
 	}
 
-	$style_additions = '';
-	$classes         = array();
-
-	/**
-	 * Emit a var + marker class for each cascaded breakpoint of a property.
-	 *
-	 * @param string   $key    Var/class infix (e.g. 'fs', 'gap').
-	 * @param mixed    $data   Per-breakpoint data.
-	 * @param callable $sanitize Maps a raw value to its CSS value, or null to skip.
-	 */
-	$emit = function ( $key, $data, $sanitize ) use ( &$style_additions, &$classes ) {
-		foreach ( blocklane_pro_responsive_cascade( $data ) as $breakpoint => $raw ) {
-			$value = $sanitize( $raw );
-			if ( null === $value ) {
-				continue;
-			}
-			$style_additions .= "--blocklane-pro-{$key}-{$breakpoint}:{$value};";
-			$classes[]        = "has-blocklane-pro-{$key}-{$breakpoint}";
-		}
-	};
-
-	// A length/preset value (font size, gap, min height, spacing sides). Reject
-	// anything that could inject extra declarations into the inline style — the
-	// value is author-controlled and esc_attr only guards attribute breakout,
-	// not CSS syntax. Keeps var()/calc()/clamp()/<number><unit>; drops ; { } < >
-	// and quotes.
-	$as_length = function ( $raw ) {
-		$value = blocklane_pro_responsive_resolve_preset_value( $raw );
-		if ( ! is_string( $value ) || preg_match( '/[;{}<>"\']/', $value ) ) {
-			return null;
-		}
-		return esc_attr( $value );
-	};
-	// A value constrained to an allow-list (alignment, justification).
-	$as_keyword = function ( array $allowed ) {
-		return function ( $raw ) use ( $allowed ) {
-			return in_array( $raw, $allowed, true ) ? esc_attr( $raw ) : null;
-		};
-	};
-	// A small positive integer (flex order, 1..50).
-	$as_order = function ( $raw ) {
-		if ( ! is_scalar( $raw ) ) {
-			return null;
-		}
-		$n = (int) $raw;
-		return ( $n >= 1 && $n <= 50 ) ? (string) $n : null;
-	};
-
-	$emit( 'fs', $responsive['fontSize'] ?? null, $as_length );
-	$emit( 'gap', $responsive['blockGap'] ?? null, $as_length );
-	$emit( 'mh', $responsive['minHeight'] ?? null, $as_length );
-	$emit( 'mw', $responsive['maxWidth'] ?? null, $as_length );
-	$emit( 'ta', $responsive['textAlign'] ?? null, $as_keyword( array( 'left', 'center', 'right' ) ) );
-	$emit( 'jc', $responsive['justifyContent'] ?? null, $as_keyword( array( 'flex-start', 'center', 'flex-end', 'space-between', 'stretch' ) ) );
-	$emit( 'order', $responsive['order'] ?? null, $as_order );
-
-	// Per-side spacing (padding, margin): cascade each side independently.
-	foreach ( array( 'padding', 'margin' ) as $prop ) {
-		$prop_data = $responsive[ $prop ] ?? null;
-		if ( ! is_array( $prop_data ) ) {
-			continue;
-		}
-		$tablet_data = is_array( $prop_data['tablet'] ?? null ) ? $prop_data['tablet'] : array();
-		$mobile_data = is_array( $prop_data['mobile'] ?? null ) ? $prop_data['mobile'] : array();
-
-		foreach ( array( 'top', 'right', 'bottom', 'left' ) as $side ) {
-			$emit(
-				"{$prop}-{$side}",
-				array(
-					'tablet' => $tablet_data[ $side ] ?? '',
-					'mobile' => $mobile_data[ $side ] ?? '',
-				),
-				$as_length
-			);
-		}
+	$tags = new WP_HTML_Tag_Processor( $block_content );
+	if ( ! $tags->next_tag() ) {
+		return $block_content;
 	}
 
-	// Orientation maps horizontal/vertical → row/column and adds a direction class
-	// the stylesheet keys justification off, so it gets a dedicated pass.
-	foreach ( blocklane_pro_responsive_cascade( $responsive['orientation'] ?? null ) as $breakpoint => $raw ) {
-		if ( ! in_array( $raw, array( 'horizontal', 'vertical' ), true ) ) {
-			continue;
-		}
-		$dir              = 'vertical' === $raw ? 'column' : 'row';
-		$style_additions .= "--blocklane-pro-ori-{$breakpoint}:{$dir};";
-		$classes[]        = "has-blocklane-pro-ori-{$breakpoint}";
-		$classes[]        = "blocklane-pro-ori-{$breakpoint}-{$dir}";
+	if ( array() !== $paint['declarations'] ) {
+		$own = $tags->get_attribute( 'style' );
+		$tags->set_attribute( 'style', implode( '', $paint['declarations'] ) . ( is_string( $own ) ? $own : '' ) );
+	}
+	foreach ( $classes as $class ) {
+		$tags->add_class( $class );
 	}
 
-	// Visibility — independent per-device booleans (no cascade): each true value
-	// hides the block within that device's width range (see the stylesheet).
-	$hidden = $responsive['hidden'] ?? null;
-	if ( is_array( $hidden ) ) {
-		foreach ( array( 'desktop', 'tablet', 'mobile' ) as $device ) {
-			if ( ! empty( $hidden[ $device ] ) ) {
-				$classes[] = "has-blocklane-pro-hide-{$device}";
-			}
-		}
-	}
-
-	// Apply if we have anything.
-	if ( ! empty( $style_additions ) ) {
-		$existing = $processor->get_attribute( 'style' ) ?? '';
-		$processor->set_attribute( 'style', $style_additions . $existing );
-	}
-
-	foreach ( array_merge( $classes, $child_order_classes ) as $cls ) {
-		$processor->add_class( $cls );
-	}
-
-	return $processor->get_updated_html();
+	return $tags->get_updated_html();
 }
 add_filter( 'render_block', 'blocklane_pro_responsive_render_block', 10, 2 );
 
 /**
- * Marker classes for a flex container whose direct children carry responsive
- * order overrides. Lets the stylesheet push that container's un-ordered children
- * last, scoped so it never affects other flex rows (or the columns reorder).
+ * What a responsive bag paints: the custom-property declarations (each
+ * ending in `;`) and the classes.
  *
- * @param array $block The block data.
- * @return string[] Class names ('blocklane-pro-child-order-tablet' / '-mobile').
+ * @param array<mixed> $bag The blocklaneProResponsive attribute.
+ * @return array{declarations: list<string>, classes: list<string>}
  */
-function blocklane_pro_responsive_child_order_classes( $block ) {
-	$layout = $block['attrs']['layout'] ?? null;
-	$is_flex = ( is_array( $layout ) && ( $layout['type'] ?? '' ) === 'flex' )
-		// core/columns is always a flex container but its default flex layout
-		// isn't serialized to the layout attribute.
-		|| ( $block['blockName'] ?? '' ) === 'core/columns';
-
-	if ( ! $is_flex ) {
-		return array();
-	}
-
-	$inner = $block['innerBlocks'] ?? array();
-	if ( empty( $inner ) || ! is_array( $inner ) ) {
-		return array();
-	}
-
-	$has = array(
-		'tablet' => false,
-		'mobile' => false,
+function blocklane_pro_responsive_paint( array $bag ): array {
+	$out = array(
+		'declarations' => array(),
+		'classes'      => array(),
 	);
 
-	foreach ( $inner as $child ) {
-		$order = $child['attrs']['blocklaneProResponsive']['order'] ?? null;
+	$emit = static function ( string $infix, string $bp, ?string $css ) use ( &$out ): void {
+		if ( null === $css ) {
+			return;
+		}
+		$out['declarations'][] = '--blocklane-pro-' . $infix . '-' . $bp . ':' . $css . ';';
+		$out['classes'][]      = 'has-blocklane-pro-' . $infix . '-' . $bp;
+	};
+
+	// Single-value properties: bag key => [ infix, judge ].
+	$single = array(
+		'fontSize'       => array( 'fs', 'blocklane_pro_responsive_length' ),
+		'blockGap'       => array( 'gap', 'blocklane_pro_responsive_length' ),
+		'minHeight'      => array( 'mh', 'blocklane_pro_responsive_length' ),
+		'maxWidth'       => array( 'mw', 'blocklane_pro_responsive_length' ),
+		'textAlign'      => array( 'ta', 'blocklane_pro_responsive_text_align' ),
+		'justifyContent' => array( 'jc', 'blocklane_pro_responsive_justify' ),
+		'order'          => array( 'order', 'blocklane_pro_responsive_order' ),
+	);
+	foreach ( $single as $key => list( $infix, $judge ) ) {
+		foreach ( blocklane_pro_responsive_cascade( $bag[ $key ] ?? null ) as $bp => $raw ) {
+			$emit( $infix, (string) $bp, $judge( $raw ) );
+		}
+	}
+
+	foreach ( array( 'padding', 'margin' ) as $key ) {
+		$spacing = $bag[ $key ] ?? null;
+		if ( ! is_array( $spacing ) ) {
+			continue;
+		}
+		$by_bp = array(
+			'tablet' => is_array( $spacing['tablet'] ?? null ) ? $spacing['tablet'] : array(),
+			'mobile' => is_array( $spacing['mobile'] ?? null ) ? $spacing['mobile'] : array(),
+		);
+		foreach ( array( 'top', 'right', 'bottom', 'left' ) as $side ) {
+			$pair = array(
+				'tablet' => $by_bp['tablet'][ $side ] ?? '',
+				'mobile' => $by_bp['mobile'][ $side ] ?? '',
+			);
+			foreach ( blocklane_pro_responsive_cascade( $pair ) as $bp => $raw ) {
+				$emit( $key . '-' . $side, (string) $bp, blocklane_pro_responsive_length( $raw ) );
+			}
+		}
+	}
+
+	$directions = array(
+		'horizontal' => 'row',
+		'vertical'   => 'column',
+	);
+	foreach ( blocklane_pro_responsive_cascade( $bag['orientation'] ?? null ) as $bp => $raw ) {
+		if ( is_string( $raw ) && isset( $directions[ $raw ] ) ) {
+			$emit( 'ori', (string) $bp, $directions[ $raw ] );
+			$out['classes'][] = 'blocklane-pro-ori-' . $bp . '-' . $directions[ $raw ];
+		}
+	}
+
+	// Visibility is per device and does not cascade; it adds a class only.
+	$hidden = $bag['hidden'] ?? null;
+	if ( is_array( $hidden ) ) {
+		foreach ( array( 'desktop', 'tablet', 'mobile' ) as $device ) {
+			if ( ! empty( $hidden[ $device ] ) ) {
+				$out['classes'][] = 'has-blocklane-pro-hide-' . $device;
+			}
+		}
+	}
+
+	return $out;
+}
+
+/**
+ * A length as it may appear inside an inline style, or null when refused.
+ *
+ * A `var:preset|…` reference becomes the custom property core defines for
+ * it. Anything that is not a string is refused, and so is any string that
+ * could end the declaration, open or close a rule, or leave the attribute
+ * (; { } < > " '). esc_attr() and the HTML API stop attribute breakout, not
+ * CSS syntax, so this check is the guard.
+ *
+ * @param mixed $raw The stored value.
+ */
+function blocklane_pro_responsive_length( mixed $raw ): ?string {
+	if ( ! is_string( $raw ) ) {
+		return null;
+	}
+	if ( str_starts_with( $raw, 'var:preset|' ) ) {
+		$raw = 'var(--wp--' . str_replace( '|', '--', substr( $raw, strlen( 'var:' ) ) ) . ')';
+	}
+	if ( strpbrk( $raw, ';{}<>"\'' ) !== false ) {
+		return null;
+	}
+	return esc_attr( $raw );
+}
+
+/**
+ * A text-align keyword, exactly as listed, or null.
+ *
+ * @param mixed $raw The stored value.
+ */
+function blocklane_pro_responsive_text_align( mixed $raw ): ?string {
+	return in_array( $raw, array( 'left', 'center', 'right' ), true ) ? $raw : null;
+}
+
+/**
+ * A justify-content keyword, exactly as listed, or null.
+ *
+ * @param mixed $raw The stored value.
+ */
+function blocklane_pro_responsive_justify( mixed $raw ): ?string {
+	return in_array( $raw, array( 'flex-start', 'center', 'flex-end', 'space-between', 'stretch' ), true ) ? $raw : null;
+}
+
+/**
+ * A display order from 1 to 50 as a decimal string, or null.
+ *
+ * Any scalar is read the way PHP's (int) cast reads it ("12abc" → 12,
+ * 2.9 → 2, true → 1). A float that is not finite or that no int can hold is
+ * refused before the cast, since it cannot land in range anyway.
+ *
+ * @param mixed $raw The stored value.
+ */
+function blocklane_pro_responsive_order( mixed $raw ): ?string {
+	if ( ! is_scalar( $raw ) ) {
+		return null;
+	}
+	if ( is_float( $raw ) && ( ! is_finite( $raw ) || abs( $raw ) >= PHP_INT_MAX ) ) {
+		return null;
+	}
+	$order = (int) $raw;
+	return ( $order >= 1 && $order <= 50 ) ? (string) $order : null;
+}
+
+/**
+ * The child-order marker classes of a flex container: which breakpoints at
+ * least one DIRECT child carries an order at. The values are not judged —
+ * the stylesheet only needs to know ordered children exist.
+ *
+ * A block is a flex container when its layout type is `flex`, or when it is
+ * core/columns (whose default flex layout is never serialized).
+ *
+ * @param array<string, mixed> $block The parsed block.
+ * @return list<string>
+ */
+function blocklane_pro_responsive_order_markers( array $block ): array {
+	$attrs  = is_array( $block['attrs'] ?? null ) ? $block['attrs'] : array();
+	$layout = $attrs['layout'] ?? null;
+	$flex   = ( is_array( $layout ) && 'flex' === ( $layout['type'] ?? null ) ) || 'core/columns' === ( $block['blockName'] ?? null );
+	if ( ! $flex || ! is_array( $block['innerBlocks'] ?? null ) ) {
+		return array();
+	}
+
+	$marked = array();
+	foreach ( $block['innerBlocks'] as $child ) {
+		$order = is_array( $child ) ? ( $child['attrs']['blocklaneProResponsive']['order'] ?? null ) : null;
 		if ( ! is_array( $order ) ) {
 			continue;
 		}
-		foreach ( array_keys( blocklane_pro_responsive_cascade( $order ) ) as $breakpoint ) {
-			$has[ $breakpoint ] = true;
+		foreach ( array_keys( blocklane_pro_responsive_cascade( $order ) ) as $bp ) {
+			$marked[ $bp ] = 'blocklane-pro-child-order-' . $bp;
 		}
 	}
 
-	$classes = array();
-	if ( $has['tablet'] ) {
-		$classes[] = 'blocklane-pro-child-order-tablet';
-	}
-	if ( $has['mobile'] ) {
-		$classes[] = 'blocklane-pro-child-order-mobile';
-	}
-	return $classes;
+	return array_values( $marked );
 }
 
 /**

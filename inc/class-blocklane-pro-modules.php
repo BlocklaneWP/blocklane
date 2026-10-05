@@ -68,6 +68,12 @@ class Modules {
 	 * @var array<string, Module_Miss>
 	 */
 	private static array $lifecycle_missed = array();
+	/**
+	 * Extensions whose ADMIN runtime file was missing (PHASE_ADMIN, #875).
+	 *
+	 * @var array<string, Module_Miss>
+	 */
+	private static array $admin_missed = array();
 
 	/** Whether the module admin notice is hooked (one callback prints every list). */
 	private static bool $notice_hooked = false;
@@ -101,27 +107,19 @@ class Modules {
 	 * fatal naming the path); classes first reached
 	 * from later hooks (the Abilities\Manage_* classes at wp_abilities_api_init);
 	 * Extensions_Handler::load_extensions()'s conditional function-file
-	 * requires; and THE CONTENT RUNTIMES, which blocklane_pro_boot_content()
-	 * requires before Modules runs — the six files it require_once's
-	 * (content-types/mu-runtime.php, dynamic-values/mu-runtime.php,
-	 * seo/runtime.php, forms/runtime.php, carousel/runtime.php, the
-	 * extensions loader) and the classes those files reach at file scope
-	 * (Content_Toggle at plugins_loaded in three of them — seo, forms,
-	 * carousel — and Block_Suite at init in carousel and forms); popups reaches
-	 * Content_Toggle too, but as a Modules runtime it is INSIDE the guarantee.
-	 * Every class blocklane-pro.php itself reaches at file scope or on
-	 * plugins_loaded before Modules runs sits outside for the same reason —
-	 * the closure is the six runtimes and their file-scope classes, nothing
-	 * above them. A torn deploy missing any of those is a fatal on
-	 * EVERY request, every theme, every SAPI including WP-CLI: the require's
-	 * own "Failed opening required" for the six files (BLOCKLANE_PRO_SAFE_MODE
-	 * cannot rescue those — the requires precede every runtime's safe-mode
-	 * return), the autoloader's fatal naming the class for the two class doors
-	 * (safe mode does rescue those). Recovery mode emails and does not pause a
-	 * plugin outside its own session; the remedy is restoring the file or
-	 * renaming the plugin directory. Extending the guarantee to the content
-	 * runtimes is a Modules::content() table driven by boot_module()/record()
-	 * — parked in DEFERRED-WORK.md (#508, decision D1 of the carousel spec).
+	 * requires; and the CONTENT RUNTIMES' file-scope classes (Content_Toggle at
+	 * plugins_loaded in seo, forms and carousel; Block_Suite at init in
+	 * carousel and forms). The content runtimes THEMSELVES are inside:
+	 * content() is the table boot_content() drives through boot_module() and
+	 * record(), so a missing runtime file is a typed Module_Miss with its own
+	 * notice, never a fatal (built 2026-09-05, DEFERRED-WORK #508; the
+	 * paragraph that said otherwise was rewritten 2026-09-25, #906). What stays
+	 * OUTSIDE: every class blocklane-pro.php itself reaches at file scope or on
+	 * plugins_loaded before Modules runs, and the file-scope classes named
+	 * above — a torn deploy missing one of those is the autoloader's fatal
+	 * naming the class (safe mode rescues those doors). Recovery mode emails
+	 * and does not pause a plugin outside its own session; the remedy is
+	 * restoring the file or renaming the plugin directory.
 	 *
 	 * ITERATION ORDER IS LOAD-BEARING: `advanced` must precede `seo`, `forms`,
 	 * `ai-mcp` and `ai-tools`. boot_on() consults the Advanced class for their
@@ -194,7 +192,10 @@ class Modules {
 			),
 			'security'       => array(
 				'runtimes'   => array(),
-				'classes'    => array(),
+				// The boot-time closure: Security's constructor runs apply(),
+				// whose get() derives known(), which asks Edition which unit
+				// contributes each key (the forms content row's precedent).
+				'classes'    => array( Edition::class ),
 				'boot'       => Security::class,
 				'controller' => Security_Controller::class,
 			),
@@ -274,8 +275,23 @@ class Modules {
 	 * throughout: content runtimes are function files with file-scope hooks,
 	 * never Bootable singletons.
 	 *
-	 * ORDER IS LOAD-BEARING: content-types registers the post types that
-	 * dynamic-values' bindings and the seo runtime then read.
+	 * ONE ORDER IS LOAD-BEARING, and only one: content-types registers the
+	 * post types that dynamic-values' bindings and the seo runtime then read.
+	 * Nothing else here depends on the order of the rows.
+	 *
+	 * In particular the CONTRIBUTING UNITS (popups:pro, block:form-file,
+	 * security:auto-update-plugins, security:auto-update-themes) sit above
+	 * their parents ON PURPOSE and are not to be reordered. A contributor
+	 * touches its parent only inside callbacks, on the parent's own hooks, so
+	 * it is safe by CONTRACT rather than by order — and reordering could not
+	 * make it safe anyway: popups:pro's and the two security rows' parents
+	 * are not content rows at all (inc/popups/runtime.php is a Modules::all()
+	 * runtime, Security a Modules::all() boot class, both booted after the
+	 * theme gate), so under a classic theme they never load.
+	 * Contributor-first is the better failure mode: a violation of the
+	 * contract surfaces as a fatal at plugins_loaded under Pro instead of
+	 * hiding behind a lucky order. The contract is asserted by
+	 * bin/contributor-scope-check.php, wiring check 7 (#1046).
 	 *
 	 * Keyed by MANIFEST UNIT ID, not module slug — the edition filter reads
 	 * these keys, and a unit can hold `content` in free while its management
@@ -298,6 +314,72 @@ class Modules {
 				'boot'       => null,
 				'controller' => null,
 			),
+			// The mega menu's editor stand-in: data preservation in BOTH
+			// editions (Amendment 14); inert under Pro by the server registry.
+			// Its runtime is one Standin::register() call, so the helper is in
+			// the row's preflight closure: a torn deploy missing it is a typed
+			// Module_Miss, never a fatal. A `kind: standin` unit's row must
+			// name its own <dir>/runtime.php (bin/standin-shape-check.php,
+			// wiring check 8, reads these rows by check 7's grammar).
+			'runtime:mega-menu-standin' => array(
+				'runtimes'   => array( 'mega-menu-standin/runtime.php' ),
+				'classes'    => array( Standin::class ),
+				'boot'       => null,
+				'controller' => null,
+			),
+			// The form step's editor stand-in: data preservation in BOTH
+			// editions (spec 2026-09-24 D4); inert under Pro by the server
+			// registry, inert in either edition while the forms toggle is off.
+			// One Standin::register() call, the helper in the closure as above.
+			'runtime:form-step-standin' => array(
+				'runtimes'   => array( 'form-step-standin/runtime.php' ),
+				'classes'    => array( Content_Toggle::class, Standin::class ),
+				'boot'       => null,
+				'controller' => null,
+			),
+			// The popups module's Pro contributions (manifest rule 6): the
+			// file that fills the three registries popups/runtime.php reads.
+			// Pro-only by edition; gated on the popups toggle like its parent.
+			'popups:pro'                => array(
+				'runtimes'   => array( 'popups/pro/runtime.php' ),
+				'classes'    => array( Content_Toggle::class ),
+				'boot'       => null,
+				'controller' => null,
+			),
+			// The forms module's file upload field, write side (manifest rule
+			// 6): registers blocklane/form-file through the field-type seam.
+			// Pro-only by edition; gated on the forms toggle like its parent.
+			'block:form-file'           => array(
+				'runtimes'   => array( 'forms/file-upload/runtime.php' ),
+				'classes'    => array( Content_Toggle::class ),
+				'boot'       => null,
+				'controller' => null,
+			),
+			// The security module's two Pro settings (manifest rule 6): each
+			// file hooks blocklane_pro_security_enforce and enforces its own
+			// key. Pro-only by edition.
+			'security:auto-update-plugins' => array(
+				'runtimes'   => array( 'security/auto-update-plugins/runtime.php' ),
+				'classes'    => array(),
+				'boot'       => null,
+				'controller' => null,
+			),
+			'security:auto-update-themes'  => array(
+				'runtimes'   => array( 'security/auto-update-themes/runtime.php' ),
+				'classes'    => array(),
+				'boot'       => null,
+				'controller' => null,
+			),
+			// The icon collection's registrar: data preservation in BOTH
+			// editions (Amendment 15). Placed core/icon blocks naming
+			// blocklane-pro/* keep rendering whichever edition is installed —
+			// the picker and the cloud routes stay Pro.
+			'runtime:icon-collection'   => array(
+				'runtimes'   => array( 'icon-collection/runtime.php' ),
+				'classes'    => array(),
+				'boot'       => null,
+				'controller' => null,
+			),
 			'module:seo'            => array(
 				'runtimes'   => array( 'seo/runtime.php' ),
 				'classes'    => array( Content_Toggle::class ),
@@ -306,7 +388,8 @@ class Modules {
 			),
 			'module:forms'          => array(
 				'runtimes'   => array( 'forms/runtime.php' ),
-				'classes'    => array( Content_Toggle::class, Block_Suite::class ),
+				// Edition: the registrar's view (known_blocks) asks it at init.
+				'classes'    => array( Content_Toggle::class, Block_Suite::class, Edition::class ),
 				'boot'       => null,
 				'controller' => null,
 			),
@@ -425,14 +508,26 @@ class Modules {
 	}
 
 	/**
+	 * Whether a unit's lifecycle file loaded this request: the edition gives
+	 * the unit the lifecycle role, the file is in the lifecycle table, and
+	 * boot_lifecycle() recorded no miss for it.
+	 *
+	 * @param string $unit Manifest unit id.
+	 */
+	public static function lifecycle_loaded( string $unit ): bool {
+		return isset( self::lifecycle()[ $unit ] ) && Edition::has_role( $unit, 'lifecycle' ) && ! isset( self::$lifecycle_missed[ $unit ] );
+	}
+
+	/**
 	 * Boot every content runtime this edition carries (call on plugins_loaded,
 	 * BEFORE the theme gate).
 	 *
 	 * Safe mode is deliberately NOT a gate here: each runtime checks it itself
-	 * and returns, which is the shipped contract, and several of them declare
-	 * functions other code calls whether or not they do any work. Skipping the
-	 * require would change that, and this commit moves code without changing
-	 * what it does.
+	 * and returns (the two editor stand-ins inside Standin::register(), the one
+	 * call their files make), which is the shipped contract, and several of
+	 * them declare functions other code calls whether or not they do any work.
+	 * Skipping the require would change that, and this commit moves code
+	 * without changing what it does.
 	 *
 	 * @return void
 	 */
@@ -674,15 +769,43 @@ class Modules {
 			case Module_Miss::PHASE_LIFECYCLE:
 				self::$lifecycle_missed[ $miss->slug ] = $miss;
 				break;
+			case Module_Miss::PHASE_ADMIN:
+				self::$admin_missed[ $miss->slug ] = $miss;
+				break;
 			default:
 				self::$skipped[ $miss->slug ] = $miss;
 		}
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- a module that cannot load is a shipped-build defect.
-		error_log( 'Blocklane: ' . $miss->describe() ); // A log line is not a product name; both editions write this prefix.
+		// A module that cannot load is a shipped-build defect: the log line is
+		// written whatever WP_DEBUG says, and the admin notice below is the
+		// wp-admin half.
+		blocklane_pro_log_failure( 'Blocklane: ' . $miss->describe() ); // A log line is not a product name; both editions write this prefix.
 		if ( is_admin() && ! self::$notice_hooked ) {
 			self::$notice_hooked = true;
 			add_action( 'admin_notices', array( __CLASS__, 'module_notices' ) );
 		}
+	}
+
+	/**
+	 * Whether a content runtime this edition carries FAILED TO LOAD.
+	 *
+	 * The loader's answer to "is this unit actually here?", for a parent that
+	 * registers a contributing unit's value. Edition::has() answers whether
+	 * the BUILD carries the unit; it cannot answer whether the file survived
+	 * the deploy. A torn Pro install missing inc/forms/file-upload/runtime.php
+	 * records the miss here and continues, and the forms registrar — reading
+	 * has() alone — still registered blocklane/form-file, whose render calls a
+	 * function declared only in the missing file: a white screen, where the
+	 * admin notice promises the block "will not render" (#1023).
+	 *
+	 * Public and typed rather than a read of misses(): misses() is @internal
+	 * for the battery and hands out the whole map by phase, which is a second
+	 * shape for every caller to interpret. One predicate, one meaning.
+	 *
+	 * @param string $unit Manifest unit id, e.g. 'block:form-file'.
+	 * @return bool True when the unit has a recorded PHASE_CONTENT miss.
+	 */
+	public static function content_missed( string $unit ): bool {
+		return isset( self::$content_missed[ $unit ] );
 	}
 
 	/**
@@ -698,6 +821,7 @@ class Modules {
 			'routes'    => self::$unrouted,
 			'content'   => self::$content_missed,
 			'lifecycle' => self::$lifecycle_missed,
+			'admin'     => self::$admin_missed,
 		);
 	}
 
@@ -774,6 +898,14 @@ class Modules {
 				return sprintf(
 					/* translators: 1: plugin name, 2: unit id, 3: the reason clause. */
 					__( '%1$s: the %2$s lifecycle file did not load — %3$s. Its once-per-version housekeeping was skipped and will run by itself once the file is back; reinstall the plugin to restore it.', 'blocklane' ),
+					Branding::plugin_name(),
+					$slug,
+					$reason
+				);
+			case Module_Miss::PHASE_ADMIN:
+				return sprintf(
+					/* translators: 1: plugin name, 2: unit id, 3: the reason clause. */
+					__( '%1$s: the %2$s extension\'s editor controls did not load — %3$s. Content you have already built with it still renders, but it cannot be edited until the plugin is reinstalled.', 'blocklane' ),
 					Branding::plugin_name(),
 					$slug,
 					$reason

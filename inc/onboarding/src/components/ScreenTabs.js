@@ -1,7 +1,7 @@
 /**
  * ScreenTabs / ScreenTabPanel — the dashboard's tab row and the panel it
- * labels, one markup for every tabbed screen (SEO, Forms, Content Types,
- * Extensions, Advanced). State and behavior come from useTabShell; this
+ * labels, one markup for every tabbed screen (SEO, Forms, the content-types
+ * screen, Extensions, Advanced). State and behavior come from useTabShell; this
  * file owns only the markup and the ARIA wiring — tab ids, the selected
  * tab's aria-controls, the panel's role and aria-labelledby — so an a11y
  * fix lands on every screen at once instead of drifting between copies.

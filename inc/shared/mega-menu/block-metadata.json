@@ -1,0 +1,101 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blocklane-pro/mega-menu",
+	"version": "1.0.0",
+	"title": "Mega Menu",
+	"category": "design",
+	"description": "A navigation item that opens a designed mega menu built from a menu template part.",
+	"keywords": [ "dropdown", "submenu", "navigation", "menu" ],
+	"parent": [ "core/navigation" ],
+	"example": {},
+	"attributes": {
+		"label": {
+			"type": "string"
+		},
+		"description": {
+			"type": "string"
+		},
+		"title": {
+			"type": "string"
+		},
+		"menuSlug": {
+			"type": "string"
+		},
+		"showOnHover": {
+			"type": "boolean",
+			"default": false
+		},
+		"url": {
+			"type": "string"
+		},
+		"urlEntity": {
+			"type": "object"
+		},
+		"disableWhenCollapsed": {
+			"type": "boolean",
+			"default": false
+		},
+		"collapsedUrl": {
+			"type": "string"
+		},
+		"collapsedUrlEntity": {
+			"type": "object"
+		},
+		"justifyMenu": {
+			"type": "string"
+		},
+		"panelAnimation": {
+			"type": "string",
+			"default": ""
+		},
+		"width": {
+			"type": "string",
+			"default": "content"
+		},
+		"customWidth": {
+			"type": "number",
+			"default": 600
+		},
+		"topSpacing": {
+			"type": "number",
+			"default": 40
+		},
+		"showCloseButton": {
+			"type": "boolean",
+			"default": true
+		},
+		"showCaret": {
+			"type": "boolean",
+			"default": false
+		},
+		"fallbackLinks": {
+			"type": "array",
+			"default": []
+		}
+	},
+	"supports": {
+		"html": false,
+		"interactivity": true,
+		"reusable": false,
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true,
+			"__experimentalFontFamily": true,
+			"__experimentalFontWeight": true,
+			"__experimentalFontStyle": true,
+			"__experimentalTextTransform": true,
+			"__experimentalTextDecoration": true,
+			"__experimentalLetterSpacing": true,
+			"__experimentalDefaultControls": {
+				"fontSize": true
+			}
+		}
+	},
+	"textdomain": "blocklane",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php",
+	"viewScriptModule": "file:./view.js"
+}

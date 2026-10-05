@@ -51,15 +51,15 @@ export const requireFeatureScreen = ( slug, screens = SCREENS ) => {
 };
 
 /**
- * @param {Object}   options
- * @param {string}   options.screen     Registry slug — the ONE literal a toggle screen types.
- * @param {Array}    options.categories [ { slug, label } ], module constant; [0] is the default tab.
- * @param {Object}   options.categoryOf Item slug → category slug, module constant.
- * @param {Array}    options.knownSlugs Every item slug the screen can list; a deep link is checked against it.
- * @param {Array}    options.slugs      What to list, in order (memoized by the caller).
- * @param {string}   [options.deepLink] The Shell's deep-link prop, raw and unvalidated.
- * @param {Function} options.textOf     ( slug ) → string[] the search box matches; module-level.
- * @param {Function} options.isOn       ( slug ) → boolean; read in render only.
+ * @param {Object}                     options
+ * @param {string}                     options.screen     Registry slug — the ONE literal a toggle screen types.
+ * @param {Array}                      options.categories [ { slug, label } ], module constant; [0] is the default tab.
+ * @param {Object}                     options.categoryOf Item slug → category slug, module constant.
+ * @param {Array}                      options.knownSlugs Every item slug the screen can list; a deep link is checked against it.
+ * @param {Array}                      options.slugs      What to list, in order (memoized by the caller).
+ * @param {string}                     [options.deepLink] The Shell's deep-link prop, raw and unvalidated.
+ * @param {(slug: string) => string[]} options.textOf     ( slug ) → string[] the search box matches; module-level.
+ * @param {(slug: string) => boolean}  options.isOn       ( slug ) → boolean; read in render only.
  * @return {Object} { entry, screen, shell, tab, tabLabel, tabSlugs,
  *                  visibleSlugs, allOn, search, setSearch, pinned, pin,
  *                  open, unpin }

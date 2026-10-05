@@ -16,6 +16,23 @@
  * surfaces are the dashboard inbox + management REST, behind their own
  * capability checks (the license gates nothing at runtime).
  *
+ * Two of the suite's blocks are CONTRIBUTING UNITS of Pro (edition-manifest
+ * rule 6, spec 2026-09-24): form-step and form-file. The shipped table
+ * BLOCKLANE_PRO_FORMS_BLOCKS stays whole in both editions; the one view of
+ * what THIS edition registers is blocklane_pro_forms_known_blocks(), and
+ * every door reads it — the registrar, the collector (a suite block the
+ * edition does not register is a layout wrapper whose posted name is
+ * dropped, never trapped), has_required(), form/render.php's stepped test
+ * and the editor bridge. The file field's write side lives with its unit
+ * (inc/forms/file-upload/runtime.php) and registers through the field-type
+ * seam below; the step's editor stand-in is inc/form-step-standin/.
+ *
+ * Membership is not shape. Which blocks this edition carries says nothing
+ * about what a block IS, and three doors needed the second answer and each
+ * invented it: BLOCKLANE_PRO_FORMS_FIELDS is the shipped table of which
+ * suite blocks POST a value and how their row is derived, and
+ * blocklane_pro_forms_field_kind() is its one reader (#1020, #1022).
+ *
  * Self-contained by construction: it assumes no module has booted, and the
  * two side-effect-free plugin classes it uses — the toggle reader and the
  * block registrar — are resolved by the classmap autoloader, registered at
@@ -60,6 +77,134 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	);
 
 	/**
+	 * The suite's FIELD blocks — the blocks that POST a value — and how each
+	 * derives its schema row. 'internal': hardcoded in this file, and the
+	 * field-type seam cannot override it. 'seam': registered through
+	 * blocklane_pro_forms_field_types by the unit that carries it (form-file
+	 * by block:form-file). A suite block absent from this table posts nothing:
+	 * form and form-step are wrappers, form-option, form-submit-button and
+	 * form-notification are controls.
+	 *
+	 * Whole in both editions, like BLOCKLANE_PRO_FORMS_BLOCKS, and for the
+	 * same reason: the free collector must know that a Pro FIELD block WOULD
+	 * have posted a value — so its name is dropped rather than trapped as
+	 * tampering — while a Pro WRAPPER never posts one and must contribute no
+	 * name at all. Which of these THIS edition registers is a different
+	 * question, and blocklane_pro_forms_known_blocks() is the view of that.
+	 *
+	 * Read only by blocklane_pro_forms_field_kind(); a fetch anywhere else is
+	 * a PHPStan error, blocklane.chokepointMember.
+	 */
+	define(
+		'BLOCKLANE_PRO_FORMS_FIELDS',
+		array(
+			'form-input'    => 'internal',
+			'form-textarea' => 'internal',
+			'form-select'   => 'internal',
+			'form-group'    => 'internal',
+			'form-file'     => 'seam',
+		)
+	);
+
+	/**
+	 * What KIND of field block a name is — the one answer to "does this block
+	 * post a value, and where does its schema row come from?".
+	 *
+	 * 'internal' — a field whose row and validator are hardcoded in this file.
+	 * 'seam'     — a field whose row arrives through blocklane_pro_forms_field_types.
+	 * null       — not a suite FIELD block: a wrapper (form, form-step), a
+	 *              control (form-option, form-submit-button, form-notification),
+	 *              or any name outside the blocklane/ namespace.
+	 *
+	 * Three readers, each of which answered by complement before this existed
+	 * and so disagreed: blocklane_pro_forms_field_blocks() ("which blocks I
+	 * register post a value"), the collector's unknown-suite branch ("would
+	 * this block have posted a name?") and the seam guard ("may a filter claim
+	 * this slug?"). The last two are why it matters — a wrapper admitted as a
+	 * field becomes a schema leaf that erases every input inside it, and a
+	 * wrapper counted as a bypass name narrows the tamper trap (#1020, #1022).
+	 *
+	 * @param string $block_name Full block name, e.g. 'blocklane/form-input'.
+	 * @return string|null 'internal', 'seam', or null.
+	 */
+	function blocklane_pro_forms_field_kind( string $block_name ): ?string {
+		if ( 0 !== strpos( $block_name, 'blocklane/' ) ) {
+			return null;
+		}
+		$slug = substr( $block_name, strlen( 'blocklane/' ) );
+		$kind = BLOCKLANE_PRO_FORMS_FIELDS[ $slug ] ?? null;
+
+		return is_string( $kind ) ? $kind : null;
+	}
+
+	/**
+	 * The blocks THIS EDITION registers — the one view of BLOCKLANE_PRO_FORMS_BLOCKS.
+	 *
+	 * The constant is the SHIPPED suite in registration order, whole in both
+	 * editions: the skew notice must know what a Pro build expects so a stale
+	 * build is announced (Block_Suite::register), and a glob of build/ could
+	 * not tell "absent by edition" from "absent by a stale build". This view
+	 * subtracts every block whose contributing unit this edition does not
+	 * carry (edition-manifest.json rule 6: block:form-step, block:form-file)
+	 * — AND every block whose unit this edition carries but whose runtime did
+	 * not load. Edition::has() answers what the BUILD carries; only the loader
+	 * knows what survived the deploy. Without the second question a torn Pro
+	 * install registered blocklane/form-file whose render calls a function
+	 * declared only in the missing file — a white screen, where the loader's
+	 * own notice promises the block "will not render" (#1023).
+	 *
+	 * Readers: the registrar, has_required() and field_blocks(), the field
+	 * collector, the field-type seam's guard, form/render.php's stepped test,
+	 * and the editor bridge. A fetch of the constant or a call of
+	 * Edition::contributor() anywhere else is a PHPStan error,
+	 * blocklane.chokepointMember — a door that reads the shipped table
+	 * re-derives what this view already answers.
+	 *
+	 * @return list<string> Slugs, registration order.
+	 */
+	function blocklane_pro_forms_known_blocks(): array {
+		$known = array();
+		foreach ( BLOCKLANE_PRO_FORMS_BLOCKS as $slug ) {
+			$unit = \blocklane_pro\Edition::contributor( 'blocks', 'blocklane/' . $slug );
+			if ( null !== $unit
+				&& ( ! \blocklane_pro\Edition::has( $unit ) || \blocklane_pro\Modules::content_missed( $unit ) ) ) {
+				continue;
+			}
+			$known[] = $slug;
+		}
+		return $known;
+	}
+
+	/**
+	 * The FIELD blocks this edition can put in a schema, full names: every
+	 * block this edition registers whose kind is 'internal', plus every type
+	 * registered through the blocklane_pro_forms_field_types seam (the file
+	 * field is one of those — Pro's inc/forms/file-upload/runtime.php
+	 * registers it, so it is here exactly when that unit is). One list for
+	 * has_required(), the collector's condition attachment and the editor
+	 * bridge, so the canvas's required-notice and the front's agree.
+	 *
+	 * @param array<string, array<string, mixed>>|null $registry The already-fetched
+	 *        field-type registry, so a caller that holds one costs no second
+	 *        apply_filters run; null fetches it.
+	 * @return list<string> Block names, e.g. 'blocklane/form-input'.
+	 */
+	function blocklane_pro_forms_field_blocks( ?array $registry = null ): array {
+		$out = array();
+		foreach ( blocklane_pro_forms_known_blocks() as $slug ) {
+			if ( 'internal' === blocklane_pro_forms_field_kind( 'blocklane/' . $slug ) ) {
+				$out[] = 'blocklane/' . $slug;
+			}
+		}
+		foreach ( array_keys( $registry ?? blocklane_pro_forms_field_type_registry() ) as $ext ) {
+			if ( ! in_array( $ext, $out, true ) ) {
+				$out[] = $ext;
+			}
+		}
+		return $out;
+	}
+
+	/**
 	 * The canonical form-input `type` whitelist — the single source shared by
 	 * schema derivation and the field render (which each used to hand-copy it).
 	 * Mirrors form-input/block.json's enum.
@@ -67,52 +212,6 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	define(
 		'BLOCKLANE_PRO_FORMS_INPUT_TYPES',
 		array( 'text', 'email', 'tel', 'url', 'number', 'date', 'hidden', 'checkbox' )
-	);
-
-	/**
-	 * Upload type groups: the authoring surface is three toggles, not a raw
-	 * accept string. ext => mime, aligned with wp_get_mime_types(). Extensible
-	 * via the blocklane_pro_forms_file_types filter (see the constraints
-	 * helper) — but never past the hard deny list below.
-	 */
-	define(
-		'BLOCKLANE_PRO_FORMS_FILE_TYPES',
-		array(
-			'images'    => array(
-				'jpg'  => 'image/jpeg',
-				'jpeg' => 'image/jpeg',
-				'png'  => 'image/png',
-				'gif'  => 'image/gif',
-				'webp' => 'image/webp',
-			),
-			'documents' => array(
-				'pdf'  => 'application/pdf',
-				'doc'  => 'application/msword',
-				'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-				'xls'  => 'application/vnd.ms-excel',
-				'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-				'ppt'  => 'application/vnd.ms-powerpoint',
-				'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-				'odt'  => 'application/vnd.oasis.opendocument.text',
-				'ods'  => 'application/vnd.oasis.opendocument.spreadsheet',
-				'txt'  => 'text/plain',
-				'rtf'  => 'application/rtf',
-				'csv'  => 'text/csv',
-			),
-			'archives'  => array(
-				'zip' => 'application/zip',
-			),
-		)
-	);
-
-	/**
-	 * Extensions that are NEVER accepted, whatever the groups or the filter
-	 * say — executable/markup surfaces (Form Block's CVE class). Deliberately
-	 * NOT filterable.
-	 */
-	define(
-		'BLOCKLANE_PRO_FORMS_FILE_DENY',
-		array( 'php', 'php3', 'php4', 'php5', 'php7', 'php8', 'phtml', 'pht', 'phar', 'shtml', 'html', 'htm', 'xhtml', 'js', 'mjs', 'svg', 'svgz', 'xml', 'exe', 'com', 'bat', 'cmd', 'sh', 'cgi', 'pl', 'py', 'asp', 'aspx', 'jsp' )
 	);
 
 	/**
@@ -131,7 +230,7 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 			'forms',
 			'blocklane',
 			__DIR__ . '/build',
-			BLOCKLANE_PRO_FORMS_BLOCKS,
+			blocklane_pro_forms_known_blocks(), // the view, never the shipped table (rule 6)
 			'npm run build:forms',
 			__( 'Forms', 'blocklane' ),
 			__( 'Saved forms render without those blocks, and submissions silently drop the fields they carry, until the assets are rebuilt.', 'blocklane' )
@@ -401,6 +500,20 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	function blocklane_pro_forms_editor_state() {
 		$turnstile = blocklane_pro_forms_turnstile();
 
+		// Which suite blocks THIS EDITION registers, and which of them are
+		// field blocks — the editor's required-notice, inserter order, step
+		// detection and submit lock read these instead of literals, so the
+		// canvas never shows a step or a file field the server would not
+		// register, and a Pro-authored form's lock attribute is left alone
+		// under free (rule 6).
+		wp_add_inline_script(
+			'blocklane-form-editor-script',
+			'window.blocklaneProForms = window.blocklaneProForms || {};'
+			. 'window.blocklaneProForms.blocks = ' . wp_json_encode( blocklane_pro_forms_known_blocks() ) . ';'
+			. 'window.blocklaneProForms.fieldBlocks = ' . wp_json_encode( blocklane_pro_forms_field_blocks() ) . ';',
+			'before'
+		);
+
 		wp_add_inline_script(
 			'blocklane-form-editor-script',
 			'window.blocklaneProForms = window.blocklaneProForms || {};' .
@@ -413,47 +526,6 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 					'appearance' => $turnstile['appearance'],
 				)
 			) . ';',
-			'before'
-		);
-
-		// The effective per-file ceiling, so the file field's canvas hint
-		// shows exactly what render.php will enforce (1:1) — the same
-		// helper file_constraints folds each field's own cap under.
-		$forms_file_cap = blocklane_pro_forms_upload_ceiling();
-
-		// The effective type map (blocklane_pro_forms_file_types applied,
-		// deny-filtered) as group => { label, exts }, so the inspector's
-		// Allowed-types toggles and the canvas hint reflect filter-added
-		// groups instead of a hardcoded JS copy.
-		/**
-		 * Filter the editor labels for upload type groups. Groups without a
-		 * label here fall back to a humanized key.
-		 *
-		 * @param array $labels group => label.
-		 */
-		$forms_type_labels = (array) apply_filters(
-			'blocklane_pro_forms_file_type_labels',
-			array(
-				'images'    => __( 'Images', 'blocklane' ),
-				'documents' => __( 'Documents', 'blocklane' ),
-				'archives'  => __( 'Archives (zip)', 'blocklane' ),
-			)
-		);
-		$forms_file_types = array();
-		foreach ( blocklane_pro_forms_file_type_map() as $forms_group => $forms_exts ) {
-			$forms_file_types[ $forms_group ] = array(
-				'label' => isset( $forms_type_labels[ $forms_group ] )
-					? (string) $forms_type_labels[ $forms_group ]
-					: ucwords( str_replace( array( '-', '_' ), ' ', $forms_group ) ),
-				'exts'  => array_keys( $forms_exts ),
-			);
-		}
-
-		wp_add_inline_script(
-			'blocklane-form-file-editor-script',
-			'window.blocklaneProForms = window.blocklaneProForms || {};' .
-			'window.blocklaneProForms.maxUpload = ' . $forms_file_cap . ';' .
-			'window.blocklaneProForms.fileTypes = ' . wp_json_encode( $forms_file_types ) . ';',
 			'before'
 		);
 
@@ -479,6 +551,19 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 			'window.blocklaneProForms.defaults = ' . wp_json_encode( $forms_defaults ) . ';',
 			'before'
 		);
+
+		/**
+		 * THE PARENT'S EDITOR DOOR. A contributing unit that needs to add to
+		 * window.blocklaneProForms hooks THIS, never enqueue_block_editor_assets
+		 * — a core hook fires whether or not this file loaded, so a contributor
+		 * that hooks one reaches into a parent that may not be there and fatals
+		 * every editor load (#1023). Same request, same priority (this runs at
+		 * enqueue_block_editor_assets 10), same script handle; without the
+		 * parent the action simply never fires. The shape is
+		 * blocklane_pro_popups_front_enqueued's. Asserted by
+		 * bin/contributor-scope-check.php, wiring check 7.
+		 */
+		do_action( 'blocklane_pro_forms_editor_bridged' );
 	}
 	add_action( 'enqueue_block_editor_assets', 'blocklane_pro_forms_editor_state' );
 
@@ -742,140 +827,38 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	 * Whether any field inside a form's parsed inner blocks is required —
 	 * drives the form-top "required fields" notice.
 	 *
+	 * The field list is computed ONCE per walk and passed down, not fetched
+	 * per block: it runs an apply_filters, and this recurses over every block
+	 * of every form on the page (#1035). Not memoized — filters resolve at
+	 * call time by contract.
+	 *
 	 * @param array $inner_blocks Parsed inner blocks (parsed_block format).
+	 * @param list<string>|null $field_blocks The walk's field list; null
+	 *        computes it (the entry call).
 	 * @return bool
 	 */
-	function blocklane_pro_forms_has_required( $inner_blocks ) {
+	function blocklane_pro_forms_has_required( $inner_blocks, ?array $field_blocks = null ): bool {
+		if ( null === $field_blocks ) {
+			$field_blocks = blocklane_pro_forms_field_blocks();
+		}
 		foreach ( (array) $inner_blocks as $inner ) {
 			if ( ! is_array( $inner ) ) {
 				continue;
 			}
 			$name = isset( $inner['blockName'] ) ? $inner['blockName'] : '';
-			if ( in_array( $name, array( 'blocklane/form-input', 'blocklane/form-textarea', 'blocklane/form-select', 'blocklane/form-group', 'blocklane/form-file' ), true )
+			// Only a field block THIS EDITION registers can promise a required
+			// value; a contributor's block under free renders nothing and must
+			// not put an asterisk claim on the form (rule 6).
+			if ( in_array( $name, $field_blocks, true )
 				&& ! empty( $inner['attrs']['required'] ) ) {
 				return true;
 			}
-			if ( ! empty( $inner['innerBlocks'] ) && blocklane_pro_forms_has_required( $inner['innerBlocks'] ) ) {
+			if ( ! empty( $inner['innerBlocks'] ) && blocklane_pro_forms_has_required( $inner['innerBlocks'], $field_blocks ) ) {
 				return true;
 			}
 		}
 
 		return false;
-	}
-
-	/**
-	 * The effective per-file upload ceiling in bytes: the server limit
-	 * (wp_max_upload_size, 8 MB fallback) clamped by the site-wide cap from
-	 * the Forms settings (0 = no site cap). file_constraints() folds this
-	 * under each field's own max; the editor maxUpload bridge reads it
-	 * directly — one helper, so the canvas hint and the enforced cap
-	 * cannot drift. (Note file_constraints([]) is NOT this value: that is
-	 * the per-field default cap, already folded under the ceiling.)
-	 *
-	 * @return int Bytes.
-	 */
-	function blocklane_pro_forms_upload_ceiling() {
-		$ceiling = (int) wp_max_upload_size();
-		$ceiling = $ceiling > 0 ? $ceiling : 8 * MB_IN_BYTES;
-
-		$settings = blocklane_pro_forms_settings();
-		$site_mb  = isset( $settings['max_upload_mb'] ) ? absint( $settings['max_upload_mb'] ) : 0;
-		if ( $site_mb > 0 ) {
-			$ceiling = min( $ceiling, $site_mb * MB_IN_BYTES );
-		}
-
-		return $ceiling;
-	}
-
-	/**
-	 * The effective upload type groups: the filterable map with the deny
-	 * list and extension shape enforced — the ONE source file_constraints
-	 * AND the editor bridge read, so the inspector toggles, the canvas
-	 * hint, and the enforced whitelist cannot diverge. Groups left with no
-	 * surviving extension are dropped (a toggle that accepts nothing).
-	 *
-	 * @return array group => ext => mime.
-	 */
-	function blocklane_pro_forms_file_type_map() {
-		/**
-		 * Filter the upload type groups (group => ext => mime). Additions
-		 * still pass through the non-filterable deny list, and they reach
-		 * the editor's Allowed-types toggles via the editor_state bridge.
-		 *
-		 * @param array $types Group map (BLOCKLANE_PRO_FORMS_FILE_TYPES).
-		 */
-		$types = (array) apply_filters( 'blocklane_pro_forms_file_types', BLOCKLANE_PRO_FORMS_FILE_TYPES );
-
-		$map = array();
-		foreach ( $types as $group => $exts ) {
-			if ( ! is_string( $group ) || ! is_array( $exts ) ) {
-				continue;
-			}
-			$clean = array();
-			foreach ( $exts as $ext => $mime ) {
-				$ext = strtolower( (string) $ext );
-				if ( preg_match( '/^[a-z0-9]{1,10}$/', $ext ) && ! in_array( $ext, BLOCKLANE_PRO_FORMS_FILE_DENY, true ) ) {
-					$clean[ $ext ] = (string) $mime;
-				}
-			}
-			if ( $clean ) {
-				$map[ $group ] = $clean;
-			}
-		}
-
-		return $map;
-	}
-
-	/**
-	 * Resolve a file field's effective constraints from its attributes — the
-	 * ONE source both render.php and schema derivation consume (the render↔
-	 * schema invariant: a divergence here silently mis-validates uploads).
-	 *
-	 * @param array $attrs Block attributes (defaults merged).
-	 * @return array {
-	 *     @type array  $groups    Valid group keys.
-	 *     @type array  $mimes     ext => mime whitelist (deny list stripped).
-	 *     @type string $accept    The accept attribute value (".pdf,.jpg,…").
-	 *     @type int    $max_size  Per-file cap in bytes (authored, server-capped).
-	 *     @type int    $max_files Max file count (1 unless multiple).
-	 *     @type bool   $multiple  Whether the input accepts several files.
-	 * }
-	 */
-	function blocklane_pro_forms_file_constraints( $attrs ) {
-		$types = blocklane_pro_forms_file_type_map();
-
-		$groups = array();
-		foreach ( (array) ( isset( $attrs['accept'] ) ? $attrs['accept'] : array() ) as $group ) {
-			if ( is_string( $group ) && isset( $types[ $group ] ) ) {
-				$groups[] = $group;
-			}
-		}
-		if ( ! $groups ) {
-			$groups = array_values( array_intersect( array( 'images', 'documents' ), array_keys( $types ) ) );
-		}
-
-		$mimes = array();
-		foreach ( $groups as $group ) {
-			foreach ( $types[ $group ] as $ext => $mime ) {
-				$mimes[ $ext ] = $mime;
-			}
-		}
-
-		$ceiling  = blocklane_pro_forms_upload_ceiling();
-		$max_mb   = isset( $attrs['maxSize'] ) ? absint( $attrs['maxSize'] ) : 0;
-		$max_size = $max_mb > 0 ? min( $max_mb * MB_IN_BYTES, $ceiling ) : min( 8 * MB_IN_BYTES, $ceiling );
-
-		$multiple  = ! empty( $attrs['multiple'] );
-		$max_files = $multiple ? min( 10, max( 1, isset( $attrs['maxFiles'] ) ? absint( $attrs['maxFiles'] ) : 3 ) ) : 1;
-
-		return array(
-			'groups'    => $groups,
-			'mimes'     => $mimes,
-			'accept'    => $mimes ? '.' . implode( ',.', array_keys( $mimes ) ) : '',
-			'max_size'  => $max_size,
-			'max_files' => $max_files,
-			'multiple'  => $multiple,
-		);
 	}
 
 	/**
@@ -1951,49 +1934,113 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	 * the render, which also uses pure names).
 	 *
 	 * @param array $form_block Parsed blocklane/form block.
+	 * @param list<string>|null $ignored Filled with the posted names of suite blocks this
+	 *                                    edition does not register (rule 6); null skips it.
 	 * @return array Field schemas keyed by field name.
 	 */
-	function blocklane_pro_forms_derive_schema( $form_block ) {
+	function blocklane_pro_forms_derive_schema( $form_block, ?array &$ignored = null ) {
 		$fields = array();
-		blocklane_pro_forms_collect_fields( isset( $form_block['innerBlocks'] ) ? $form_block['innerBlocks'] : array(), $fields );
+		blocklane_pro_forms_collect_fields( isset( $form_block['innerBlocks'] ) ? $form_block['innerBlocks'] : array(), $fields, 0, $ignored );
 
 		return $fields;
 	}
 
 	/**
-	 * Registered EXTERNAL field types (v3 extension seam) — how a companion
-	 * add-on plugs its field blocks into schema derivation + validation
-	 * without editing core. Filter shape:
+	 * Registered field types (the v3 extension seam) — how a field block
+	 * plugs into schema derivation, validation and storage without editing
+	 * this file. Pro's own file field registers through it
+	 * (inc/forms/file-upload/runtime.php, the block:form-file unit), so the
+	 * seam is what makes the write-side upload pipeline a unit the free build
+	 * can leave out; a companion add-on registers the same way. Filter shape:
 	 *
 	 *   add_filter( 'blocklane_pro_forms_field_types', function ( $types ) {
 	 *       $types['my-addon/my-field'] = array(
 	 *           // Schema row for one parsed block, or null to skip it.
 	 *           // MUST include 'name' (use blocklane_pro_forms_field_name()).
+	 *           // Called with the defaults-merged attributes and the parsed
+	 *           // block; PHP passes extra arguments to a userland callable
+	 *           // harmlessly, so a collector that needs only the attributes
+	 *           // may declare one parameter.
 	 *           'collect'  => function ( array $attrs, array $block ) { … },
 	 *           // Same contract as the internal validator:
-	 *           // return array( 'value' => mixed, 'error' => string ).
+	 *           // return array( 'value' => mixed, 'error' => string ), plus
+	 *           // 'pending' (a list the persist step consumes) for a type
+	 *           // that posts files.
 	 *           'validate' => function ( $raw, array $schema ) { … },
+	 *           // Optional. 'files': validate receives the field's $_FILES
+	 *           // entry instead of its posted value.
+	 *           'source'   => 'params' | 'files',
+	 *           // Optional. Called after the WHOLE submission validated with
+	 *           // the fields by reference. A files-source row carries `ext`
+	 *           // (the block name that owns it): claim the rows whose `ext`
+	 *           // is yours, move their 'pending' into 'files' + 'value', and
+	 *           // LEAVE EVERY OTHER ROW UNTOUCHED — every registered handler
+	 *           // is handed the whole list, in registry order, and the base
+	 *           // strips leftover 'pending' only after all of them ran. Never
+	 *           // claim by `type`: another type may say 'file' too (#1018).
+	 *           // Return whether all of your rows persisted (false fails the
+	 *           // submission, honestly). persist and discard are meaningful
+	 *           // for `source => 'files'` only: a params-source row carries
+	 *           // neither `ext` nor `pending`, so nothing can claim it.
+	 *           //
+	 *           // STORE UNDER blocklane_pro_forms_upload_root() AND RECORD
+	 *           // EACH FILE AS files[].stored RELATIVE TO IT. That snapshot
+	 *           // shape is how the row is served (the download route), listed
+	 *           // (the inbox), deleted, purged — and, when a LATER handler
+	 *           // refuses, rolled back: the base reaps every recorded path and
+	 *           // strips `files`, so a refusal leaves no orphan. Bytes written
+	 *           // anywhere else are outside the module's stewardship in all
+	 *           // four senses. Handlers still return bool; the base translates
+	 *           // a refusal into the typed failure its caller reports.
+	 *           'persist'  => function ( array &$fields ): bool { … },
+	 *           // Optional. Storage is opted out: given one row still
+	 *           // carrying 'pending', return the row as it should be mailed
+	 *           // (no bytes kept) when its `ext` is yours, or null otherwise.
+	 *           'discard'  => function ( array $field ): ?array { … },
+	 *           // A files-source row's `ext` — and any key a handler writes on
+	 *           // a row — is stored with the submission and served by the
+	 *           // inbox REST route: part of the stored-row contract, so a key
+	 *           // that changes shape changes NAME (#1049).
 	 *       );
 	 *       return $types;
 	 *   } );
 	 *
-	 * Internal `blocklane/` types never route through this (their invariants
-	 * stay hardcoded), and the filter cannot override them. File-posting
-	 * external types are NOT supported by this seam yet — external validate
-	 * receives the posted VALUE only. Filters resolve at call time, so the
-	 * runtime sees add-on registrations normally. Caveat an add-on must own:
-	 * while it is deactivated its
-	 * fields vanish from the schema, so a stale cached page posting them
-	 * trips the unknown-field trap — the same exposure as removing any block.
+	 * WHICH `blocklane/` SLUGS A FILTER MAY CLAIM. Exactly the suite blocks
+	 * whose kind is 'seam' (BLOCKLANE_PRO_FORMS_FIELDS, read through
+	 * blocklane_pro_forms_field_kind) AND that this edition registers
+	 * (blocklane_pro_forms_known_blocks). So: an internal field is refused
+	 * (its invariants stay hardcoded); a WRAPPER or a control — form,
+	 * form-step, form-option, form-submit-button, form-notification — is
+	 * refused, because a registered type is a schema LEAF and admitting a
+	 * wrapper erases every field inside it from the schema while the render
+	 * still emits them (#1022); and a contributed field this edition does not
+	 * carry is refused, because a schema row for a block that renders nothing
+	 * requires a value the visitor was never shown. Names outside the
+	 * blocklane/ namespace are a third party's own and are not judged here.
+	 * Filters resolve at call time, so the runtime sees registrations
+	 * normally. Caveat a registrant must own: while its file is not loaded its
+	 * fields vanish from the schema — a posted key naming one is then dropped
+	 * when the block is a suite block this edition does not register
+	 * (blocklane_pro_forms_collect_fields' `$ignored`), and trapped as unknown
+	 * otherwise, the same exposure as removing any block.
 	 *
-	 * @return array<string, array{collect: callable, validate: callable}>
+	 * @return array<string, array{collect: callable, validate: callable, source?: string, persist?: callable, discard?: callable}>
 	 */
-	function blocklane_pro_forms_field_type_registry() {
+	function blocklane_pro_forms_field_type_registry(): array {
 		$types    = apply_filters( 'blocklane_pro_forms_field_types', array() );
 		$registry = array();
+		$known    = null;
 		foreach ( (array) $types as $slug => $handlers ) {
-			if ( ! is_string( $slug ) || '' === $slug || 0 === strpos( $slug, 'blocklane/' ) ) {
+			if ( ! is_string( $slug ) || '' === $slug ) {
 				continue;
+			}
+			if ( 0 === strpos( $slug, 'blocklane/' ) ) {
+				// A slug of our own suite: seam-kind AND carried here, or no.
+				$known = $known ?? blocklane_pro_forms_known_blocks();
+				if ( 'seam' !== blocklane_pro_forms_field_kind( $slug )
+					|| ! in_array( substr( $slug, strlen( 'blocklane/' ) ), $known, true ) ) {
+					continue;
+				}
 			}
 			if ( ! is_array( $handlers )
 				|| ! isset( $handlers['collect'], $handlers['validate'] )
@@ -2001,10 +2048,104 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 				|| ! is_callable( $handlers['validate'] ) ) {
 				continue;
 			}
-			$registry[ $slug ] = $handlers;
+			foreach ( array( 'persist', 'discard' ) as $optional ) {
+				if ( isset( $handlers[ $optional ] ) && ! is_callable( $handlers[ $optional ] ) ) {
+					continue 2;
+				}
+			}
+			$handlers['source'] = isset( $handlers['source'] ) && 'files' === $handlers['source'] ? 'files' : 'params';
+			$registry[ $slug ]  = $handlers;
 		}
 
 		return $registry;
+	}
+
+	/**
+	 * Persist every field's `pending` uploads through the type that owns it,
+	 * after the WHOLE submission validated: each registered type with a
+	 * `persist` handler runs once over the fields (by reference); a handler
+	 * that reports failure fails the submission. Anything still `pending`
+	 * afterwards — a type with no persist step — is stripped, so no tmp path
+	 * reaches storage or mail.
+	 *
+	 * THE WHOLE STEP IS ONE TRANSACTION. Handlers run in registry order, and
+	 * a refusal by handler N leaves handlers 1..N-1 having already written
+	 * bytes: a 500 goes back to the visitor, no row is stored, and those
+	 * files had no row to be reached, served, deleted or purged through — an
+	 * orphan forever, in a private directory nothing sweeps (#1019). So on a
+	 * refusal the base reaps through its OWN stewardship: every `files[].stored`
+	 * recorded so far is the shape the download route serves, the inbox lists
+	 * and delete/purge/uninstall remove, and blocklane_pro_forms_stored_paths()
+	 * → blocklane_pro_forms_delete_stored_files() is that walk, confined by
+	 * resolve_stored_file(). `pending` and `files` are then stripped from
+	 * every row so nothing downstream reads a path that no longer exists.
+	 *
+	 * No `rollback` seam key: a second thing every handler must get right is a
+	 * second door, and the base already owns both the snapshot shape and the
+	 * delete primitive. A handler's own partial-move rollback still stands —
+	 * it covers the row whose `files` is not yet assigned, and wp_delete_file()
+	 * on an already-deleted path is harmless. Bytes written OUTSIDE
+	 * blocklane_pro_forms_upload_root() are outside the module's stewardship
+	 * in all four senses: unserved, unlisted, undeleted and un-rolled-back.
+	 *
+	 * The native type is the PHP 8.1 union; the docblock narrows it, so
+	 * PHPStan makes every caller handle the failure.
+	 *
+	 * @param array<int, array<string, mixed>> $fields Self-described fields.
+	 * @return true|\WP_Error True when every pending upload persisted;
+	 *                        blocklane_pro_forms_persist_failed naming the
+	 *                        refusing type's slug otherwise.
+	 */
+	function blocklane_pro_forms_persist_pending( array &$fields ): bool|\WP_Error {
+		foreach ( blocklane_pro_forms_field_type_registry() as $slug => $handlers ) {
+			if ( empty( $handlers['persist'] ) ) {
+				continue;
+			}
+			if ( false === call_user_func_array( $handlers['persist'], array( &$fields ) ) ) {
+				// Reap what the handlers that already ran stored, then strip
+				// both keys: `files` would otherwise point at deleted bytes.
+				blocklane_pro_forms_delete_stored_files( blocklane_pro_forms_stored_paths( $fields ) );
+				foreach ( $fields as &$blocklane_reaped ) {
+					unset( $blocklane_reaped['pending'], $blocklane_reaped['files'] );
+				}
+				unset( $blocklane_reaped );
+
+				return new \WP_Error( 'blocklane_pro_forms_persist_failed', (string) $slug );
+			}
+		}
+		foreach ( $fields as &$field ) {
+			unset( $field['pending'] );
+		}
+		unset( $field );
+
+		return true;
+	}
+
+	/**
+	 * Storage is opted out: hand every field still carrying `pending` to the
+	 * type that owns it for its no-storage shape (the file field mails the
+	 * names and keeps no bytes), and strip `pending` from all of them.
+	 *
+	 * @param array<int, array<string, mixed>> $fields Self-described fields.
+	 */
+	function blocklane_pro_forms_discard_pending( array &$fields ): void {
+		$registry = blocklane_pro_forms_field_type_registry();
+		foreach ( $fields as &$field ) {
+			if ( ! empty( $field['pending'] ) ) {
+				foreach ( $registry as $handlers ) {
+					if ( empty( $handlers['discard'] ) ) {
+						continue;
+					}
+					$shaped = call_user_func( $handlers['discard'], $field );
+					if ( is_array( $shaped ) ) {
+						$field = $shaped;
+						break;
+					}
+				}
+			}
+			unset( $field['pending'] );
+		}
+		unset( $field );
 	}
 
 	/**
@@ -2012,12 +2153,38 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	 * wrappers AND synced patterns (core/block refs) so fields moved into a
 	 * reusable block — the spec's recommended reuse path — are still seen.
 	 *
+	 * THE SETS ARE COMPUTED ONCE PER WALK, not per recursion and not per block.
+	 * The registry is an apply_filters; `known` and `field_blocks` are derived
+	 * from it and from the edition view. Recomputing them inside the loop cost
+	 * one filter run per block per render AND per submission (#1035). They are
+	 * passed down in $ctx instead of memoized in a static: filters resolve at
+	 * CALL time by contract (a registrant may add or remove a type mid-request,
+	 * and E38g/E38h do exactly that), so a cache that outlived one walk would
+	 * be a second source of truth with a different answer.
+	 *
 	 * @param array $blocks Parsed blocks.
 	 * @param array $fields Collected schemas (by reference).
 	 * @param int   $depth  Recursion guard for synced-pattern cycles.
+	 * @param list<string>|null $ignored Collects the names of unknown-suite wrappers' fields (rule 6).
+	 * @param array{registry: array<string, array<string, mixed>>, known: list<string>, field_blocks: list<string>}|null $ctx
+	 *        The walk's sets; null computes them (the entry call). Recursion
+	 *        passes its own down.
 	 */
-	function blocklane_pro_forms_collect_fields( $blocks, array &$fields, $depth = 0 ) {
-		$registry = blocklane_pro_forms_field_type_registry();
+	function blocklane_pro_forms_collect_fields( $blocks, array &$fields, $depth = 0, ?array &$ignored = null, ?array $ctx = null ): void {
+		if ( null === $ctx ) {
+			$blocklane_registry = blocklane_pro_forms_field_type_registry();
+			$blocklane_known    = array();
+			foreach ( blocklane_pro_forms_known_blocks() as $blocklane_known_slug ) {
+				$blocklane_known[] = 'blocklane/' . $blocklane_known_slug;
+			}
+			$ctx = array(
+				'registry'     => $blocklane_registry,
+				'known'        => $blocklane_known,
+				'field_blocks' => blocklane_pro_forms_field_blocks( $blocklane_registry ),
+			);
+		}
+		$registry = $ctx['registry'];
+		$known    = $ctx['known'];
 
 		foreach ( (array) $blocks as $block ) {
 			if ( ! is_array( $block ) || empty( $block['blockName'] ) ) {
@@ -2052,7 +2219,7 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 
 					// An external field's own Visibility rule. It never reached
 					// the schema: this branch returns before the attach below,
-					// which only knows the five internal block names. Meanwhile
+					// which only knows the four internal field block names. Meanwhile
 					// the render base an add-on is told to reuse DOES emit
 					// data-bl-cond — so the browser hid the field and the server,
 					// holding no rule for it, still required and validated it.
@@ -2084,13 +2251,37 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 				isset( $block['attrs'] ) && is_array( $block['attrs'] ) ? $block['attrs'] : array()
 			);
 
+			// A block of the SUITE this edition does not register — a
+			// contributor's (form-step, form-file) in a form authored under
+			// the other edition — is a LAYOUT WRAPPER here: descend for the
+			// fields it may hold, collect nothing for itself, and record the
+			// name it WOULD have posted, so a submission from a page cached
+			// under the other edition is dropped rather than trapped as
+			// tampering (rule 6; handle_submission). Never a schema row: a row
+			// for a block that renders nothing is the fake-success shape.
+			//
+			// The bypass name is recorded only for a block that POSTS one
+			// (field_kind is not null). A step is a wrapper: it has a label
+			// and no value, so minting a name from its label — or the bare
+			// 'field' fallback from an untitled one — put a phantom key on the
+			// list and narrowed the tamper trap by exactly that key (#1020).
+			if ( str_starts_with( (string) $block['blockName'], 'blocklane/form-' ) && ! in_array( $block['blockName'], $known, true ) ) {
+				if ( null !== $ignored && null !== blocklane_pro_forms_field_kind( (string) $block['blockName'] ) ) {
+					$ignored[] = blocklane_pro_forms_field_name( isset( $block['attrs'] ) && is_array( $block['attrs'] ) ? $block['attrs'] : array() );
+				}
+				if ( ! empty( $block['innerBlocks'] ) ) {
+					blocklane_pro_forms_collect_fields( $block['innerBlocks'], $fields, $depth, $ignored, $ctx );
+				}
+				continue;
+			}
+
 			// Conditions attach post-switch by key diff, so every internal
 			// field case gains them without per-case wiring — but only for
 			// LEAF field blocks: a core/block descent adds many fields that
 			// must never inherit the wrapper's condition.
 			$blocklane_is_field_block = in_array(
 				$block['blockName'],
-				array( 'blocklane/form-input', 'blocklane/form-textarea', 'blocklane/form-select', 'blocklane/form-group', 'blocklane/form-file' ),
+				$ctx['field_blocks'],
 				true
 			);
 
@@ -2125,23 +2316,6 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 						'step'      => '',
 						'isReplyTo' => false,
 						'value'     => '',
-					);
-					break;
-
-				case 'blocklane/form-file':
-					// Default fallback, NOT a custom one: field_render_base
-					// resolves the same way — the two must never diverge.
-					$name        = blocklane_pro_forms_field_name( $attrs );
-					$constraints = blocklane_pro_forms_file_constraints( $attrs );
-
-					$fields[ $name ] = array(
-						'type'      => 'file',
-						'label'     => wp_strip_all_tags( isset( $attrs['label'] ) ? (string) $attrs['label'] : '' ),
-						'required'  => ! empty( $attrs['required'] ),
-						'mimes'     => $constraints['mimes'],
-						'max_size'  => $constraints['max_size'],
-						'max_files' => $constraints['max_files'],
-						'isReplyTo' => false,
 					);
 					break;
 
@@ -2219,7 +2393,7 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 					if ( $depth < 5 && ! empty( $attrs['ref'] ) ) {
 						$ref = get_post( absint( $attrs['ref'] ) );
 						if ( $ref && 'wp_block' === $ref->post_type ) {
-							blocklane_pro_forms_collect_fields( parse_blocks( $ref->post_content ), $fields, $depth + 1 );
+							blocklane_pro_forms_collect_fields( parse_blocks( $ref->post_content ), $fields, $depth + 1, $ignored, $ctx );
 						}
 					}
 					break;
@@ -2227,11 +2401,11 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 				default:
 					// Layout wrappers (group, columns…) may nest fields.
 					if ( ! empty( $block['innerBlocks'] ) ) {
-						blocklane_pro_forms_collect_fields( $block['innerBlocks'], $fields, $depth );
+						blocklane_pro_forms_collect_fields( $block['innerBlocks'], $fields, $depth, $ignored, $ctx );
 					}
 			}
 
-			// Attach by NAME, not by diffing the key set. Each of the five field
+			// Attach by NAME, not by diffing the key set. Each of the four internal field
 			// blocks writes exactly one $fields[ $name ], and when that name
 			// collides with an earlier field the write REPLACES the row rather
 			// than adding a key — so the old array_diff() came back empty and
@@ -2271,10 +2445,16 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 			if ( isset( $registry[ $schema['ext'] ] ) ) {
 				$result = call_user_func( $registry[ $schema['ext'] ]['validate'], $raw, $schema );
 				if ( is_array( $result ) && array_key_exists( 'value', $result ) ) {
-					return array(
+					$out = array(
 						'value' => $result['value'],
 						'error' => isset( $result['error'] ) ? (string) $result['error'] : '',
 					);
+					// A file-posting type hands its validated uploads on for
+					// the persist step; nothing else reads the key.
+					if ( isset( $result['pending'] ) && is_array( $result['pending'] ) ) {
+						$out['pending'] = $result['pending'];
+					}
+					return $out;
 				}
 			}
 
@@ -2443,398 +2623,46 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	}
 
 	/**
-	 * Normalize one $_FILES entry to a list of single-file arrays. PHP shapes
-	 * `name[]` uploads as parallel arrays; a single input posts flat keys.
-	 *
-	 * @param array $entry One $_FILES member.
-	 * @return array[] Each { name, type, tmp_name, error, size }.
-	 */
-	function blocklane_pro_forms_normalize_files( $entry ) {
-		if ( ! is_array( $entry ) || ! isset( $entry['name'] ) ) {
-			return array();
-		}
-
-		$files = array();
-		if ( is_array( $entry['name'] ) ) {
-			foreach ( array_keys( $entry['name'] ) as $i ) {
-				// A crafted nested name (photo[a][]) makes these slots arrays,
-				// not scalars — no real upload has that shape. Skip the slot
-				// (fails closed downstream) instead of casting arrays, which
-				// raises attacker-triggerable warnings.
-				if ( ! isset( $entry['name'][ $i ] ) || ! is_scalar( $entry['name'][ $i ] ) ) {
-					continue;
-				}
-				$files[] = array(
-					'name'     => (string) $entry['name'][ $i ],
-					'type'     => isset( $entry['type'][ $i ] ) && is_scalar( $entry['type'][ $i ] ) ? (string) $entry['type'][ $i ] : '',
-					'tmp_name' => isset( $entry['tmp_name'][ $i ] ) && is_scalar( $entry['tmp_name'][ $i ] ) ? (string) $entry['tmp_name'][ $i ] : '',
-					'error'    => isset( $entry['error'][ $i ] ) && is_scalar( $entry['error'][ $i ] ) ? (int) $entry['error'][ $i ] : UPLOAD_ERR_NO_FILE,
-					'size'     => isset( $entry['size'][ $i ] ) && is_scalar( $entry['size'][ $i ] ) ? (int) $entry['size'][ $i ] : 0,
-				);
-			}
-		} else {
-			$files[] = array(
-				'name'     => (string) $entry['name'],
-				'type'     => isset( $entry['type'] ) ? (string) $entry['type'] : '',
-				'tmp_name' => isset( $entry['tmp_name'] ) ? (string) $entry['tmp_name'] : '',
-				'error'    => isset( $entry['error'] ) ? (int) $entry['error'] : UPLOAD_ERR_NO_FILE,
-				'size'     => isset( $entry['size'] ) ? (int) $entry['size'] : 0,
-			);
-		}
-
-		// A no-file slot (empty input submitted) is not an upload at all.
-		return array_values(
-			array_filter(
-				$files,
-				static function ( $file ) {
-					return UPLOAD_ERR_NO_FILE !== $file['error'];
-				}
-			)
-		);
-	}
-
-	/**
-	 * Validate one file field's uploads against its schema. Hardened per the
-	 * Form Block CVE class: the client filename is treated as hostile display
-	 * data (never a path), types must pass BOTH the extension whitelist and
-	 * finfo content sniffing (wp_check_filetype_and_ext), and the deny list
-	 * is checked last, non-filterably.
-	 *
-	 * @param array $entry  Raw $_FILES member for this field ([] when absent).
-	 * @param array $schema Field schema (type 'file').
-	 * @return array { files: array[], error: string } — pending files carry
-	 *               { name, tmp_name, size, type } for persist().
-	 */
-	function blocklane_pro_forms_validate_file_field( $entry, $schema ) {
-		$files = blocklane_pro_forms_normalize_files( $entry );
-
-		if ( ! $files ) {
-			return array(
-				'files' => array(),
-				'error' => ! empty( $schema['required'] ) ? __( 'This field is required.', 'blocklane' ) : '',
-			);
-		}
-
-		if ( count( $files ) > (int) $schema['max_files'] ) {
-			return array(
-				'files' => array(),
-				'error' => sprintf(
-					/* translators: %d: maximum number of files. */
-					_n( 'Please attach at most %d file.', 'Please attach at most %d files.', (int) $schema['max_files'], 'blocklane' ),
-					(int) $schema['max_files']
-				),
-			);
-		}
-
-		$mimes     = is_array( $schema['mimes'] ) ? $schema['mimes'] : array();
-		$validated = array();
-		foreach ( $files as $file ) {
-			if ( in_array( $file['error'], array( UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE ), true ) ) {
-				return array(
-					'files' => array(),
-					'error' => __( 'A file is too large to upload.', 'blocklane' ),
-				);
-			}
-			if ( UPLOAD_ERR_OK !== $file['error'] || '' === $file['tmp_name'] ) {
-				return array(
-					'files' => array(),
-					'error' => __( 'A file failed to upload. Please try again.', 'blocklane' ),
-				);
-			}
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- tmp path from PHP's own upload handling, verified here.
-			if ( ! is_uploaded_file( $file['tmp_name'] ) ) {
-				return array(
-					'files' => array(),
-					'error' => __( 'A file failed to upload. Please try again.', 'blocklane' ),
-				);
-			}
-			// An empty file is its own case — telling a visitor their 0-byte
-			// file "must be smaller than 8 MB" is nonsense. Client parity via
-			// data-bl-error-empty in render.php.
-			if ( $file['size'] <= 0 ) {
-				return array(
-					'files' => array(),
-					'error' => __( 'An attached file is empty. Please choose a different file.', 'blocklane' ),
-				);
-			}
-			if ( $file['size'] > (int) $schema['max_size'] ) {
-				return array(
-					'files' => array(),
-					'error' => sprintf(
-						/* translators: %s: maximum file size, e.g. "8 MB". */
-						__( 'Each file must be smaller than %s.', 'blocklane' ),
-						size_format( (int) $schema['max_size'] )
-					),
-				);
-			}
-
-			$display_name = sanitize_file_name( wp_unslash( $file['name'] ) );
-			if ( '' === $display_name ) {
-				$display_name = 'file';
-			}
-
-			$check = wp_check_filetype_and_ext( $file['tmp_name'], $display_name, $mimes );
-			if ( empty( $check['ext'] ) || empty( $check['type'] ) ) {
-				return array(
-					'files' => array(),
-					'error' => __( 'This file type is not accepted.', 'blocklane' ),
-				);
-			}
-			if ( ! empty( $check['proper_filename'] ) ) {
-				$display_name = $check['proper_filename'];
-			}
-			$ext = strtolower( (string) $check['ext'] );
-			if ( ! isset( $mimes[ $ext ] ) || in_array( $ext, BLOCKLANE_PRO_FORMS_FILE_DENY, true ) ) {
-				return array(
-					'files' => array(),
-					'error' => __( 'This file type is not accepted.', 'blocklane' ),
-				);
-			}
-
-			$validated[] = array(
-				'name'     => $display_name,
-				'ext'      => $ext,
-				'type'     => (string) $check['type'],
-				'size'     => (int) $file['size'],
-				'tmp_name' => $file['tmp_name'],
-			);
-		}
-
-		return array(
-			'files' => $validated,
-			'error' => '',
-		);
-	}
-
-	/**
 	 * The private upload root (uploads/blocklane-forms), created on demand
 	 * with direct-access guards. Files here are reachable only through the
 	 * capability-checked download route — never by URL (random names are the
 	 * nginx-side backstop where .htaccess is ignored).
 	 *
-	 * @return string Absolute path without trailing slash, '' on failure.
+	 * A root whose guard files could not be written is REFUSED, not handed
+	 * out (#1845): on Apache the .htaccess is the only thing between a
+	 * visitor's file and its URL, so a store without it must not take one.
+	 *
+	 * @return string|\WP_Error Absolute path without trailing slash, or why
+	 *                          the store cannot take a file now.
 	 */
-	function blocklane_pro_forms_upload_root() {
+	function blocklane_pro_forms_upload_root(): string|\WP_Error {
 		$uploads = wp_upload_dir( null, false );
 		if ( ! empty( $uploads['error'] ) ) {
-			return '';
+			return new \WP_Error( 'blocklane_pro_forms_uploads_unavailable', 'The uploads directory is unavailable: ' . (string) $uploads['error'] );
 		}
 		$root = $uploads['basedir'] . '/blocklane-forms';
 		if ( ! is_dir( $root ) && ! wp_mkdir_p( $root ) ) {
-			return '';
+			return new \WP_Error( 'blocklane_pro_forms_root_uncreatable', 'Could not create ' . $root . '.' );
 		}
 
-		$htaccess = $root . '/.htaccess';
-		if ( ! file_exists( $htaccess ) ) {
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- guard file in our own dir.
-			file_put_contents( $htaccess, "# Blocklane Forms uploads — served only via the plugin.\n<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n" );
-		}
-		$index = $root . '/index.php';
-		if ( ! file_exists( $index ) ) {
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- guard file in our own dir.
-			file_put_contents( $index, "<?php // Silence is golden.\n" );
+		// Guard files in our own upload folder, through the uploads door
+		// (blocklane_pro\File_Ops::uploads_put(), which refuses any path
+		// outside wp_upload_dir()'s basedir, and a link at the file name).
+		$guards = array(
+			'.htaccess' => "# Blocklane Forms uploads — served only via the plugin.\n<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n",
+			'index.php' => "<?php // Silence is golden.\n",
+		);
+		foreach ( $guards as $name => $body ) {
+			if ( file_exists( $root . '/' . $name ) ) {
+				continue;
+			}
+			$written = \blocklane_pro\File_Ops::uploads_put( $root . '/' . $name, $body );
+			if ( is_wp_error( $written ) ) {
+				return new \WP_Error( 'blocklane_pro_forms_unguarded', 'The form upload store has no ' . $name . ' guard, so it takes no file: ' . $written->get_error_message() );
+			}
 		}
 
 		return $root;
-	}
-
-	/**
-	 * The upload_dir override that puts one attachment in the form store.
-	 *
-	 * A factory rather than an inline closure so the battery can apply it to
-	 * wp_upload_dir() and assert where it points without performing an upload.
-	 *
-	 * url/baseurl are blanked deliberately: the store is private (the root
-	 * carries .htaccess and index.php guards) and nothing may hand out a direct
-	 * URL to it — attachments are streamed by the download route, which checks
-	 * capability first.
-	 *
-	 * @param string $root      Absolute path of the form upload root.
-	 * @param string $month_dir 'YYYY/MM'.
-	 * @return \Closure
-	 */
-	function blocklane_pro_forms_upload_dir_override( string $root, string $month_dir ): \Closure {
-		return static function ( $dirs ) use ( $root, $month_dir ) {
-			$dirs['basedir'] = $root;
-			$dirs['subdir']  = '/' . $month_dir;
-			$dirs['path']    = $root . '/' . $month_dir;
-			$dirs['url']     = '';
-			$dirs['baseurl'] = '';
-			$dirs['error']   = false;
-			return $dirs;
-		};
-	}
-
-	/**
-	 * Store one validated upload, through WordPress rather than around it.
-	 *
-	 * This used to be move_uploaded_file() — a forbidden function on
-	 * wordpress.org, and the rule is not arbitrary: going through
-	 * wp_handle_upload() is what puts an attachment under the site's OWN upload
-	 * policy. A max-size plugin, the Advanced screen's SVG sanitizer, an image
-	 * optimizer — all of them hook the upload pipeline, and a form attachment
-	 * that skipped it was the one file on the site nobody's rules applied to.
-	 *
-	 * Core still performs the actual move with move_uploaded_file() and still
-	 * runs is_uploaded_file() itself before it does, so the guarantee the old
-	 * code relied on is not weakened by the change — it is enforced twice now,
-	 * once in validation and once in core.
-	 *
-	 * NOT the media library: no attachment post is created, and the file lands
-	 * in the plugin's private store under a random hex name. The upload_dir
-	 * override is added immediately before the call and removed in a `finally`,
-	 * so a failure cannot leave a filter behind that would redirect the next
-	 * plugin's upload into our directory.
-	 *
-	 * @param array<string, mixed> $file      One entry from validate_file_field's `pending`.
-	 * @param string               $root      Absolute path of the form upload root.
-	 * @param string               $month_dir 'YYYY/MM'.
-	 * @return string|\WP_Error Path relative to $root, or why it could not be stored.
-	 */
-	function blocklane_pro_forms_store_upload( array $file, string $root, string $month_dir ): string|\WP_Error {
-		require_once ABSPATH . 'wp-admin/includes/file.php';
-
-		$ext  = (string) $file['ext'];
-		$type = (string) $file['type'];
-
-		// wp_handle_upload() takes $file BY REFERENCE, so this must be a
-		// variable — an array literal is a fatal, not a notice.
-		$upload = array(
-			'name'     => (string) $file['name'],
-			'type'     => $type,
-			'tmp_name' => (string) $file['tmp_name'],
-			'size'     => (int) $file['size'],
-			'error'    => 0,
-		);
-
-		$override = blocklane_pro_forms_upload_dir_override( $root, $month_dir );
-		add_filter( 'upload_dir', $override, PHP_INT_MAX );
-		try {
-			$result = wp_handle_upload(
-				$upload,
-				array(
-					// No $_POST['action'] here — this is our own submit route.
-					'test_form' => false,
-					// The allowlist is the ONE type validation already resolved
-					// for this exact file, so the second check cannot disagree
-					// with the first by drifting apart from it.
-					'mimes'                    => array( $ext => $type ),
-					'unique_filename_callback' => static function ( $dir, $name, $extension ) {
-						return bin2hex( random_bytes( 16 ) ) . $extension;
-					},
-				),
-				$month_dir
-			);
-		} finally {
-			remove_filter( 'upload_dir', $override, PHP_INT_MAX );
-		}
-
-		if ( ! is_array( $result ) || isset( $result['error'] ) ) {
-			return new \WP_Error(
-				'blocklane_pro_forms_store_failed',
-				is_array( $result ) ? (string) $result['error'] : 'wp_handle_upload() returned nothing.'
-			);
-		}
-
-		// A site filter (pre_move_uploaded_file, another upload_dir at a higher
-		// priority) can relocate the file. That would put a submission's
-		// attachment outside the private store the download route serves from
-		// and possibly somewhere web-readable, so it is refused rather than
-		// recorded: remove it and fail the submission.
-		$stored_path = wp_normalize_path( (string) $result['file'] );
-		$expected    = wp_normalize_path( $root . '/' . $month_dir );
-		if ( dirname( $stored_path ) !== $expected ) {
-			wp_delete_file( $stored_path );
-			return new \WP_Error(
-				'blocklane_pro_forms_store_relocated',
-				'The attachment was written outside the form store (' . dirname( $stored_path ) . ').'
-			);
-		}
-
-		return $month_dir . '/' . basename( $stored_path );
-	}
-
-	/**
-	 * Move a submission's validated uploads into the private store. Runs only
-	 * after the WHOLE submission validated — all-or-nothing: any failure rolls
-	 * back the files already moved and the visitor gets an honest retry.
-	 *
-	 * Stored names are random hex + the validated extension; the client name
-	 * survives only as display metadata inside the row snapshot.
-	 *
-	 * @param array $fields Self-described fields (by reference) — file fields
-	 *                      carry `pending` from validate_file_field.
-	 * @return bool Whether every pending file was persisted.
-	 */
-	function blocklane_pro_forms_persist_files( &$fields ) {
-		$root   = '';
-		$moved  = array();
-		$failed = false;
-
-		foreach ( $fields as &$field ) {
-			if ( 'file' !== $field['type'] || empty( $field['pending'] ) ) {
-				unset( $field['pending'] );
-				continue;
-			}
-
-			if ( '' === $root ) {
-				$root = blocklane_pro_forms_upload_root();
-				if ( '' === $root ) {
-					$failed = true;
-					break;
-				}
-			}
-
-			// No wp_mkdir_p here: wp_handle_upload() applies our upload_dir
-			// override and then creates the directory itself. File permissions
-			// come from the parent directory the same way, so the old
-			// chmod( 0644 ) goes too.
-			$month_dir = gmdate( 'Y/m' );
-
-			$stored_files = array();
-			$display      = array();
-			foreach ( $field['pending'] as $file ) {
-				$stored = blocklane_pro_forms_store_upload( $file, $root, $month_dir );
-				if ( is_wp_error( $stored ) ) {
-					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- a refused attachment fails the whole submission; without this the reason is invisible.
-					error_log( 'Blocklane Forms: could not store an attachment - ' . $stored->get_error_message() );
-					$failed = true;
-					break 2;
-				}
-				$moved[]        = $root . '/' . $stored;
-				$stored_files[] = array(
-					'name'   => $file['name'],
-					'stored' => $stored,
-					'size'   => $file['size'],
-					'type'   => $file['type'],
-				);
-				$display[]      = $file['name'] . ' (' . size_format( $file['size'] ) . ')';
-			}
-
-			$field['files'] = $stored_files;
-			$field['value'] = $display;
-			unset( $field['pending'] );
-		}
-		unset( $field );
-
-		if ( $failed ) {
-			// A move failed partway through: delete the files already moved and
-			// strip every pending so no tmp path reaches storage or mail.
-			foreach ( $moved as $path ) {
-				wp_delete_file( $path );
-			}
-			foreach ( $fields as &$field ) {
-				unset( $field['pending'] );
-			}
-			unset( $field );
-
-			return false;
-		}
-
-		// No file field (or every move succeeded): a file-less submission is a
-		// success. The previous '' === $root test treated an unset root as
-		// failure, so it 500'd every form without a file field.
-		return true;
 	}
 
 	/**
@@ -3004,7 +2832,8 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 			return blocklane_pro_forms_success_response( $form_attrs );
 		}
 
-		$schema = blocklane_pro_forms_derive_schema( $located['form'] );
+		$ignored = array();
+		$schema  = blocklane_pro_forms_derive_schema( $located['form'], $ignored );
 
 		// Unknown field names = a tampered or replayed payload: fake success.
 		// The Turnstile token is meta, not a field (whitelisted even when the
@@ -3029,6 +2858,12 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 			if ( 0 === strpos( (string) $key, '_bl_' ) || in_array( $key, $known_meta, true ) ) {
 				continue;
 			}
+			// A field of a suite block this edition does not register (a
+			// page cached under the other edition still posts it): dropped,
+			// never trapped — the visitor's other answers are real.
+			if ( in_array( (string) $key, $ignored, true ) ) {
+				continue;
+			}
 			if ( ! isset( $schema[ $key ] ) ) {
 				return blocklane_pro_forms_success_response( $form_attrs );
 			}
@@ -3042,6 +2877,9 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 		 */
 		$file_params = $request->get_file_params();
 		foreach ( array_keys( $file_params ) as $key ) {
+			if ( in_array( (string) $key, $ignored, true ) ) {
+				continue; // A file field this edition does not carry: dropped, not trapped.
+			}
 			if ( ! isset( $schema[ $key ] ) ) {
 				return blocklane_pro_forms_success_response( $form_attrs );
 			}
@@ -3056,7 +2894,10 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 		// error, never a fake success with missing attachments. Parts are
 		// counted the way PHP counts them — every posted slot per field,
 		// including empty (UPLOAD_ERR_NO_FILE) ones — so the threshold aligns
-		// with when PHP actually truncates.
+		// with when PHP actually truncates. Parts posted for a field this
+		// edition does not carry (see $ignored above) are counted too, on
+		// purpose: PHP dropped them the same way, and an honest 400 beats a
+		// fake success that lost files (#1021).
 		$max_uploads = (int) ini_get( 'max_file_uploads' );
 		if ( $max_uploads > 0 ) {
 			$total_parts = 0;
@@ -3114,8 +2955,9 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 		// nothing stored or emailed. Same rule view.js applies live.
 		$blocklane_hidden = blocklane_pro_forms_resolve_visibility( $schema, $params );
 
-		$errors = array();
-		$fields = array();
+		$errors             = array();
+		$fields             = array();
+		$blocklane_registry = blocklane_pro_forms_field_type_registry();
 		foreach ( $schema as $name => $field_schema ) {
 			if ( isset( $blocklane_hidden[ $name ] ) ) {
 				continue;
@@ -3132,21 +2974,25 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 				continue;
 			}
 
-			if ( 'file' === $field_schema['type'] ) {
-				$file_result = blocklane_pro_forms_validate_file_field(
-					isset( $file_params[ $name ] ) ? $file_params[ $name ] : array(),
-					$field_schema
-				);
-				if ( '' !== $file_result['error'] ) {
-					$errors[ $name ] = $file_result['error'];
+			// A registered type that posts FILES (the file field) validates
+			// its $_FILES entry instead of a posted value; its validated
+			// uploads ride as `pending` until the persist step.
+			$blocklane_ext = isset( $field_schema['ext'], $blocklane_registry[ $field_schema['ext'] ] ) ? $blocklane_registry[ $field_schema['ext'] ] : null;
+			if ( null !== $blocklane_ext && 'files' === $blocklane_ext['source'] ) {
+				$result = blocklane_pro_forms_validate_field( isset( $file_params[ $name ] ) ? $file_params[ $name ] : array(), $field_schema );
+				if ( '' !== $result['error'] ) {
+					$errors[ $name ] = $result['error'];
 					continue;
 				}
 				$fields[] = array(
 					'name'    => $name,
 					'label'   => '' !== $field_schema['label'] ? $field_schema['label'] : $name,
-					'type'    => 'file',
-					'value'   => '',
-					'pending' => $file_result['files'],
+					'type'    => $field_schema['type'],
+					'value'   => $result['value'],
+					// The type that owns the row: persist and discard handlers
+					// claim rows by it (the seam contract above), never by type.
+					'ext'     => $field_schema['ext'],
+					'pending' => isset( $result['pending'] ) && is_array( $result['pending'] ) ? $result['pending'] : array(),
 				);
 				continue;
 			}
@@ -3260,25 +3106,24 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 		// names travel in the emails and the bytes are discarded (the editor
 		// surfaces this on the field).
 		if ( isset( $form_attrs['storeSubmissions'] ) && false === $form_attrs['storeSubmissions'] ) {
-			foreach ( $fields as &$blocklane_field_ref ) {
-				if ( 'file' === $blocklane_field_ref['type'] && ! empty( $blocklane_field_ref['pending'] ) ) {
-					$display = array();
-					foreach ( $blocklane_field_ref['pending'] as $pending_file ) {
-						$display[] = $pending_file['name'] . ' (' . size_format( $pending_file['size'] ) . ')';
-					}
-					$blocklane_field_ref['value'] = $display;
-				}
-				unset( $blocklane_field_ref['pending'] );
+			blocklane_pro_forms_discard_pending( $fields );
+		} else {
+			$blocklane_persisted = blocklane_pro_forms_persist_pending( $fields );
+			if ( is_wp_error( $blocklane_persisted ) ) {
+				// The refusing type's slug, for the operator: the visitor's
+				// message cannot name it, and without it a 500 says only that
+				// some upload failed. Earlier handlers' bytes are already
+				// reaped by persist_pending; nothing is stored or mailed.
+				blocklane_pro_log( 'Blocklane: a form submission was refused — the field type ' . $blocklane_persisted->get_error_message() . ' could not persist its uploads.' );
+
+				return new \WP_REST_Response(
+					array(
+						'success' => false,
+						'message' => __( 'We could not save your upload. Please try again.', 'blocklane' ),
+					),
+					500
+				);
 			}
-			unset( $blocklane_field_ref );
-		} elseif ( ! blocklane_pro_forms_persist_files( $fields ) ) {
-			return new \WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'We could not save your upload. Please try again.', 'blocklane' ),
-				),
-				500
-			);
 		}
 
 		$reply_to = '';

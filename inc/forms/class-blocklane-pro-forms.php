@@ -628,7 +628,7 @@ class Forms implements Bootable {
 		}
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom table.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own submissions table; core has no API for it and a write must land now.
 		return false !== $wpdb->update(
 			blocklane_pro_forms_table(),
 			array( 'status' => $status ),
@@ -672,7 +672,7 @@ class Forms implements Bootable {
 
 		$fields = self::raw_fields( $id );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom table.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own submissions table; core has no API for it and a delete must land now.
 		$deleted = (bool) $wpdb->delete( blocklane_pro_forms_table(), array( 'id' => absint( $id ) ), array( '%d' ) );
 
 		if ( $deleted && $fields ) {
@@ -870,7 +870,7 @@ class Forms implements Bootable {
 		$deleted = 0;
 
 		for ( $batch = 0; $batch < 25; $batch++ ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- the plugin's own submissions table; core has no API for it.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own submissions table; core has no API for it, and this batch loop deletes what it reads, so a cache would serve stale ids.
 			$ids = $wpdb->get_col( $wpdb->prepare( 'SELECT id FROM %i ORDER BY id ASC LIMIT 200', $table ) );
 			if ( ! $ids ) {
 				break;
@@ -893,7 +893,7 @@ class Forms implements Bootable {
 			}
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- the plugin's own submissions table; core has no API for it.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own submissions table; core has no API for it, and the count is read right after the deletes above.
 		$remaining = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table ) );
 
 		return array(

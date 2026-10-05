@@ -1,10 +1,10 @@
 === Blocklane ===
-Contributors: garrettmichaelj
+Contributors: blocklane, garrettmichaelj
 Tags: seo, contact form, popup, coming soon, security
-Requires at least: 7.0
+Requires at least: 7.1
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.11.4
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,8 +17,8 @@ installing six plugins to get them. Every tool is built on WordPress's own
 blocks, settings and APIs — there is no page builder, no separate rendering
 engine, and no proprietary markup.
 
-Each tool is off until you turn it on. What you do not use costs nothing: no
-files load, no hooks register, no queries run.
+Each tool is off until you turn it on. What you do not use costs nothing: a
+tool that is off registers no blocks, no admin screens, no routes and no output.
 
 = SEO =
 
@@ -49,15 +49,13 @@ engines may index it.
 
 Limit login attempts, disable XML-RPC, block user enumeration, turn off the
 theme and plugin file editors, allow SVG uploads safely, and see when each user
-last logged in. Plus auto-update controls, a post-revision limit and a
-heartbeat limit.
+last logged in. Plus a post-revision limit and a heartbeat limit.
 
 = Everyday tools =
 
-Header, body and footer scripts for analytics and verification tags. Duplicate
-any post or page. Reorder content by dragging. Replace a media file without
-breaking the links to it. Disable comments site-wide. Turn off blog features on
-a site that is not a blog. Generate a child theme in a click.
+Duplicate any post or page. Reorder content by dragging. Replace a media file
+without breaking the links to it. Disable comments site-wide. Turn off blog
+features on a site that is not a blog. Generate a child theme in a click.
 
 = Two editor controls =
 
@@ -83,7 +81,7 @@ build tools: https://github.com/BlocklaneWP/blocklane
 
 = Support =
 
-Questions and bug reports go to the plugin's support forum on WordPress.org. We support the current release on the last three major WordPress versions and PHP 8.1 or newer.
+Questions and bug reports go to the plugin's support forum on WordPress.org. We support the current release on WordPress 7.1 or newer and PHP 8.1 or newer, the versions this readme's header requires.
 
 == Frequently Asked Questions ==
 
@@ -105,8 +103,24 @@ WordPress records and are left exactly as they are.
 = Is there a Pro version? =
 
 Yes — Blocklane Pro adds content modeling, dynamic values, a mega menu, a
-carousel, AI tools and a deeper set of editor controls. Your site keeps working
-when a license lapses. You stop receiving updates.
+carousel, AI tools, header, body and footer code, and a deeper set of editor
+controls — and, inside features this plugin already has, multi-step forms, file
+upload fields, scroll and exit-intent popups with front-page, post-type, URL
+and logged-in targeting, and forced auto-updates for plugins and themes. A form
+or popup built with those parts keeps every setting here and works again in
+full the moment Pro is active. Your site keeps working when a license lapses.
+You stop receiving updates.
+
+The Pro extensions and Pro tools that belong on the Extensions and Advanced
+screens are listed there, marked "Pro", with a description and no switch, so
+you can see what each one does and decide whether you want it — nothing there
+is a part of this plugin that has been switched off. The rest of Pro (content
+modeling, the mega menu, form steps and file upload fields, popup triggers and
+targeting) has no row here and is described on the Pro site. The code for a Pro
+feature is not included in this download at all, so there is nothing a payment
+would unlock here; Pro is a separate plugin you would install alongside or
+instead of this one. If you never install it, the rows are the only trace of
+it.
 
 = Does this plugin contact any external services? =
 
@@ -144,12 +158,26 @@ IndexNow documentation and terms: https://www.indexnow.org/documentation
 
 = What third-party code does it include? =
 
-Two things, both bundled and both credited in full in credits.txt inside the
-plugin folder: the SVG sanitizer (enshrined/svg-sanitize, GPL-2.0-or-later),
-which cleans SVG uploads when you switch that option on, and the Unbounded and
-Manrope typefaces (SIL Open Font License 1.1) used by the plugin's own
-dashboard. Nothing else is bundled, and nothing is loaded from a third-party
-CDN.
+All of it is credited in credits.txt inside the plugin folder:
+
+* the SVG sanitizer (enshrined/svg-sanitize, GPL-2.0-or-later), which cleans
+  SVG uploads when you switch that option on;
+* the Unbounded and Manrope typefaces (SIL Open Font License 1.1) used by the
+  plugin's own dashboard;
+* the Phosphor Icons starter set (MIT), the 75 SVGs the Icon block offers
+  under "Blocklane";
+* npm packages the build bundles into the plugin's scripts and styles:
+  WordPress packages WordPress itself does not load, such as
+  @wordpress/dataviews and @wordpress/icons (GPL-2.0-or-later), and the MIT
+  and 0BSD packages they use, such as Ariakit, Base UI, Floating UI, date-fns
+  and clsx. The build writes a THIRD-PARTY-NOTICES.txt into every build
+  folder, naming each bundle, the packages in it, and each package's version
+  and license text.
+
+The plugin loads its own scripts, styles and fonts from its own folder; the
+one file it can load from another site is Cloudflare's Turnstile widget
+script, and only on pages with a form after you turn Turnstile on (see the
+external services answer above).
 
 = Where does the plugin get its updates? =
 
@@ -158,5 +186,11 @@ its own and never contacts any other server for updates.
 
 == Changelog ==
 
-= 0.11.4 =
+= 1.0.0 =
 * First release on WordPress.org.
+* Requires WordPress 7.1 or later.
+* Works beside Blocklane Pro. Content built with Pro is kept exactly as saved here: a stepped form shows as one page, a mega menu item renders as a plain dropdown, a popup keeps every setting and opens from links and buttons. It all returns to full the moment Pro is active.
+* The Extensions and Advanced screens list the features that are part of Blocklane Pro, marked "Pro", so you can read what each one does. They have no switch, because that code is not in this download.
+* Forced auto-updates for plugins and themes are part of Blocklane Pro. The two rows are listed on the Advanced screen's Updates & Performance tab, marked "Pro", and a value Pro stored is kept as it is.
+* Header, body and footer code is part of Blocklane Pro, because WordPress.org does not accept plugins that insert arbitrary code. Its row is listed on the Advanced screen's Site Tools tab, marked "Pro". Code saved with Pro stays in your database, and Pro prints it again the moment it is active.
+* The Icon block offers the Blocklane collection: 75 bundled icons, plus any your site saved earlier with Blocklane Pro. Icons already placed in your pages keep rendering.

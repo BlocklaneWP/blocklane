@@ -5,13 +5,14 @@
  * apiFetch handles cookies + the X-WP-Nonce header (installed via
  * createNonceMiddleware in index.js), so callers just describe shape.
  *
- * A unit's routes do NOT live here. `license`, `aiMcp`, `contentTypes` and
- * `dynamicValues` are in ./license.js, ./ai-mcp.js, ./content-types.js and
- * ./dynamic-values.js — each owned by its unit, each importing `get`/`post`
- * from this file — so an edition without the unit carries neither the route
- * shapes nor the paths. A route shape for an endpoint the artifact does not
- * register is not inert: it is a description of a paid feature, and a request
- * that can only 404.
+ * A unit's routes do NOT live here. Each unit's route object is in its own
+ * file beside this one, owned by the unit in edition-manifest.json and
+ * importing `get`/`post` from here, so an edition without the unit carries
+ * neither the route shapes nor the paths. A route shape for an endpoint the
+ * artifact does not register is not inert: it is a description of a paid
+ * feature, and a request that can only 404. bin/ui-needles.php derives every
+ * route literal of an absent unit's api file as a needle, so dist-check fails
+ * a bundle and publish-free-source a source file that carries one.
  */
 
 import apiFetch from '@wordpress/api-fetch';
@@ -38,11 +39,6 @@ export const extensions = {
 export const childTheme = {
 	create: ( data ) => post( '/create-child-theme', data ),
 	customizations: () => get( '/child-theme/customizations' ),
-};
-
-export const scripts = {
-	get: () => get( '/scripts' ),
-	save: ( settings ) => post( '/scripts', settings ),
 };
 
 export const siteLock = {

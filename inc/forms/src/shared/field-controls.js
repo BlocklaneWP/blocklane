@@ -24,10 +24,10 @@ import useFormFieldNames from './use-form-field-names';
  * The label may carry bold/italic from the canvas; here it shows stripped,
  * and editing here writes plain text.
  *
- * @param {Object}   props
- * @param {string}   props.label          Current label value (may hold markup).
- * @param {Function} props.onChange       Receives the next plain-text string.
- * @param {string}   [props.controlLabel] Control label ('Field label').
+ * @param {Object}                  props
+ * @param {string}                  props.label          Current label value (may hold markup).
+ * @param {(label: string) => void} props.onChange       Receives the next plain-text string.
+ * @param {string}                  [props.controlLabel] Control label ('Field label').
  */
 export function FieldLabelItem( { label, onChange, controlLabel } ) {
 	const text = controlLabel || __( 'Field label', 'blocklane' );
@@ -52,9 +52,9 @@ export function FieldLabelItem( { label, onChange, controlLabel } ) {
 /**
  * The "Required" opt-in toggle item.
  *
- * @param {Object}   props
- * @param {boolean}  props.required Current value.
- * @param {Function} props.onChange Receives the next boolean.
+ * @param {Object}                      props
+ * @param {boolean}                     props.required Current value.
+ * @param {(required: boolean) => void} props.onChange Receives the next boolean.
  */
 export function RequiredItem( { required, onChange } ) {
 	return (
@@ -79,9 +79,9 @@ export function RequiredItem( { required, onChange } ) {
  * tech — the class only clips it visually — and with no authored placeholder
  * the label text folds into the control as its placeholder.
  *
- * @param {Object}   props
- * @param {boolean}  props.hideLabel Current value.
- * @param {Function} props.onChange  Receives the next boolean.
+ * @param {Object}                       props
+ * @param {boolean}                      props.hideLabel Current value.
+ * @param {(hideLabel: boolean) => void} props.onChange  Receives the next boolean.
  */
 export function HideLabelItem( { hideLabel, onChange } ) {
 	return (
@@ -109,10 +109,10 @@ export function HideLabelItem( { hideLabel, onChange } ) {
  * The "Field name" override item. The help previews the name the SERVER will
  * derive (see field-name.js), so callers pass the already-resolved name.
  *
- * @param {Object}   props
- * @param {string}   props.name         Current explicit name ('' = derived).
- * @param {string}   props.resolvedName The derived name to preview.
- * @param {Function} props.onChange     Receives the next string.
+ * @param {Object}                 props
+ * @param {string}                 props.name         Current explicit name ('' = derived).
+ * @param {string}                 props.resolvedName The derived name to preview.
+ * @param {(name: string) => void} props.onChange     Receives the next string.
  */
 export function FieldNameItem( { name, resolvedName, onChange } ) {
 	return (
@@ -164,10 +164,10 @@ const OPERATOR_OPTIONS = [
  * The hidden state is enforced server-side too (required waived, posted
  * value discarded), so this is behavior, not decoration.
  *
- * @param {Object}   props
- * @param {Object}   props.condition Current condition attribute.
- * @param {Function} props.onChange  Receives the next condition object.
- * @param {string}   props.clientId  The field block's clientId.
+ * @param {Object}                      props
+ * @param {Object}                      props.condition Current condition attribute.
+ * @param {(condition: Object) => void} props.onChange  Receives the next condition object.
+ * @param {string}                      props.clientId  The field block's clientId.
  */
 export function VisibilityItem( { condition, onChange, clientId } ) {
 	const formClientId = useSelect(

@@ -2,6 +2,12 @@
 /**
  * Dynamic Values — runtime (canonical source).
  *
+ * SHIPS IN BOTH EDITIONS (free-edition build-target spec, Amendment 9): a
+ * site that authored dynamic values under Blocklane Pro keeps their tokens and block bindings resolving
+ * after Pro is deactivated, because the free plugin renders that data. This
+ * file registers no editor UI and offers no way to author a definition; on a
+ * site that never had Pro the option is empty and it registers nothing.
+ *
  * SELF-CONTAINED on purpose: it does NOT reference the plugin's namespace,
  * classes or constants, only core WordPress. That rule was written when this
  * file was stamped into a must-use plugin and ran outside the plugin; the
@@ -9,8 +15,8 @@
  * source registered without needing a plugin class loaded cannot be tripped
  * by load order.
  *
- * The plugin requires this file in-process, so tokens resolve only while
- * Blocklane Pro is active. Tokens come from the option, and an absent row
+ * The plugin requires this file in-process, so tokens resolve only while a
+ * Blocklane plugin, free or Pro, is active. Tokens come from the option, and an absent row
  * means none — there is no second source.
  *
  * Because both copies are separate files loaded in the same request, ALL

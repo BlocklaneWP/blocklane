@@ -64,9 +64,10 @@ class Extensions_Handler implements Bootable {
 		// Class Manager REST + editor styles + usage tracking; its front-end
 		// CSS output is in class-manager-frontend.php, loaded by the runtime.
 		'class-manager'      => 'extensions/loader/class-manager/class-manager.php',
-		// Icon Library picker REST (append to /wp/v2/icons + custom-icon save).
-		// Its front-end RENDER half loads unconditionally from
-		// frontend-loader.php, so a switched-off picker never blanks icons
+		// Icon Library picker REST (custom-icon save, delete and usage; the
+		// uploads mirror). Its RENDER half is inc/icon-collection/
+		// runtime.php, booted from Modules::content() in BOTH editions, so
+		// neither a switched-off picker nor the free edition blanks icons
 		// already placed in saved content.
 		'icon-library'       => 'extensions/loader/icon-library/icon-library-api.php',
 	);
@@ -479,9 +480,10 @@ class Extensions_Handler implements Bootable {
 			if ( ! is_file( BLOCKLANE_PRO_PATH . '/inc/' . $rel ) ) {
 				// Present per the edition but missing on disk: a torn deploy,
 				// and the same typed miss the modules get rather than a fatal
-				// or a silent skip.
+				// or a silent skip — in the ADMIN phase, whose sentence says
+				// what is actually lost (the controls, not the content; #875).
 				Modules::record(
-					new Module_Miss( 'extension:' . self::UNIT_OF[ $slug ], Module_Miss::PHASE_CONTENT, Module_Miss::RUNTIME_MISSING, $rel )
+					new Module_Miss( 'extension:' . self::UNIT_OF[ $slug ], Module_Miss::PHASE_ADMIN, Module_Miss::RUNTIME_MISSING, $rel )
 				);
 				continue;
 			}
@@ -571,8 +573,9 @@ class Extensions_Handler implements Bootable {
 		$handle    = 'blocklane-pro-extensions-editor';
 		$build_url = BLOCKLANE_PRO_URL . '/inc/extensions/build/';
 
-		// CodeMirror for the CSS Class Manager editor.
-		wp_enqueue_code_editor( array( 'type' => 'text/css' ) );
+		// CodeMirror for the CSS Class Manager's editor is enqueued by that
+		// extension's own loader (class-manager/class-manager.php), so an
+		// edition or a site without it loads no code editor at all.
 
 		wp_enqueue_script(
 			$handle,

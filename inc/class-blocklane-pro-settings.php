@@ -164,43 +164,100 @@ class Settings {
 
 	/**
 	 * Screen slug => menu label, for the screens THIS edition carries and the
-	 * toggles allow. Mirrors the app's screen registry
-	 * (inc/onboarding/src/screens/registry.js + components.js) — keep the
-	 * three in sync when adding a screen. Home is excluded: it is the bare-slug
-	 * "Dashboard" item.
+	 * toggles allow, in nav order. Mirrors the app's screen registry
+	 * (inc/onboarding/src/screens/registry.js's SCREEN_ORDER, and the copy in
+	 * screens/meta/) — keep them in sync when adding a screen. Home is
+	 * excluded: it is the bare-slug "Dashboard" item.
+	 *
+	 * The labels of the screens every edition carries are inline below. A
+	 * screen whose unit only Pro carries takes its label from its own unit,
+	 * which adds it on `blocklane_pro_dashboard_screen_labels`: a module from
+	 * its boot class's constructor (Content_Types_Integration,
+	 * Dynamic_Values_Integration, Abilities\Loader — constructed by
+	 * Modules::boot() on plugins_loaded, before admin_menu), a service with no
+	 * boot class from its lifecycle file, at plugin-file scope beside the REST
+	 * routes behind the screen (service:scripts: scripts/lifecycle.php). So
+	 * this core file names no Pro feature: its label
+	 * leaves the free build with its unit, the way the app's meta files do,
+	 * and dist-check scans this file with the derived labels
+	 * (forbidden_ui_strings.scope in edition-manifest.json). A screen that is
+	 * on but has no label is left out of the submenu — an unlabeled item is
+	 * never drawn — and, when its unit loaded (a module's boot class, a
+	 * service's lifecycle file), that is a unit that forgot its filter:
+	 * _doing_it_wrong() says so. A unit that did not load (safe mode, a
+	 * blocklane_pro_load_module veto, a missed file) has no REST controller
+	 * either, so its screen leaves the submenu quietly.
 	 *
 	 * @return array<string, string>
 	 */
 	private static function screens_manifest(): array {
-		$screens = array(
-			'dynamic-values' => __( 'Dynamic Values', 'blocklane' ),
-			'content-types'  => __( 'Content Types', 'blocklane' ),
-			'seo'            => __( 'SEO', 'blocklane' ),
-			'forms'          => __( 'Forms', 'blocklane' ),
-			'scripts'        => __( 'Scripts', 'blocklane' ),
-			'site-privacy'   => __( 'Site Visibility', 'blocklane' ),
-			'extensions'     => __( 'Extensions', 'blocklane' ),
-			'advanced'       => __( 'Advanced', 'blocklane' ),
-			'child-theme'    => __( 'Create Child Theme', 'blocklane' ),
+		$order = array( 'dynamic-values', 'content-types', 'seo', 'forms', 'scripts', 'site-privacy', 'extensions', 'advanced', 'child-theme', 'ai-mcp' );
+
+		$shared = array(
+			'seo'          => __( 'SEO', 'blocklane' ),
+			'forms'        => __( 'Forms', 'blocklane' ),
+			'site-privacy' => __( 'Site Visibility', 'blocklane' ),
+			'extensions'   => __( 'Extensions', 'blocklane' ),
+			'advanced'     => __( 'Advanced', 'blocklane' ),
+			'child-theme'  => __( 'Create Child Theme', 'blocklane' ),
 		);
 
-		// AI MCP is opt-in: its screen exists only when the toggle is on (the
-		// reverse of the module screens, which show unless off). Added here so
-		// the one predicate below decides it like every other screen.
-		if ( self::tool_screen_on( 'ai-mcp' ) ) {
-			$screens['ai-mcp'] = __( 'Blocklane AI MCP', 'blocklane' );
-		}
+		/**
+		 * Filters the wp-admin submenu labels of the dashboard screens a unit
+		 * owns. Each unit adds its own screen's label — a module from its boot
+		 * class's constructor, a service from its lifecycle file; the screens
+		 * every edition carries are not read from here.
+		 *
+		 * @param array<string, string> $labels Screen slug => menu label.
+		 */
+		$unit_labels = (array) apply_filters( 'blocklane_pro_dashboard_screen_labels', array() );
 
 		// ONE predicate decides every screen — the edition first (an absent
 		// unit has no code and no REST route behind its screen, so a toggle
 		// could never bring it back), then that screen's own toggle rule.
-		foreach ( array_keys( $screens ) as $slug ) {
-			if ( ! self::tool_screen_on( (string) $slug ) ) {
-				unset( $screens[ $slug ] );
+		$screens = array();
+		foreach ( $order as $slug ) {
+			if ( ! self::tool_screen_on( $slug ) ) {
+				continue;
 			}
+			$label = $shared[ $slug ] ?? ( is_string( $unit_labels[ $slug ] ?? null ) ? (string) $unit_labels[ $slug ] : '' );
+			if ( '' === $label ) {
+				if ( self::screen_unit_loaded( $slug ) ) {
+					_doing_it_wrong(
+						__METHOD__,
+						esc_html( sprintf( 'The "%s" dashboard screen is on and its unit loaded, but no label arrived on blocklane_pro_dashboard_screen_labels — a module\'s boot class adds its screen\'s label in its constructor, a service\'s lifecycle file at file scope.', $slug ) ),
+						'0.13.0'
+					);
+				}
+				continue;
+			}
+			$screens[ $slug ] = $label;
 		}
 
 		return $screens;
+	}
+
+	/**
+	 * Whether the unit that owns a dashboard screen loaded the code that adds
+	 * its label this request. A module: its Modules::all() boot class is
+	 * declared (the boot classes are loaded only by Modules::boot_module(),
+	 * which constructs them right after, so a declared boot class is a booted
+	 * module). Any other unit (a service, which has no boot class): its
+	 * lifecycle file loaded (Modules::lifecycle_loaded()). False for a screen
+	 * core owns.
+	 *
+	 * @param string $slug Dashboard screen slug.
+	 */
+	private static function screen_unit_loaded( string $slug ): bool {
+		$unit = self::screen_unit( $slug );
+		if ( null === $unit ) {
+			return false;
+		}
+		if ( ! str_starts_with( $unit, 'module:' ) ) {
+			return Modules::lifecycle_loaded( $unit );
+		}
+		$boot = Modules::all()[ substr( $unit, strlen( 'module:' ) ) ]['boot'] ?? null;
+		return null !== $boot && class_exists( $boot, false );
 	}
 
 	/**
@@ -208,7 +265,8 @@ class Settings {
 	 * predicate behind both doors, the wp-admin submenu (screens_manifest())
 	 * and the localized toolScreens map the app deep-links through. Two
 	 * doors reading two predicates is how the free Home came to offer a
-	 * Dynamic Values card whose screen the artifact did not carry (#845).
+	 * card for the dynamic-values screen, which the artifact did not carry
+	 * (#845).
 	 *
 	 * Order: the edition test first — a screen whose UNIT this edition does
 	 * not carry is off whatever its toggle says — then the toggle rule that
@@ -245,18 +303,20 @@ class Settings {
 	}
 
 	/**
-	 * Whether an Advanced "Site Tools" screen toggle is on. Fails open when the
-	 * Advanced module isn't loaded (safe mode / blocklane_pro_load_module), for
-	 * the same reason as child_theme_tool_on(): the toggle lives on the
-	 * Advanced screen, so without it there must be no way to strand a screen
-	 * off.
+	 * Whether an Advanced "Site Tools" screen toggle is on. When the Advanced
+	 * class is not loaded (safe mode, a blocklane_pro_load_module veto, or a
+	 * classic theme — Modules::boot() runs below the block-theme gate) the
+	 * STORED value decides, with the tool's shipped ON as the default for a
+	 * row that never saved it: a tool the user turned off stays off
+	 * everywhere. It used to return true here, so on a classic theme a tool
+	 * screen's editor routes registered with their toggle read as ON (#873).
 	 *
 	 * @param string $slug Toggle slug (matches the screen slug).
 	 * @return bool
 	 */
 	public static function advanced_tool_on( $slug ) {
 		if ( ! class_exists( __NAMESPACE__ . '\Advanced', false ) ) {
-			return true;
+			return self::advanced_stored( (string) $slug, true );
 		}
 		return Advanced::is_on( $slug );
 	}
@@ -275,10 +335,28 @@ class Settings {
 	 */
 	public static function advanced_opt_in_on( $slug ) {
 		if ( ! class_exists( __NAMESPACE__ . '\Advanced', false ) ) {
-			$stored = get_option( 'blocklane_pro_advanced', null );
-			return is_array( $stored ) && ! empty( $stored[ $slug ] );
+			return self::advanced_stored( (string) $slug, false );
 		}
 		return Advanced::is_on( $slug );
+	}
+
+	/**
+	 * The stored Advanced row's answer for one toggle, for the paths that run
+	 * when the Advanced class is not loaded to answer it — the ONE raw read of
+	 * the row in this class, serving both polarities (a tool defaults ON, an
+	 * opt-in OFF). isset() semantics, exactly as Advanced::get() and
+	 * Content_Toggle::resolve() read the same row: a present, non-null value
+	 * wins; a missing row, a non-array row, a missing key or a stored null
+	 * means $default. Never writes. The raw readers of this row are pinned by
+	 * bin/toggle-wiring-check.php's invariant 5 (#1004); a new one fails it
+	 * by name.
+	 */
+	private static function advanced_stored( string $slug, bool $default ): bool {
+		$stored = get_option( 'blocklane_pro_advanced', null );
+		if ( ! is_array( $stored ) || ! isset( $stored[ $slug ] ) ) {
+			return $default;
+		}
+		return ! empty( $stored[ $slug ] );
 	}
 
 	/**
@@ -403,6 +481,92 @@ class Settings {
 		echo '<div id="' . esc_attr( Branding::admin_app_dom_id() ) . '"></div>';
 	}
 
+	/**
+	 * Which artifact this is, and what it does NOT contain.
+	 *
+	 * The free dashboard reads `absent` to render a Pro ROW in the place each
+	 * missing feature's control would occupy (screens/pro-row.js). The row
+	 * shows the feature's name, a "Pro" badge and its description, and no
+	 * switch: a switch beside a feature this build does not include, even an
+	 * inoperable one, reads as "this is yours, but locked" — the shape
+	 * guidelines 5 and 9 speak to. Nothing
+	 * here is restricted functionality: the feature's CODE is genuinely not in
+	 * this artifact (its unit left the build), so this is an upsell for a
+	 * separate product, which guideline 5 permits.
+	 *
+	 * KEYED BY UNIT ID, and strings only (the generator's token check proves
+	 * no functional code rides with the catalog). The id is what a Pro row is
+	 * built from, so the compiled bundle carries unit ids and never Pro's own
+	 * copy — which is why the free build's forbidden-UI-string needles still
+	 * hold.
+	 *
+	 * THE CATALOG IS TRANSLATED ONCE, by absent_catalog() below.
+	 * Edition::absent() reads inc/edition.php, which is required as the main
+	 * file's first statement — before `init`, where a __() call would fire
+	 * WordPress's too-early notice and freeze the locale. So the catalog file
+	 * stays pure data, and its translations come from the generated
+	 * inc/edition-catalog-i18n.php — __() calls on literals, which
+	 * `wp i18n make-pot` scans and absent_catalog() requires at admin-enqueue
+	 * time, long after init (#997). The edition battery calls this with a
+	 * `gettext` filter installed and asserts both halves (E42).
+	 *
+	 * TWO KEYS, TWO READERS. `units` is PRESENCE — every unit id this artifact
+	 * contains, sorted; roles stay server-side — and the client's ONE presence
+	 * signal, read by hasUnit() in inc/onboarding/src/edition.js and nowhere
+	 * else (ESLint refuses a second reader). `absent` is COPY and is never a
+	 * presence test: it has an entry only for a LABELED absent unit, so a
+	 * control keyed on it flipped live the day a label was blanked (#1043);
+	 * its one reader is screens/pro-row.js, and PHPStan holds Edition::absent()
+	 * to absent_catalog() (blocklane.chokepointMember). E43 asserts the two keys
+	 * disagree about no unit.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function edition_payload(): array {
+		$units = array_keys( Edition::units() );
+		sort( $units );
+		return array(
+			'edition' => Edition::id(),
+			'name'    => Edition::name(),
+			'proUrl'  => Edition::pro_url(),
+			'units'   => $units,
+			'absent'  => self::absent_catalog(),
+		);
+	}
+
+	/**
+	 * The units this edition does not carry, each with its TRANSLATED label
+	 * and blurb — label and blurb only: the one reader (screens/pro-row.js)
+	 * draws the row from those two; `kind` rode along unread and left the
+	 * payload (#988).
+	 *
+	 * The translations come from inc/edition-catalog-i18n.php, generated from
+	 * the same manifest in the same run as inc/edition.php (--check keeps the
+	 * two fresh together): a table of __() calls on literals, required here,
+	 * after init. Never __( $variable ): that is the wordpress.org "Using
+	 * variables" rejection, and PHPStan's blocklane.gettextLiteral rule fails
+	 * it. A unit the strings file lacks (a stale build) shows its untranslated
+	 * label rather than vanishing.
+	 *
+	 * @return array<string, array{label: string, blurb: string}>
+	 */
+	private static function absent_catalog(): array {
+		$absent = Edition::absent();
+		if ( array() === $absent ) {
+			return array();
+		}
+		$file       = BLOCKLANE_PRO_PATH . '/inc/edition-catalog-i18n.php';
+		$translated = is_file( $file ) ? (array) require $file : array();
+		$catalog    = array();
+		foreach ( $absent as $id => $unit ) {
+			$catalog[ $id ] = array(
+				'label' => (string) ( $translated[ $id ]['label'] ?? $unit['label'] ),
+				'blurb' => (string) ( $translated[ $id ]['blurb'] ?? $unit['blurb'] ),
+			);
+		}
+		return $catalog;
+	}
+
 	public function enqueue_app_assets() {
 		$asset_file_path = BLOCKLANE_PRO_PATH . '/inc/onboarding/build/index.asset.php';
 
@@ -413,19 +577,20 @@ class Settings {
 		$asset_file = include $asset_file_path;
 		$handle     = Branding::admin_app_handle();
 
-		// CodeMirror for the Scripts screen editors. Returns false if the user
-		// disabled the code editor in their profile — the screen falls back to a
-		// plain textarea in that case.
-		$deps        = $asset_file['dependencies'];
-		$code_editor = wp_enqueue_code_editor( array( 'type' => 'text/html' ) );
-		if ( false !== $code_editor ) {
-			$deps = array_merge( $deps, array( 'code-editor', 'wp-codemirror' ) );
-		}
+		/**
+		 * Filters the dashboard app script's dependencies. A unit whose screen
+		 * needs a core script on this page adds the handle here and enqueues
+		 * what that script needs, so this core file carries no unit's editor
+		 * wiring and an edition without the unit loads none of it.
+		 *
+		 * @param string[] $deps Script handles from the build's asset file.
+		 */
+		$deps = array_values( array_filter( (array) apply_filters( 'blocklane_pro_dashboard_app_dependencies', $asset_file['dependencies'] ), 'is_string' ) );
 
-		// The Content Types icon picker renders Dashicons glyphs.
+		// The content-types screen's icon picker renders Dashicons glyphs.
 		wp_enqueue_style( 'dashicons' );
 
-		// wp.media for the Dynamic Values image picker (MediaUpload needs it).
+		// wp.media for the dynamic-values screen's image picker (MediaUpload needs it).
 		wp_enqueue_media();
 
 		wp_enqueue_script(
@@ -465,27 +630,7 @@ class Settings {
 			$handle,
 			Branding::admin_js_object(),
 			array(
-				// Which artifact this is, and what it does NOT contain. The free
-				// dashboard reads `absent` to render one quiet Pro card; the
-				// catalog is strings only (the generator's token check proves
-				// no functional code rides with it), so nothing here is a
-				// greyed-out teaser or a locked control.
-				'edition'      => array(
-					'edition' => Edition::id(),
-					'name'    => Edition::name(),
-					'proUrl'  => Edition::pro_url(),
-					'absent'  => array_values(
-						array_map(
-							static function ( array $unit ): array {
-								return array(
-									'label' => $unit['label'],
-									'blurb' => $unit['blurb'],
-								);
-							},
-							Edition::absent()
-						)
-					),
-				),
+				'edition'      => self::edition_payload(),
 				'restUrl'      => esc_url_raw( rest_url( Branding::rest_namespace() . '/' ) ),
 				'restNonce'    => wp_create_nonce( 'wp_rest' ),
 				'adminUrl'     => esc_url_raw( admin_url() ),
@@ -546,9 +691,7 @@ class Settings {
 			)
 		);
 
-		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations( $handle, 'blocklane', BLOCKLANE_PRO_PATH . '/languages' );
-		}
+		wp_set_script_translations( $handle, 'blocklane', BLOCKLANE_PRO_PATH . '/languages' );
 	}
 
 	public function register_rest_routes() {

@@ -88,6 +88,7 @@ class Svg_Image_Editor extends \WP_Image_Editor {
 		return array(
 			'path'      => $filename,
 			/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own filter, applied here so the hooks other plugins attach to core's editors run for SVGs too.
 			'file'      => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
 			'width'     => $size['width'],
 			'height'    => $size['height'],

@@ -1,6 +1,6 @@
 /**
  * ScreenHeader — the dashboard's page header, one markup for every screen
- * that has one (SEO, Forms, Content Types, Extensions, Advanced): core's
+ * that has one (SEO, Forms, the content-types screen, Extensions, Advanced): core's
  * admin-ui page arrangement — a full-width title section with a hairline
  * bottom border, then the screen's tab row, then content. Title and
  * subtitle come from the screen registry so the copy has one home; a

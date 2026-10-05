@@ -6,8 +6,8 @@
  * template-part editor), or when the block is nested inside a header-area
  * template part within a template.
  *
- * @param {Function} select   Registry select (from useSelect).
- * @param {string}   clientId Block client id.
+ * @param {(storeName: string) => Object} select   Registry select (from useSelect).
+ * @param {string}                        clientId Block client id.
  * @return {boolean} Whether the block renders inside the header.
  */
 export function isInHeaderArea( select, clientId ) {

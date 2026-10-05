@@ -33,9 +33,13 @@ $blocklane_form_inner = isset( $block->parsed_block['innerBlocks'] ) ? $block->p
 // Multi-step (v3): step children flip the form into stepped mode — the view
 // module reveals one at a time. Steps are UX ONLY; the server validates the
 // full schema at submit regardless, so nothing here is a trust boundary.
-$blocklane_form_steps = array();
+$blocklane_form_steps      = array();
+// A step is a step only in an edition that REGISTERS the block (rule 6):
+// under free a Pro-authored stepped form renders flat — every field, no
+// progress list, no stepped attribute — and the view module stays inert.
+$blocklane_form_step_known = in_array( 'form-step', blocklane_pro_forms_known_blocks(), true );
 foreach ( $blocklane_form_inner as $blocklane_form_child ) {
-	if ( is_array( $blocklane_form_child ) && isset( $blocklane_form_child['blockName'] ) && 'blocklane/form-step' === $blocklane_form_child['blockName'] ) {
+	if ( $blocklane_form_step_known && is_array( $blocklane_form_child ) && isset( $blocklane_form_child['blockName'] ) && 'blocklane/form-step' === $blocklane_form_child['blockName'] ) {
 		$blocklane_form_steps[] = isset( $blocklane_form_child['attrs']['label'] ) ? trim( (string) $blocklane_form_child['attrs']['label'] ) : '';
 	}
 }

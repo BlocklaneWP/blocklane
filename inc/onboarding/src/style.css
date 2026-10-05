@@ -321,6 +321,13 @@
 	align-items: stretch;
 }
 
+/* A hero with one child — the free edition's, which has no panel to put in
+   the second column. Set by HomeScreen when no hero slot is present, so the
+   column is not reserved for a panel that does not exist (#998). */
+.blocklane-pro-hero__inner.is-single {
+	grid-template-columns: 1fr;
+}
+
 @media ( max-width: 1250px ) {
 
 	.blocklane-pro-hero__inner {
@@ -1319,9 +1326,9 @@ body.blocklane-pro-embedded .components-modal__screen-overlay {
 	line-height: 1.5;
 }
 
-/* Title row (Dynamic Values, the Content Types editor chrome and section
-   heads): a heading with its actions inline — core's "Plugins [Add Plugin]"
-   row. The search box, when a row has one, is pushed to the right. */
+/* Title row (the dynamic-values screen, the content-types editor chrome and
+   section heads): a heading with its actions inline — core's "Plugins [Add
+   Plugin]" row. The search box, when a row has one, is pushed to the right. */
 .blocklane-pro-extensions__titlerow {
 	display: flex;
 	align-items: center;
@@ -1785,6 +1792,14 @@ body.blocklane-pro-embedded .components-modal__screen-overlay {
 	flex-shrink: 0;
 }
 
+/* A Pro row draws no switch (guideline 9: a switch beside a feature this
+   build does not include reads as a locked included feature). Its empty
+   toggle cell keeps a toggle's width so its title lines up with the live
+   rows' titles. */
+.blocklane-pro-feature-item.is-pro .blocklane-pro-feature-item__toggle {
+	width: 36px;
+}
+
 /* The toggle's label is its accessible name (screen readers) but must not
    render
    visibly — the row already shows the title. hideLabelFromVision doesn't clip
@@ -1836,6 +1851,32 @@ body.blocklane-pro-embedded .components-modal__screen-overlay {
 	background: color-mix(in srgb, var(--fp-accent) 10%, transparent);
 	border-radius: var(--fp-radius-xs);
 	line-height: 1;
+}
+
+/* The detail panel's title line for a Pro row — a paragraph, not a heading
+   (the live path's counterpart is a ToggleControl's label; the screen's only
+   heading is the h1) — standing where the ToggleControl stands so the panel
+   keeps its shape. The title and one link; no badge, the pinned row beside it
+   carries that (#985). Keyed on the class, not the element. */
+.blocklane-pro-extensions__detail-pro {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-bottom: 12px;
+}
+
+.blocklane-pro-extensions__detail-pro-title {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+/* The Pro row reads as ordinary content, not as something withheld: the title
+   keeps full contrast; the description is dimmed a little (below) and the inert
+   switch more (its own rule above), because the switch is the one thing
+   claiming to be a control. */
+.blocklane-pro-feature-item.is-pro .blocklane-pro-feature-item__desc {
+	opacity: 0.85;
 }
 
 .blocklane-pro-feature-item__chevron {
@@ -1982,70 +2023,6 @@ body.blocklane-pro-embedded .components-modal__screen-overlay {
 	margin-top: 0;
 }
 
-/* -------------------------------------------------------------------------
-   Scripts screen
-   ---------------------------------------------------------------------- */
-
-.blocklane-pro-scripts__fields {
-	display: flex;
-	flex-direction: column;
-	gap: 28px;
-}
-
-.blocklane-pro-scripts__field-head {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 12px;
-	margin-bottom: 8px;
-}
-
-.blocklane-pro-scripts__field label {
-	display: block;
-	font-weight: 600;
-	font-size: 13px;
-	color: var(--fp-text);
-}
-
-/* Keep the per-section toggle compact and on the field-head baseline. */
-.blocklane-pro-scripts__field-toggle {
-	margin-bottom: 0;
-	flex-shrink: 0;
-}
-
-/* Section switched off: dim the editor but leave it editable so code can be
-   prepped while it's parked. */
-.blocklane-pro-scripts__field.is-off .CodeMirror,
-.blocklane-pro-scripts__field.is-off .blocklane-pro-scripts__textarea {
-	opacity: 0.55;
-}
-
-.blocklane-pro-scripts__textarea {
-	width: 100%;
-	min-height: 132px;
-	padding: 12px;
-	border: 1px solid var(--fp-border);
-	border-radius: var(--fp-radius-xs);
-	font-family: Menlo, Consolas, monaco, monospace;
-	font-size: 13px;
-	line-height: 1.5;
-	resize: vertical;
-	box-sizing: border-box;
-}
-
-/* CodeMirror replaces the textarea in place; match the field framing. */
-.blocklane-pro-scripts__field .CodeMirror {
-	border: 1px solid var(--fp-border);
-	border-radius: var(--fp-radius-xs);
-	height: auto;
-	min-height: 160px;
-	font-size: 13px;
-}
-
-.blocklane-pro-scripts__field .CodeMirror-scroll {
-	min-height: 160px;
-}
-
 /* Shared loading state for a screen's async content (used by every screen). */
 .blocklane-pro-loading {
 	display: flex;
@@ -2055,7 +2032,7 @@ body.blocklane-pro-embedded .components-modal__screen-overlay {
 }
 
 /* -------------------------------------------------------------------------
-   Dynamic Values screen
+   The dynamic-values screen (module:dynamic-values)
    ---------------------------------------------------------------------- */
 
 .blocklane-pro-dynamic-values__empty {
@@ -2223,7 +2200,7 @@ body.blocklane-pro-embedded .components-modal__screen-overlay {
 }
 
 /* -------------------------------------------------------------------------
-   Content Types screen
+   The content-types screen (module:content-types)
    ---------------------------------------------------------------------- */
 
 .blocklane-pro-ct__empty {
@@ -3328,7 +3305,7 @@ body.blocklane-pro-embedded .components-modal__screen-overlay {
 	}
 }
 
-/* ==== Blocklane AI MCP screen ============================================ */
+/* ==== AI MCP screen (module:ai-mcp) ====================================== */
 
 .blocklane-pro-ai-mcp .blocklane-pro-extensions__lede {
 	max-width: 640px;
@@ -3793,7 +3770,7 @@ body.blocklane-pro-embedded .components-modal__screen-overlay {
 /* ------------------------------------------------------------------
    Page shell — core's admin-ui page arrangement (values measured off
    font-library.php's .admin-ui-page__header), shared by every screen with
-   a page header and tab row (SEO, Forms, Content Types, Extensions,
+   a page header and tab row (SEO, Forms, the content-types screen, Extensions,
    Advanced; ScreenHeader.js + ScreenTabs.js): a full-width title section
    with a hairline bottom border, the tab row, then content. The screen's
    content flex (the shared .blocklane-pro-extensions row with its help
@@ -4166,7 +4143,7 @@ body.blocklane-pro-embedded .components-modal__screen-overlay {
 }
 
 /* Organization logo picker — a bordered thumb that doubles as the Replace
-   button, matching the Dynamic Values screen's image-cell treatment. */
+   button, matching the dynamic-values screen's image-cell treatment. */
 .blocklane-pro-seo-screen__logo-thumb {
 	width: 48px;
 	height: 48px;

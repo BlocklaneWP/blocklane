@@ -261,6 +261,7 @@ class Child_Theme_Import {
 				'post_status'    => 'publish',
 				'posts_per_page' => $limit,
 				'no_found_rows'  => true,
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- a one-off admin import (the child-theme generator), bounded by posts_per_page; the wp_theme taxonomy is how core keys template parts.
 				'tax_query'      => array(
 					array(
 						'taxonomy' => 'wp_theme',

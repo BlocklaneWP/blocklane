@@ -5,22 +5,53 @@
  * The hero is a SLOT. The `license` unit owns screens/home/LicenseHero.js and
  * declares the `home-hero` slot, so an artifact that carries the unit finds it
  * in SLOTS and renders the four-state license hero; one that does not finds
- * nothing there and renders FreeHero — the free copy plus the single ProCard.
+ * nothing there and renders FreeHero — the free copy alone.
+ *
+ * FreeHero carried a single aggregate "Pro" card until 2026-09-21. It was the
+ * whole upsell surface when the only alternative was silence; now each absent
+ * feature keeps its own row on the screen where its control would be
+ * (screens/pro-row.js), so the card repeated what the rows already say. It was
+ * retired rather than kept beside them: the charter's line is that a Pro
+ * mention is contextual, and saying it twice is how "sparingly" (guideline 11)
+ * stops being true.
  *
  * The branch is SLOT PRESENCE, which the generator-filtered slots.js simply IS.
  * This screen reads no edition id: one state with one reader, and no path on
  * which license copy can reach an artifact that has no license.
+ *
+ * The Essential Tools cards follow the same rule. Each card is a file under
+ * home/tool-cards/ owned by the unit whose screen it opens, behind the
+ * one-line-per-card index home/tool-cards.js the generator filters (grammar
+ * B, drop mode): a card for a screen this edition does not carry has no line,
+ * so its title and description are never in this edition's bundle. Until
+ * 2026-09-25 the dynamic-values card was compiled into the free bundle and
+ * switched off by a runtime flag — Pro UI behind a flag, the shape the
+ * manifest forbids (#979). isToolScreenOn() now answers TOGGLE state alone,
+ * for cards that exist.
  */
 
 import { __, sprintf } from '@wordpress/i18n';
 import { Button } from '@wordpress/components';
-import { Icon, code, seen, shortcode } from '@wordpress/icons';
+import { Icon } from '@wordpress/icons';
 
-import { edition as editionPayload, pluginName } from '../edition';
+import { pluginName } from '../edition';
 import { InfoCard } from '../components/InfoCard';
-import { ProCard } from '../components/ProCard';
 import { isToolScreenOn } from '../components/ScreenDisabledNotice';
 import { SLOTS } from './home/slots';
+// Every Essential Tools card, one re-export per line — the index the
+// generator filters (grammar B, drop mode). Namespace import on purpose: the
+// object is whatever the index exports after the filter, and THIS file names
+// no unit and no Pro feature; the index does.
+import * as TOOL_CARDS from './home/tool-cards';
+
+/* The cards in display order. Slugs are shared data (like AdvancedScreen's
+   ROW_ORDER): a namespace import is keyed alphabetically, so the order lives
+   here. A slug whose card this edition does not carry has no entry in
+   TOOL_CARDS and is skipped — no flag, no branch, nothing compiled behind it. */
+const TOOL_CARD_ORDER = [ 'site-privacy', 'dynamic-values', 'scripts' ];
+const CARDS_BY_SLUG = Object.fromEntries(
+	Object.values( TOOL_CARDS ).map( ( card ) => [ card.slug, card ] )
+);
 
 /* Icon art for a tool card (Extensions keeps its pill motif). */
 const ToolIcon = ( { icon } ) => (
@@ -36,11 +67,8 @@ const ToolIcon = ( { icon } ) => (
  * license in an artifact that renders this, and a free plugin whose front door
  * asks for a key is the most reviewer-visible defect there is.
  *
- * @param {Object} props
- * @param {Object} props.edition The localized edition payload (ProCard reads
- *                               `absent` and `proUrl` from it).
  */
-const FreeHero = ( { edition } ) => (
+const FreeHero = () => (
 	<>
 		<div className="blocklane-pro-hero__copy">
 			<p className="blocklane-pro-hero__eyebrow">
@@ -55,9 +83,6 @@ const FreeHero = ( { edition } ) => (
 					'blocklane'
 				) }
 			</p>
-		</div>
-		<div className="blocklane-pro-hero__panel">
-			<ProCard edition={ edition } />
 		</div>
 	</>
 );
@@ -94,7 +119,6 @@ const ToolCard = ( {
 export const HomeScreen = ( { onNavigate } ) => {
 	// Same access pattern the other screens use (ChildThemeScreen, CanvasHeader).
 	const { companionTheme = {} } = window.blocklaneProAdmin || {};
-	const edition = editionPayload();
 
 	// Presence, not an edition id: the slot is here when the unit that owns it
 	// is here, and that is the whole of the test.
@@ -103,12 +127,16 @@ export const HomeScreen = ( { onNavigate } ) => {
 	return (
 		<div className="blocklane-pro-home">
 			<section id="blocklane-pro-hero" className="blocklane-pro-hero">
-				<div className="blocklane-pro-hero__inner">
-					{ HeroSlot ? (
-						<HeroSlot />
-					) : (
-						<FreeHero edition={ edition } />
-					) }
+				{ /* The hero grid has two columns for the slot's copy + panel.
+				     FreeHero renders copy alone, so the wrapper says so: without
+				     `is-single` the second column stayed reserved and empty on
+				     every free install's landing screen (#998). */ }
+				<div
+					className={ `blocklane-pro-hero__inner${
+						HeroSlot ? '' : ' is-single'
+					}` }
+				>
+					{ HeroSlot ? <HeroSlot /> : <FreeHero /> }
 				</div>
 			</section>
 
@@ -220,52 +248,27 @@ export const HomeScreen = ( { onNavigate } ) => {
 					</header>
 
 					<div className="blocklane-pro-tools__grid">
-						{ /* A card points at a Site Tools screen; hide it when
-						     that screen's Advanced toggle is off so it can't
-						     route to a screen with no editor. */ }
-						{ isToolScreenOn( 'site-privacy' ) && (
-							<ToolCard
-								title={ __( 'Site Visibility', 'blocklane' ) }
-								description={ __(
-									'Control who can see the site — public, private, or password-gated while you build.',
-									'blocklane'
-								) }
-								action={ __(
-									'Manage Visibility',
-									'blocklane'
-								) }
-								onAction={ () =>
-									onNavigate?.( 'site-privacy' )
-								}
-								art={ <ToolIcon icon={ seen } /> }
-							/>
-						) }
-						{ isToolScreenOn( 'dynamic-values' ) && (
-							<ToolCard
-								title={ __( 'Dynamic Values', 'blocklane' ) }
-								description={ __(
-									'Define reusable values once — phone, email, logo — then use them anywhere on the site.',
-									'blocklane'
-								) }
-								action={ __( 'Manage Values', 'blocklane' ) }
-								onAction={ () =>
-									onNavigate?.( 'dynamic-values' )
-								}
-								art={ <ToolIcon icon={ shortcode } /> }
-							/>
-						) }
-						{ isToolScreenOn( 'scripts' ) && (
-							<ToolCard
-								title={ __( 'Scripts', 'blocklane' ) }
-								description={ __(
-									'Add header, body, and footer scripts — analytics, pixels, embeds — without touching code.',
-									'blocklane'
-								) }
-								action={ __( 'Manage Scripts', 'blocklane' ) }
-								onAction={ () => onNavigate?.( 'scripts' ) }
-								art={ <ToolIcon icon={ code } /> }
-							/>
-						) }
+						{ /* A card points at a Site Tools screen. Which cards
+						     EXIST is the index's business (a screen this
+						     edition lacks has no card, by construction);
+						     whether one SHOWS is that screen's Advanced
+						     toggle, so a card cannot route to a screen with
+						     no editor. */ }
+						{ TOOL_CARD_ORDER.map(
+							( slug ) => CARDS_BY_SLUG[ slug ]
+						)
+							.filter( Boolean )
+							.filter( ( card ) => isToolScreenOn( card.slug ) )
+							.map( ( card ) => (
+								<ToolCard
+									key={ card.slug }
+									title={ card.title }
+									description={ card.description }
+									action={ card.action }
+									onAction={ () => onNavigate?.( card.slug ) }
+									art={ <ToolIcon icon={ card.icon } /> }
+								/>
+							) ) }
 					</div>
 				</div>
 			</section>

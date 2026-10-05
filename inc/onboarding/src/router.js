@@ -20,16 +20,6 @@ export const getRouteParam = ( key ) =>
 	new URLSearchParams( window.location.search ).get( key );
 
 /**
- * Set or clear a query param on the current URL (preserving the rest, e.g.
- * `page`). Uses replaceState so it doesn't stack history entries.
- *
- * @param {string}      key   Param name.
- * @param {string|null} value Value, or a falsy value to remove the param.
- */
-export const setRouteParam = ( key, value ) =>
-	window.history.replaceState( {}, '', buildRouteUrl( { [ key ]: value } ) );
-
-/**
  * Build a URL for the current page with one or more query params overridden
  * (preserving the rest, e.g. `page`). A falsy value removes that param. Like
  * setRouteParam, but returns the URL instead of navigating — for real `href`
@@ -54,6 +44,16 @@ export const buildRouteUrl = ( overrides ) => {
 		? `${ window.location.pathname }?${ query }`
 		: window.location.pathname;
 };
+
+/**
+ * Set or clear a query param on the current URL (preserving the rest, e.g.
+ * `page`). Uses replaceState so it doesn't stack history entries.
+ *
+ * @param {string}      key   Param name.
+ * @param {string|null} value Value, or a falsy value to remove the param.
+ */
+export const setRouteParam = ( key, value ) =>
+	window.history.replaceState( {}, '', buildRouteUrl( { [ key ]: value } ) );
 
 /**
  * True for any click that must reach the browser instead of the app's

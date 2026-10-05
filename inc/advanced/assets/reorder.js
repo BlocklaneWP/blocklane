@@ -271,90 +271,6 @@
 			tr.style.setProperty( '--blocklane-pro-level', level );
 		};
 
-		/* ---- saving -------------------------------------------------------- */
-
-		/** The flat ID order of the table as a request payload. */
-		const orderPayload = function () {
-			const order = [];
-			list.children( 'tr' ).each( function () {
-				const id = idOf( this );
-				if ( id ) {
-					order.push( id );
-				}
-			} );
-			return { post_type: data.postType, order };
-		};
-
-		/**
-		 * Lock the table, POST the payload, and spin on the moved row. onFail
-		 * must roll the DOM back so the table keeps matching the (unchanged)
-		 * server state; onDone announces success. Callers that already
-		 * refreshed the tree optimistically pass refreshOnSuccess=false so a
-		 * successful save doesn't pay a second identical rebuild — a failure
-		 * always refreshes, since onFail just rolled the DOM back.
-		 * @param {Object}              payload
-		 * @param {HTMLTableRowElement} movedRow
-		 * @param {Function}            onFail
-		 * @param {Function}            [onDone]
-		 * @param {boolean}             [refreshOnSuccess]
-		 */
-		const save = function (
-			payload,
-			movedRow,
-			onFail,
-			onDone,
-			refreshOnSuccess
-		) {
-			saving = true;
-			list.sortable( 'disable' ).addClass( 'blocklane-pro-reordering' );
-
-			const row = $( movedRow );
-			row.addClass( 'blocklane-pro-reordering-row' );
-			let cell = row.find( '.check-column' ).first();
-			if ( ! cell.length ) {
-				cell = row.children( 'td, th' ).first();
-			}
-			const spinner = $(
-				'<span class="spinner is-active blocklane-pro-reorder-spinner"></span>'
-			);
-			cell.append( spinner );
-
-			let failed = false;
-
-			$.ajax( {
-				url: data.restUrl,
-				method: 'POST',
-				data: payload,
-				beforeSend( xhr ) {
-					xhr.setRequestHeader( 'X-WP-Nonce', data.nonce );
-				},
-			} )
-				.done( function () {
-					if ( onDone ) {
-						onDone();
-					}
-				} )
-				.fail( function () {
-					failed = true;
-					onFail();
-					showError();
-				} )
-				.always( function () {
-					spinner.remove();
-					row.removeClass( 'blocklane-pro-reordering-row' );
-					list.sortable( 'enable' ).removeClass(
-						'blocklane-pro-reordering'
-					);
-					saving = false;
-					if (
-						hierarchical &&
-						( failed || false !== refreshOnSuccess )
-					) {
-						refreshTree();
-					}
-				} );
-		};
-
 		/* ---- collapse / expand (hierarchical only) -------------------------- */
 
 		// Collapsed parent IDs survive reloads, per browser + post type. This is
@@ -518,7 +434,7 @@
 			} );
 		};
 
-		/* ---- Indent / Outdent row actions (hierarchical only) -------------- */
+		/* ---- row actions, tree lines, and the one refresh pass ------------- */
 
 		/**
 		 * (Re)build the injected row actions from the current tree: Indent only
@@ -620,85 +536,6 @@
 					);
 				}
 			} );
-		};
-
-		/**
-		 * Move an item (with its subtree) above its previous sibling or below its
-		 * next sibling — the keyboard sequence change. Optimistic like the drag
-		 * path, then save with the same rollback + announcement.
-		 * @param {HTMLElement} trigger The clicked button.
-		 * @param {boolean}     down    True to move down, else up.
-		 */
-		const moveBy = function ( trigger, down ) {
-			if ( saving ) {
-				return;
-			}
-			const model = buildModel();
-			const item =
-				model.byId[ idOf( $( trigger ).closest( 'tr' )[ 0 ] ) ];
-			if ( ! item ) {
-				return;
-			}
-			const sibs = siblingsOf( item, model )
-				.concat( item )
-				.sort( function ( a, b ) {
-					return a.index - b.index;
-				} );
-			const pos = sibs.indexOf( item );
-			const target = down ? sibs[ pos + 1 ] : sibs[ pos - 1 ];
-			if ( ! target ) {
-				return; // Already first/last among its siblings.
-			}
-
-			const block = [ item ].concat( subtreeOf( item, model ) );
-			const oldRows = list.children( 'tr' ).toArray();
-
-			if ( down ) {
-				// After the next sibling's whole subtree.
-				const targetBlock = [ target ].concat(
-					subtreeOf( target, model )
-				);
-				let anchor = $( targetBlock[ targetBlock.length - 1 ].tr );
-				block.forEach( function ( it ) {
-					anchor = $( it.tr ).insertAfter( anchor );
-				} );
-			} else {
-				// Before the previous sibling's first row (order preserved:
-				// each insertBefore lands just before the fixed target).
-				block.forEach( function ( it ) {
-					$( it.tr ).insertBefore( target.tr );
-				} );
-			}
-
-			const refresh = function () {
-				if ( hierarchical ) {
-					refreshTree();
-				} else {
-					renderMoveActions( buildModel() );
-				}
-			};
-			refresh();
-
-			save(
-				orderPayload(),
-				item.tr,
-				function () {
-					list.append( oldRows );
-					refresh();
-				},
-				function () {
-					speak(
-						// eslint-disable-next-line @wordpress/valid-sprintf -- template is localized server-side.
-						sprintf(
-							down
-								? i18n.movedDown || '%s moved down.'
-								: i18n.movedUp || '%s moved up.',
-							titleOf( item.tr )
-						)
-					);
-				},
-				false // Already refreshed optimistically above.
-			);
 		};
 
 		/**
@@ -832,18 +669,183 @@
 			} );
 		};
 
+		/* ---- saving -------------------------------------------------------- */
+
+		/** The flat ID order of the table as a request payload. */
+		const orderPayload = function () {
+			const order = [];
+			list.children( 'tr' ).each( function () {
+				const id = idOf( this );
+				if ( id ) {
+					order.push( id );
+				}
+			} );
+			return { post_type: data.postType, order };
+		};
+
+		/**
+		 * Lock the table, POST the payload, and spin on the moved row. onFail
+		 * must roll the DOM back so the table keeps matching the (unchanged)
+		 * server state; onDone announces success. Callers that already
+		 * refreshed the tree optimistically pass refreshOnSuccess=false so a
+		 * successful save doesn't pay a second identical rebuild — a failure
+		 * always refreshes, since onFail just rolled the DOM back.
+		 * @param {Object}              payload
+		 * @param {HTMLTableRowElement} movedRow
+		 * @param {() => void}          onFail
+		 * @param {() => void}          [onDone]
+		 * @param {boolean}             [refreshOnSuccess]
+		 */
+		const save = function (
+			payload,
+			movedRow,
+			onFail,
+			onDone,
+			refreshOnSuccess
+		) {
+			saving = true;
+			list.sortable( 'disable' ).addClass( 'blocklane-pro-reordering' );
+
+			const row = $( movedRow );
+			row.addClass( 'blocklane-pro-reordering-row' );
+			let cell = row.find( '.check-column' ).first();
+			if ( ! cell.length ) {
+				cell = row.children( 'td, th' ).first();
+			}
+			const spinner = $(
+				'<span class="spinner is-active blocklane-pro-reorder-spinner"></span>'
+			);
+			cell.append( spinner );
+
+			let failed = false;
+
+			$.ajax( {
+				url: data.restUrl,
+				method: 'POST',
+				data: payload,
+				beforeSend( xhr ) {
+					xhr.setRequestHeader( 'X-WP-Nonce', data.nonce );
+				},
+			} )
+				.done( function () {
+					if ( onDone ) {
+						onDone();
+					}
+				} )
+				.fail( function () {
+					failed = true;
+					onFail();
+					showError();
+				} )
+				.always( function () {
+					spinner.remove();
+					row.removeClass( 'blocklane-pro-reordering-row' );
+					list.sortable( 'enable' ).removeClass(
+						'blocklane-pro-reordering'
+					);
+					saving = false;
+					if (
+						hierarchical &&
+						( failed || false !== refreshOnSuccess )
+					) {
+						refreshTree();
+					}
+				} );
+		};
+
+		/* ---- Move / Indent / Outdent: optimistic change, then save ---------- */
+
+		/**
+		 * Move an item (with its subtree) above its previous sibling or below its
+		 * next sibling — the keyboard sequence change. Optimistic like the drag
+		 * path, then save with the same rollback + announcement.
+		 * @param {HTMLElement} trigger The clicked button.
+		 * @param {boolean}     down    True to move down, else up.
+		 */
+		const moveBy = function ( trigger, down ) {
+			if ( saving ) {
+				return;
+			}
+			const model = buildModel();
+			const item =
+				model.byId[ idOf( $( trigger ).closest( 'tr' )[ 0 ] ) ];
+			if ( ! item ) {
+				return;
+			}
+			const sibs = siblingsOf( item, model )
+				.concat( item )
+				.sort( function ( a, b ) {
+					return a.index - b.index;
+				} );
+			const pos = sibs.indexOf( item );
+			const target = down ? sibs[ pos + 1 ] : sibs[ pos - 1 ];
+			if ( ! target ) {
+				return; // Already first/last among its siblings.
+			}
+
+			const block = [ item ].concat( subtreeOf( item, model ) );
+			const oldRows = list.children( 'tr' ).toArray();
+
+			if ( down ) {
+				// After the next sibling's whole subtree.
+				const targetBlock = [ target ].concat(
+					subtreeOf( target, model )
+				);
+				let anchor = $( targetBlock[ targetBlock.length - 1 ].tr );
+				block.forEach( function ( it ) {
+					anchor = $( it.tr ).insertAfter( anchor );
+				} );
+			} else {
+				// Before the previous sibling's first row (order preserved:
+				// each insertBefore lands just before the fixed target).
+				block.forEach( function ( it ) {
+					$( it.tr ).insertBefore( target.tr );
+				} );
+			}
+
+			const refresh = function () {
+				if ( hierarchical ) {
+					refreshTree();
+				} else {
+					renderMoveActions( buildModel() );
+				}
+			};
+			refresh();
+
+			save(
+				orderPayload(),
+				item.tr,
+				function () {
+					list.append( oldRows );
+					refresh();
+				},
+				function () {
+					speak(
+						// eslint-disable-next-line @wordpress/valid-sprintf -- template is localized server-side.
+						sprintf(
+							down
+								? i18n.movedDown || '%s moved down.'
+								: i18n.movedUp || '%s moved up.',
+							titleOf( item.tr )
+						)
+					);
+				},
+				false // Already refreshed optimistically above.
+			);
+		};
+
 		/**
 		 * The shared commit path for Indent and Outdent: apply the optimistic
 		 * DOM change (optional row move, depth shift, parent bookkeeping,
 		 * tree refresh), then save — rolling every piece back on failure.
-		 * @param {Object}      opts
-		 * @param {Object}      opts.item         The buildModel() item to re-parent.
-		 * @param {Object}      opts.model        The buildModel() result.
-		 * @param {number}      opts.parent       New parent ID (0 = top level).
-		 * @param {number}      opts.delta        Depth shift for the block (+1/-1).
-		 * @param {Function}    [opts.move]       Moves the block's rows, given the block.
-		 * @param {number|null} [opts.recollapse] Collapsed ID to restore on failure.
-		 * @param {Function}    opts.announce     Speaks the success message.
+		 * @param {Object}                    opts
+		 * @param {Object}                    opts.item         The buildModel() item to re-parent.
+		 * @param {Object}                    opts.model        The buildModel() result.
+		 * @param {number}                    opts.parent       New parent ID (0 = top level).
+		 * @param {number}                    opts.delta        Depth shift for the block (+1/-1).
+		 * @param {(block: Object[]) => void} [opts.move]       Moves the block's rows, given the block.
+		 * @param {number|null}               [opts.recollapse] Collapsed ID to restore on failure.
+		 * @param {() => void}                opts.announce     Speaks the success message.
 		 */
 		const reparent = function ( opts ) {
 			const item = opts.item;

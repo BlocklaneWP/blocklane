@@ -10,7 +10,7 @@
 import { __ } from '@wordpress/i18n';
 
 /**
- * @param {*} error A thrown value, a WP_Error-shaped object, or a string.
+ * @param {unknown} error A thrown value, a WP_Error-shaped object, or a string.
  * @return {string} The message to show; '' when there is no error.
  */
 export const errorMessage = ( error ) => {

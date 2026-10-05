@@ -4,17 +4,17 @@
  * A unit-or-number value control with a companion slider, modelled on Gutenberg's
  * HeightControl. Shared by advanced-grid and advanced-group.
  *
- * @param {Object}        props
- * @param {Function}      props.onChange    Called with the new value.
- * @param {string}        props.label       Control label.
- * @param {string}        [props.help]      Help text below the control.
- * @param {string[]}      [props.units]     Allowed units (unit type only).
- * @param {string|number} props.value       Current value.
- * @param {string}        [props.type]      'unit' (default) or 'number'.
- * @param {number}        [props.min]       Minimum (default 0).
- * @param {number}        [props.max]       Maximum (default 100).
- * @param {number}        [props.step]      Step (default 1).
- * @param {string}        [props.className] Extra class.
+ * @param {Object}                         props
+ * @param {(value: string|number) => void} props.onChange    Called with the new value.
+ * @param {string}                         props.label       Control label.
+ * @param {string}                         [props.help]      Help text below the control.
+ * @param {string[]}                       [props.units]     Allowed units (unit type only).
+ * @param {string|number}                  props.value       Current value.
+ * @param {string}                         [props.type]      'unit' (default) or 'number'.
+ * @param {number}                         [props.min]       Minimum (default 0).
+ * @param {number}                         [props.max]       Maximum (default 100).
+ * @param {number}                         [props.step]      Step (default 1).
+ * @param {string}                         [props.className] Extra class.
  *
  * @package
  */

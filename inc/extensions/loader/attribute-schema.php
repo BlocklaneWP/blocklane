@@ -55,7 +55,7 @@ if ( ! function_exists( 'blocklane_pro_ext_attribute_schema' ) ) {
 	/**
 	 * The rendered table, read once per request.
 	 *
-	 * @return array<string, list<array{blocks: mixed, attributes: array<string, array<string, mixed>>}>> unit id => groups.
+	 * @return array<string, list<array{blocks: mixed, attributes: array<string, mixed>}>> unit id => groups, each attribute in the compact form blocklane_pro_ext_attribute_definition() expands.
 	 */
 	function blocklane_pro_ext_attribute_schema(): array {
 		static $schema = null;
@@ -64,6 +64,32 @@ if ( ! function_exists( 'blocklane_pro_ext_attribute_schema' ) ) {
 			$schema = is_file( $file ) ? (array) require $file : array();
 		}
 		return $schema;
+	}
+}
+
+if ( ! function_exists( 'blocklane_pro_ext_attribute_definition' ) ) {
+
+	/**
+	 * Expand one rendered attribute into the definition register_block_type
+	 * takes. The table is a name list (see bin/generate-edition.php's
+	 * edition_compact_attribute_schema(), whose inverse this is): a bare
+	 * string is a type with no default, a two-item list is a type and its
+	 * default, and a keyed map is a full definition passed through as is.
+	 *
+	 * @param mixed $rendered One attribute's value in the rendered table.
+	 * @return array<string, mixed> The attribute definition.
+	 */
+	function blocklane_pro_ext_attribute_definition( mixed $rendered ): array {
+		if ( is_string( $rendered ) ) {
+			return array( 'type' => $rendered );
+		}
+		if ( is_array( $rendered ) && array_is_list( $rendered ) && 2 === count( $rendered ) ) {
+			return array(
+				'type'    => $rendered[0],
+				'default' => $rendered[1],
+			);
+		}
+		return is_array( $rendered ) ? $rendered : array();
 	}
 }
 
@@ -122,7 +148,8 @@ if ( ! function_exists( 'blocklane_pro_ext_attribute_schema_args' ) ) {
 					continue;
 				}
 				$attributes = isset( $args['attributes'] ) && is_array( $args['attributes'] ) ? $args['attributes'] : array();
-				foreach ( $group['attributes'] as $name => $schema ) {
+				foreach ( $group['attributes'] as $name => $rendered ) {
+					$schema = blocklane_pro_ext_attribute_definition( $rendered );
 					if ( 'object' === ( $schema['type'] ?? '' ) && array() === ( $schema['default'] ?? null ) ) {
 						$schema['default'] = new \stdClass();
 					}

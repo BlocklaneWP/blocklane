@@ -30,10 +30,10 @@ export const LEGACY_DEEP_LINK_PARAMS = { security: 'sec' };
  * the legacy one. Idempotent: a second call sees a current URL and does
  * nothing.
  *
- * @param {Function} getParam        (key) → value|null, the router's reader.
- * @param {Function} setParam        (key, value|null), the router's writer.
- * @param {Function} deepLinkParamOf (screen) → that screen's item param, or
- *                                   undefined when it has none.
+ * @param {(key: string) => string|null}              getParam        (key) → value|null, the router's reader.
+ * @param {(key: string, value: string|null) => void} setParam        (key, value|null), the router's writer.
+ * @param {(screen: string) => string|undefined}      deepLinkParamOf (screen) → that screen's item param, or
+ *                                                                    undefined when it has none.
  * @return {{screen: string, deepLink: string|null}|null} The route the URL
  *         now describes, or null when nothing was legacy.
  */

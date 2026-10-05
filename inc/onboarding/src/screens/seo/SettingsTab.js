@@ -19,7 +19,7 @@
 import { __, sprintf } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
 // media-utils' MediaUpload is the concrete wp.media implementation, so it
-// works outside the block editor (same import the Dynamic Values screen uses).
+// works outside the block editor (same import the dynamic-values screen uses).
 import { MediaUpload } from '@wordpress/media-utils';
 import { closeSmall } from '@wordpress/icons';
 import {
@@ -61,13 +61,13 @@ const WEEK_DAYS = [
  * Organization logo and the default share image — one implementation, so
  * the two pickers can't drift.
  *
- * @param {Object}   props              Component props.
- * @param {number}   props.id           Attachment ID (0 = none).
- * @param {string}   props.url          Preview URL for the thumb.
- * @param {Function} props.onChange     ( id, url ) on select/remove.
- * @param {string}   props.selectLabel  Empty-state button text.
- * @param {string}   props.replaceLabel aria-label for the thumb button.
- * @param {string}   props.removeLabel  Remove button label.
+ * @param {Object}                            props              Component props.
+ * @param {number}                            props.id           Attachment ID (0 = none).
+ * @param {string}                            props.url          Preview URL for the thumb.
+ * @param {(id: number, url: string) => void} props.onChange     ( id, url ) on select/remove.
+ * @param {string}                            props.selectLabel  Empty-state button text.
+ * @param {string}                            props.replaceLabel aria-label for the thumb button.
+ * @param {string}                            props.removeLabel  Remove button label.
  * @return {JSX.Element} The picker.
  */
 const ImageField = ( {

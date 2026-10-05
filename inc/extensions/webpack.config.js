@@ -4,6 +4,8 @@
  * - editor.js  -> editor-only styles (build/editor.css), enqueued in the editor
  * - *-frontend -> per-extension frontend behavior bundles, enqueued on the front end
  *
+ * withNotices() adds the build's THIRD-PARTY-NOTICES.txt writer (bin/third-party-notices.cjs).
+ *
  * publicPath 'auto' (plus the window.__blocklaneProExtensionsBuildUrl the handler sets)
  * lets dynamically-imported chunks resolve. CopyPlugin ships the cover-term-image
  * preview asset into build/images so it survives rebuilds.
@@ -13,6 +15,7 @@ const defaultConfig = require( '@wordpress/scripts/config/webpack.config' );
 const path = require( 'path' );
 const fs = require( 'fs' );
 const CopyPlugin = require( 'copy-webpack-plugin' );
+const { withNotices } = require( '../../bin/third-party-notices.cjs' );
 
 /**
  * Keep only the entries whose source is actually present.
@@ -34,7 +37,7 @@ const present = ( entries ) =>
 		)
 	);
 
-module.exports = {
+module.exports = withNotices( {
 	...defaultConfig,
 	entry: present( {
 		index: path.resolve( __dirname, 'src', 'index.js' ),
@@ -84,4 +87,4 @@ module.exports = {
 			],
 		} ),
 	],
-};
+} );

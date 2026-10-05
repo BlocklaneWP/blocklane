@@ -1,23 +1,36 @@
 /**
  * Screen registry — the single source of truth for dashboard screens.
  *
- * To add a dashboard screen you add ONE entry here (and drop the screen file in
- * ../screens), plus its slug => label in Settings::screens_manifest()
- * (inc/class-blocklane-pro-settings.php) — the nav is wp-admin's own submenu,
- * registered server-side, so PHP mirrors this list. The Shell derives routing,
- * full-bleed, and code-splitting from here, in order.
+ * The COPY of a screen (label, title, subtitle, icon, params) lives in its
+ * own file under screens/meta/, re-exported one line per screen by
+ * screens/meta.js; the COMPONENT lives one line per screen in
+ * screens/components.js. Both indexes are line grammars
+ * bin/generate-edition.php filters by the manifest, so an edition that does
+ * not carry a screen's unit carries neither its component nor its copy — the
+ * label of a feature this artifact does not contain is never compiled into
+ * its bundle (#979). This file names no unit and reads no edition: it derives
+ * SCREENS from what the two indexes still export.
+ *
+ * To add a dashboard screen: a file under screens/meta/ and a line in
+ * screens/meta.js, a line in screens/components.js (and the screen file), the
+ * slug in SCREEN_ORDER below, and in edition-manifest.json the unit's
+ * `screen` plus the meta path in its `paths` — the generator's rule 16 refuses
+ * a unit that declares a screen without owning its meta file, so the omission
+ * fails the build rather than shipping the label everywhere. PHP mirrors the
+ * list in Settings::screens_manifest() for wp-admin's submenu.
  *
  * Home is eager (bundled in the main chunk) for instant first paint; every other
  * screen is code-split via `Component: lazyScreen(...)` and rendered inside the
  * Shell's Suspense boundary, so the dashboard stays light as features grow.
  *
- * Entry shape:
+ * Entry shape (each screens/meta/<slug>.js default-exports one):
  *   slug          URL ?screen= value + nav key (unique)
  *   label         sidebar nav label
  *   title         sidebar header title for the active screen
  *   subtitle      sidebar header subtitle for the active screen
- *   icon          @wordpress/icons glyph
- *   Component      the screen component (eager import, or lazyScreen(...))
+ *   icon          `@wordpress/icons` glyph
+ *   Component      the screen component (eager import, or lazyScreen(...)),
+ *                  joined in from components.js
  *   fullBleed      hide the CanvasHeader (screen owns its own header) — default true
  *   isHome         receives the onNavigate prop; used as the default route
  *   deepLinkParam  optional URL param this screen consumes (e.g. 'ext')
@@ -31,178 +44,46 @@
  *                  an entry without them.
  */
 
-import { __ } from '@wordpress/i18n';
-import {
-	home as homeIcon,
-	settings as extensionsIcon,
-	code as scriptsIcon,
-	tag as dynamicValuesIcon,
-	layout as contentTypesIcon,
-	lock as sitePrivacyIcon,
-	tool as advancedIcon,
-	archive as childThemeIcon,
-	plugins as aiMcpIcon,
-	envelope as formsIcon,
-} from '@wordpress/icons';
-// The SEO mark — same glyph as the editor sidebar's toolbar icon, from the
-// shared module so the two can't drift.
-import { seoIcon } from '../../../shared/seo-ui';
-
+import * as META from './meta';
 import { COMPONENTS } from './components';
 
 /* Every screen this PRODUCT has, in nav order — including ones this artifact
-   may not carry. Exported so registry.test.js can hold it in lockstep with
-   COMPONENTS: a key in one list and not the other is silent otherwise (a
-   typo'd COMPONENTS key drops the real screen out of SCREENS, and wp-admin's
-   submenu item then lands on the Dashboard with no error anywhere). */
-export const ALL = [
-	{
-		slug: 'home',
-		label: __( 'Dashboard', 'blocklane' ),
-		title: __( 'Dashboard', 'blocklane' ),
-		subtitle: __(
-			'Quickly access the tools and resources you need to build with FSE.',
-			'blocklane'
-		),
-		icon: homeIcon,
-		fullBleed: false,
-		isHome: true,
-	},
-	{
-		slug: 'dynamic-values',
-		label: __( 'Dynamic Values', 'blocklane' ),
-		title: __( 'Dynamic Values', 'blocklane' ),
-		subtitle: __(
-			'Define reusable values once and bind blocks to them across the site.',
-			'blocklane'
-		),
-		icon: dynamicValuesIcon,
-		fullBleed: true,
-	},
-	{
-		slug: 'content-types',
-		label: __( 'Content Types', 'blocklane' ),
-		title: __( 'Content Types', 'blocklane' ),
-		subtitle: __(
-			'Build custom post types with fields and taxonomies — locations, team, testimonials — that survive deactivation.',
-			'blocklane'
-		),
-		icon: contentTypesIcon,
-		fullBleed: true,
-		deepLinkParam: 'ct',
-		deepLinkProp: 'initialType',
-		tabParam: 'cttab',
-	},
-	{
-		slug: 'seo',
-		label: __( 'SEO', 'blocklane' ),
-		title: __( 'SEO', 'blocklane' ),
-		subtitle: __(
-			'Visibility tools for your site — sitemaps, search-engine settings, and more, in one place.',
-			'blocklane'
-		),
-		icon: seoIcon,
-		fullBleed: true,
-		deepLinkParam: 'seotab',
-		deepLinkProp: 'initialTab',
-	},
-	{
-		slug: 'forms',
-		label: __( 'Forms', 'blocklane' ),
-		title: __( 'Forms', 'blocklane' ),
-		subtitle: __(
-			'Submissions from your forms — every entry is kept here even when email fails.',
-			'blocklane'
-		),
-		icon: formsIcon,
-		fullBleed: true,
-		deepLinkParam: 'formstab',
-		deepLinkProp: 'initialTab',
-	},
-	{
-		slug: 'scripts',
-		label: __( 'Scripts', 'blocklane' ),
-		title: __( 'Scripts', 'blocklane' ),
-		subtitle: __(
-			'Add custom header, body, and footer code — analytics, pixels, and more.',
-			'blocklane'
-		),
-		icon: scriptsIcon,
-		fullBleed: true,
-	},
-	{
-		slug: 'site-privacy',
-		label: __( 'Site Visibility', 'blocklane' ),
-		title: __( 'Site Visibility', 'blocklane' ),
-		subtitle: __(
-			'Control who can see the site — a password or maintenance page for visitors, plus search-engine indexing.',
-			'blocklane'
-		),
-		icon: sitePrivacyIcon,
-		fullBleed: true,
-	},
-	{
-		slug: 'extensions',
-		label: __( 'Extensions', 'blocklane' ),
-		title: __( 'Extensions', 'blocklane' ),
-		subtitle: __(
-			'Toggle block-editor enhancements for the core blocks you already use.',
-			'blocklane'
-		),
-		icon: extensionsIcon,
-		fullBleed: true,
-		deepLinkParam: 'ext',
-		deepLinkProp: 'initialExtension',
-		tabParam: 'exttab',
-	},
-	{
-		slug: 'advanced',
-		label: __( 'Advanced', 'blocklane' ),
-		title: __( 'Advanced', 'blocklane' ),
-		subtitle: __(
-			'Opt-in admin, content, and security enhancements that work right inside core WordPress.',
-			'blocklane'
-		),
-		icon: advancedIcon,
-		fullBleed: true,
-		deepLinkParam: 'adv',
-		deepLinkProp: 'initialFeature',
-		tabParam: 'advtab',
-	},
-	{
-		slug: 'child-theme',
-		label: __( 'Create Child Theme', 'blocklane' ),
-		title: __( 'Create Child Theme', 'blocklane' ),
-		subtitle: __(
-			'Generate a child theme so you can fork without touching the parent.',
-			'blocklane'
-		),
-		icon: childThemeIcon,
-		fullBleed: true,
-	},
-	{
-		slug: 'ai-mcp',
-		label: __( 'Blocklane AI MCP', 'blocklane' ),
-		title: __( 'Blocklane AI MCP', 'blocklane' ),
-		subtitle: __(
-			'Connect your site to an external AI tool through the WordPress Abilities API and MCP.',
-			'blocklane'
-		),
-		icon: aiMcpIcon,
-		fullBleed: true,
-	},
+   may not carry. Slugs are shared data (like AdvancedScreen's ROW_ORDER): a
+   slug names a screen, it carries no copy. A namespace import is keyed
+   alphabetically, so the order has to live here and not in meta.js.
+   registry.test.js holds this list equal to the manifest's core_screens plus
+   every unit's `screen`, so a typo here fails a test naming the slug rather
+   than silently dropping a screen. */
+export const SCREEN_ORDER = [
+	'home',
+	'dynamic-values',
+	'content-types',
+	'seo',
+	'forms',
+	'scripts',
+	'site-privacy',
+	'extensions',
+	'advanced',
+	'child-theme',
+	'ai-mcp',
 ];
+
+/* THIS artifact's entries, keyed by slug — whatever screens/meta.js still
+   re-exports after the generator's filter. */
+export const ENTRIES = Object.fromEntries(
+	Object.values( META ).map( ( m ) => [ m.slug, m ] )
+);
 
 /**
  * The screens this artifact actually carries, in order.
  *
- * A screen survives only if components.js still has a line for it — which is
- * how the free build ends up without Content Types, Dynamic Values or AI MCP
- * without registry.js needing to know anything about editions.
+ * A screen survives only if BOTH indexes still have a line for it — which is
+ * how the free build ends up without the module screens it does not carry,
+ * copy included, without this file needing to know anything about editions.
  */
-export const SCREENS = ALL.filter(
-	( screen ) => screen.slug in COMPONENTS
-).map( ( screen ) => ( { ...screen, Component: COMPONENTS[ screen.slug ] } ) );
+export const SCREENS = SCREEN_ORDER.filter(
+	( s ) => s in ENTRIES && s in COMPONENTS
+).map( ( s ) => ( { ...ENTRIES[ s ], Component: COMPONENTS[ s ] } ) );
 
 /**
  * Soft lookup for the Shell's ROUTING only: an unknown slug falls back to

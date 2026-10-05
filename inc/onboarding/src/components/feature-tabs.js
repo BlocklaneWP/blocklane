@@ -100,8 +100,8 @@ export const matchesSearch = ( query, ...texts ) => {
  * Whether every listed item is on — false for an empty list, so an empty
  * tab never reads as "all on" (`[].every` is true).
  *
- * @param {Array}    slugs Item slugs on the tab.
- * @param {Function} isOn  ( slug ) → boolean.
+ * @param {Array}                     slugs Item slugs on the tab.
+ * @param {(slug: string) => boolean} isOn  Whether the item is on.
  * @return {boolean} Whether all are on.
  */
 export const allOn = ( slugs, isOn ) => slugs.length > 0 && slugs.every( isOn );

@@ -53,6 +53,12 @@ class Security_Controller implements Rest_Registrable {
 		return true;
 	}
 
+	/**
+	 * GET: `settings` is EDITION-SHAPED — exactly the keys this edition owns
+	 * (Security::get(), the known() view), so the client can PUT it back whole;
+	 * a key contributed by a unit this build does not carry is never in it.
+	 * `forced` names the toggles the environment holds on.
+	 */
 	public function get_settings( \WP_REST_Request $request ) {
 		unset( $request );
 

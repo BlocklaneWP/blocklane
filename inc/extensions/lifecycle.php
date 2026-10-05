@@ -178,11 +178,3 @@ function blocklane_pro_ext_seed_toggle_rows(): void {
 
 }
 add_action( 'blocklane_pro_version_changed', 'blocklane_pro_ext_seed_toggle_rows' );
-
-
-// Registered at file scope — not inside blocklane_pro_run_plugin — so a direct
-// toggle write (WP-CLI, say) is recorded even while the companion theme is
-// inactive and the plugin's UI never boots.
-add_action( 'added_option', 'blocklane_pro_ext_seeded_ledger_evict' );
-add_action( 'updated_option', 'blocklane_pro_ext_seeded_ledger_evict' );
-add_action( 'deleted_option', 'blocklane_pro_ext_seeded_ledger_evict' );

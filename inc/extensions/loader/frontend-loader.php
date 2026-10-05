@@ -49,14 +49,6 @@ if ( blocklane_pro_edition_has( 'extension:cover-term-image' ) ) {
 	require_once __DIR__ . '/cover-term-image/cover-term-image.php';
 }
 
-// The icon runtime is the renderer for placed icons — content, not tooling —
-// so it loads regardless of the extension toggle: a switched-off picker must
-// never blank icons already placed in saved content. The picker/REST half
-// stays plugin-side, behind its own capability checks.
-if ( blocklane_pro_edition_has( 'extension:icon-library' ) ) {
-	require_once __DIR__ . '/icon-library/icon-library.php';
-}
-
 // Tab descriptions are authored, visible copy — content, not tooling — so the
 // projection (spans + aria-describedby) renders regardless of the Advanced
 // Tabs toggle, by the same principle as icons above (ruled 2026-08-28, issue
@@ -96,10 +88,10 @@ foreach ( $blocklane_pro_ext_frontend_map as $blocklane_pro_ext_slug => $blockla
 	$blocklane_pro_ext_file = __DIR__ . '/' . $blocklane_pro_ext_def[0];
 	if ( ! is_file( $blocklane_pro_ext_file ) ) {
 		// The edition says this unit is here and the disk disagrees: a torn
-		// deploy. Say so once rather than rendering silently wrong forever —
-		// the file_exists() that used to stand here made this case invisible.
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- a shipped-build defect.
-		error_log( 'Blocklane: extension runtime inc/extensions/loader/' . $blocklane_pro_ext_def[0] . ' is missing. Reinstall the plugin.' );
+		// deploy. Say so in the log, WP_DEBUG or not, rather than rendering
+		// silently wrong forever — the file_exists() that used to stand here
+		// made this case invisible.
+		blocklane_pro_log_failure( 'Blocklane: extension runtime inc/extensions/loader/' . $blocklane_pro_ext_def[0] . ' is missing. Reinstall the plugin.' );
 		continue;
 	}
 	require_once $blocklane_pro_ext_file;

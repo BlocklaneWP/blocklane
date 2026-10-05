@@ -227,10 +227,10 @@ function labelWithTip( label, tip ) {
  * settings.viewport (the core 7.1 source of truth), so core's responsive
  * styles and visibility move with it.
  *
- * @param {Object}   props         Component props.
- * @param {string}   props.device  Breakpoint being edited ('tablet' | 'mobile').
- * @param {Object}   props.current Current { tablet, mobile }.
- * @param {Function} props.onSaved Called with the saved { tablet, mobile }.
+ * @param {Object}                                            props         Component props.
+ * @param {string}                                            props.device  Breakpoint being edited ('tablet' | 'mobile').
+ * @param {Object}                                            props.current Current { tablet, mobile }.
+ * @param {(saved: {tablet: number, mobile: number}) => void} props.onSaved Called with the saved { tablet, mobile }.
  * @return {JSX.Element} The form.
  */
 function BreakpointsForm( { device, current, onSaved } ) {
@@ -355,10 +355,10 @@ function BreakpointsForm( { device, current, onSaved } ) {
  * panel so admins can tune it without leaving the editor. Renders an "Edit"
  * link that opens the form in a popover flying out left of the sidebar.
  *
- * @param {Object}   props         Component props.
- * @param {string}   props.device  Breakpoint to edit ('tablet' | 'mobile').
- * @param {Object}   props.current Current { tablet, mobile }.
- * @param {Function} props.onSaved Called with the saved { tablet, mobile }.
+ * @param {Object}                                            props         Component props.
+ * @param {string}                                            props.device  Breakpoint to edit ('tablet' | 'mobile').
+ * @param {Object}                                            props.current Current { tablet, mobile }.
+ * @param {(saved: {tablet: number, mobile: number}) => void} props.onSaved Called with the saved { tablet, mobile }.
  * @return {JSX.Element} The trigger + popover.
  */
 function BreakpointsEditor( { device, current, onSaved } ) {
@@ -499,10 +499,10 @@ if ( isEnabled ) {
 	 * Write (or clear) one device's hide flag in CORE's
 	 * metadata.blockVisibility.viewport, pruning empty objects.
 	 *
-	 * @param {Object}   attributes    Block attributes.
-	 * @param {Function} setAttributes Attribute setter.
-	 * @param {string}   device        'desktop' | 'tablet' | 'mobile'.
-	 * @param {boolean}  hidden        Whether to hide on that device.
+	 * @param {Object}                       attributes    Block attributes.
+	 * @param {(attributes: Object) => void} setAttributes Attribute setter.
+	 * @param {string}                       device        'desktop' | 'tablet' | 'mobile'.
+	 * @param {boolean}                      hidden        Whether to hide on that device.
 	 */
 	const writeViewportHide = ( attributes, setAttributes, device, hidden ) => {
 		const metadata = { ...( attributes.metadata ?? {} ) };
@@ -543,10 +543,10 @@ if ( isEnabled ) {
 	 * toolbar eye appears only once a block is already hidden somewhere), so
 	 * we surface it per device.
 	 *
-	 * @param {Object}   props
-	 * @param {string}   props.clientId      Block client ID.
-	 * @param {Object}   props.attributes    Block attributes.
-	 * @param {Function} props.setAttributes Attribute setter.
+	 * @param {Object}                       props
+	 * @param {string}                       props.clientId      Block client ID.
+	 * @param {Object}                       props.attributes    Block attributes.
+	 * @param {(attributes: Object) => void} props.setAttributes Attribute setter.
 	 */
 	function ResponsiveHideControl( { clientId, attributes, setAttributes } ) {
 		const deviceType = useDeviceType();
@@ -853,11 +853,11 @@ if ( isEnabled ) {
 	/**
 	 * Per-breakpoint max width (core's style engine has no max-width).
 	 *
-	 * @param {Object}   props
-	 * @param {string}   props.clientId      Block client ID.
-	 * @param {string}   props.name          Block name.
-	 * @param {Object}   props.attributes    Block attributes.
-	 * @param {Function} props.setAttributes Attribute setter.
+	 * @param {Object}                       props
+	 * @param {string}                       props.clientId      Block client ID.
+	 * @param {string}                       props.name          Block name.
+	 * @param {Object}                       props.attributes    Block attributes.
+	 * @param {(attributes: Object) => void} props.setAttributes Attribute setter.
 	 */
 	function ResponsiveMaxWidthControl( {
 		clientId,

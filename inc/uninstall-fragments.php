@@ -76,8 +76,9 @@ if ( ! function_exists( 'blocklane_pro_uninstall_fragments' ) ) {
 		foreach ( $fragments as $unit => $rel ) {
 			$path = rtrim( $plugin_dir, '/' ) . '/' . (string) $rel;
 			if ( ! is_file( $path ) ) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- a torn build; uninstall must still finish.
-				error_log( 'Blocklane: uninstall fragment ' . (string) $rel . ' (unit ' . (string) $unit . ') is missing; its teardown was skipped.' );
+				// A torn build; uninstall must still finish, and this line is the
+				// only trace that a unit's teardown never ran.
+				blocklane_pro_log_failure( 'Blocklane: uninstall fragment ' . (string) $rel . ' (unit ' . (string) $unit . ') is missing; its teardown was skipped.' );
 				continue;
 			}
 			require_once $path;
@@ -157,6 +158,7 @@ if ( ! function_exists( 'blocklane_pro_uninstall_plan' ) ) {
 		// value, a comma) — never a hand-typed byte string, which a renderer
 		// realignment would silently stop matching, turning a torn build of
 		// ours into "some other product" and the sweep fail-OPEN beside it.
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export -- var_export() builds the PHP string literal the renderer writes, so the grammar matches it exactly; nothing is logged.
 		$domain_line = '/^\t\'text_domain\'\s*=>\s*' . preg_quote( var_export( $text_domain, true ), '/' ) . ',$/m';
 		foreach ( $dirs as $dir ) {
 			if ( isset( $known[ $dir ] ) || ! is_file( $plugins_dir . '/' . $dir . '/inc/edition.php' ) ) {

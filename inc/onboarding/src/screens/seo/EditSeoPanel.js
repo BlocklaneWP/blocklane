@@ -3,7 +3,7 @@
  *
  * Built from the same core primitives as the page editor's settings sidebar
  * — Panel / PanelHeader / PanelBody / VStack — so the header row, borders,
- * padding, and typography all come from @wordpress/components' own styles,
+ * padding, and typography all come from `@wordpress/components`' own styles,
  * not custom CSS. Edits the same four meta fields as the editor's SEO
  * sidebar, with the same live search preview.
  */

@@ -1,19 +1,18 @@
-Blocklane Pro — License
+Blocklane — License
 
-Copyright (C) 2026 Garrett Johnson
+Copyright (C) 2026 Blocklane LLC
 
-Blocklane Pro is free software: you can redistribute it and/or modify it under the
+Blocklane is free software: you can redistribute it and/or modify it under the
 terms of the GNU General Public License as published by the Free Software
 Foundation; either version 2 of the License, or (at your option) any later
 version.
 
-Blocklane Pro is distributed in the hope that it will be useful, but WITHOUT ANY
+Blocklane is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE. See the GNU General Public License below for more details.
 
-Portions of Blocklane Pro are derived from Ollie Pro (https://olliewp.com),
-Copyright (C) OllieWP Team, which is also distributed under GPL-2.0-or-later.
-Those portions have been modified. See credits.txt for details.
+Bundled third-party works keep their own licenses; credits.txt names each one
+and the file that carries its license text.
 
 The full text of the GNU General Public License, version 2, follows.
 

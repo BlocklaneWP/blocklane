@@ -1,14 +1,22 @@
 /**
- * Popups — front-end behavior: trigger engine (time / scroll % / exit intent /
- * manual), frequency cookies (seen + dismissed windows), one-per-position
- * slots with queueing, and position-dependent a11y — center popups are real
- * modals (focus trap, scroll lock, Escape/overlay close, focus return);
- * corner slide-ins are non-modal. Plus the Popup Bindings surfaces
- * (popup-bindings.md): delegated click + keyboard openers, in-content
- * closers, #blocklane-popup-{id} hash deep-links, and the
- * blocklane:popup-open / blocklane:popup-close analytics events. Plain
- * script on purpose (video-modal precedent): nothing here hydrates server
- * directives, and a buildless file bakes cleanly.
+ * Popups — front-end behavior: the trigger REGISTRY (time and manual arm
+ * here; a contributing unit registers its own trigger types through
+ * window.blocklanePopups.register — the second registry of the popups
+ * vocabularies, edition-manifest rule 6), frequency cookies (seen +
+ * dismissed windows), one-per-position slots with queueing, and
+ * position-dependent a11y — center popups are real modals (focus trap,
+ * scroll lock, Escape/overlay close, focus return); corner slide-ins are
+ * non-modal. Plus the Popup Bindings surfaces (popup-bindings.md):
+ * delegated click + keyboard openers, in-content closers,
+ * #blocklane-popup-{id} hash deep-links, and the blocklane:popup-open /
+ * blocklane:popup-close analytics events. Plain script on purpose
+ * (video-modal precedent): nothing here hydrates server directives, and a
+ * buildless file bakes cleanly.
+ *
+ * A popup whose trigger type has no arm in this edition is PARKED: it keeps
+ * its stored trigger verbatim, opens only by click, hash or preview, and is
+ * armed the moment a unit registers that type — even after init() ran.
+ * Never coerced to a page-load popup.
  *
  * @package
  */
@@ -301,7 +309,35 @@
 		}
 	}
 
-	// --- Triggers -----------------------------------------------------------
+	// --- Trigger registry ---------------------------------------------------
+	//
+	// type => arm( el, settings, fire ). A unit registers the types it owns;
+	// popups whose type has no arm yet wait in `pending` and are armed by the
+	// registration that brings it — so script order cannot lose a popup, and
+	// a type this edition never registers stays parked (opened by click, hash
+	// or preview only). One registration per type: the last wins, as with
+	// any registry, and the base file registers exactly its own two.
+	const arms = {};
+	const pending = {};
+
+	function register( type, arm ) {
+		arms[ type ] = arm;
+		( pending[ type ] || [] ).forEach( function ( entry ) {
+			arm( entry.el, entry.settings, entry.fire );
+		} );
+		delete pending[ type ];
+	}
+
+	window.blocklanePopups = window.blocklanePopups || {};
+	window.blocklanePopups.register = register;
+
+	register( 'time', function ( el, settings, fire ) {
+		window.setTimeout( fire, settings.trigger.value * 1000 );
+	} );
+	// Manual arms nothing — the delegated click openers below are the only
+	// way in. Registered explicitly so "no arm" always means "not in this
+	// edition", never "forgot".
+	register( 'manual', function () {} );
 
 	function armTrigger( el, settings ) {
 		let fired = false;
@@ -313,47 +349,16 @@
 			open( el, settings, settings.trigger.type );
 		};
 
-		switch ( settings.trigger.type ) {
-			case 'time':
-				window.setTimeout( fire, settings.trigger.value * 1000 );
-				break;
-
-			case 'scroll': {
-				const target = Math.min( 100, settings.trigger.value || 0 );
-				const onScroll = function () {
-					const doc = document.documentElement;
-					const scrollable = doc.scrollHeight - window.innerHeight;
-					const pct =
-						scrollable <= 0
-							? 100
-							: ( window.scrollY / scrollable ) * 100;
-					if ( pct >= target ) {
-						window.removeEventListener( 'scroll', onScroll );
-						fire();
-					}
-				};
-				window.addEventListener( 'scroll', onScroll, {
-					passive: true,
-				} );
-				onScroll();
-				break;
-			}
-
-			case 'exit': {
-				// Desktop exit intent: pointer leaves through the viewport top.
-				const onLeave = function ( event ) {
-					if ( event.clientY <= 0 && ! event.relatedTarget ) {
-						document.removeEventListener( 'mouseout', onLeave );
-						fire();
-					}
-				};
-				document.addEventListener( 'mouseout', onLeave );
-				break;
-			}
-
-			// 'manual' arms nothing — the delegated click openers below are
-			// the only way in.
+		const type = settings.trigger.type;
+		if ( arms[ type ] ) {
+			arms[ type ]( el, settings, fire );
+			return;
 		}
+		( pending[ type ] = pending[ type ] || [] ).push( {
+			el,
+			settings,
+			fire,
+		} );
 	}
 
 	// --- Init ---------------------------------------------------------------

@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Advanced implements Bootable {
+final class Advanced implements Bootable {
 
 	const OPTION = 'blocklane_pro_advanced';
 
@@ -111,16 +111,33 @@ class Advanced implements Bootable {
 	}
 
 	/**
-	 * Normalized settings — each key cast by the type of its default.
+	 * Normalized settings — every key this EDITION owns, cast by the type of
+	 * its default. Keys the stored row holds for units this build does not
+	 * carry are not returned: a reader never sees, edits or echoes a key it
+	 * cannot write (that is what makes the dashboard's whole-object PUT safe
+	 * to send back), and they survive in the row untouched (save()).
 	 *
-	 * @return array
+	 * @return array<string, bool|int|array<int, string>|string>
 	 */
-	public static function get() {
+	public static function get(): array {
+		return self::normalized( self::known() );
+	}
+
+	/**
+	 * get()'s read, over a known() view the caller already derived: the
+	 * stored row normalized to exactly the keys of $known. save() reads the
+	 * row twice (the current values, then what it stored) through the ONE
+	 * view it bound, instead of deriving the view again for each read.
+	 *
+	 * @param array<string, bool|int|array<int, string>|string> $known The known() view.
+	 * @return array<string, bool|int|array<int, string>|string>
+	 */
+	private static function normalized( array $known ): array {
 		$stored = get_option( self::OPTION, array() );
 		$stored = is_array( $stored ) ? $stored : array();
 
 		$out = array();
-		foreach ( self::DEFAULTS as $key => $default ) {
+		foreach ( $known as $key => $default ) {
 			if ( is_bool( $default ) ) {
 				$out[ $key ] = isset( $stored[ $key ] ) ? (bool) $stored[ $key ] : $default;
 			} elseif ( is_int( $default ) ) {
@@ -137,30 +154,100 @@ class Advanced implements Bootable {
 	}
 
 	/**
-	 * Persist from a request payload; values re-normalized. Unknown keys in the
-	 * PAYLOAD are ignored; unknown keys in the STORED row are preserved
-	 * (Helper::with_foreign_keys — this store was the model for the rule, and
-	 * the helper is its shared implementation). Omitted keys keep their
-	 * CURRENTLY STORED value (self::get(), already normalized) — never the
-	 * shipped default: the REST route accepts partial maps, and filling
-	 * absences from DEFAULTS let any partial payload silently reset every
-	 * toggle the caller didn't mention.
+	 * The keys this EDITION owns — the one definition of "known" for this
+	 * store, derived once per door: get() derives it for its one read, and
+	 * save() derives it once and hands that bound view to every step (#1005).
 	 *
-	 * @param array $settings
-	 * @return array|\WP_Error The normalized settings as stored, or the helper's typed refusal (nothing written).
+	 * DEFAULTS is the SHIPPED table, identical in both editions: the schema Pro
+	 * reads a free-written row through (a key free never authored falls to Pro's
+	 * own default), and the table Content_Toggle mirrors. It is not what this
+	 * build owns. Five of its toggles belong to units the free build does not
+	 * carry, and every door that iterated the shipped table directly invented
+	 * its own ownership or none: get() handed the free client Pro keys, the
+	 * client PUT them back, the refusal rejected every free save (#969); the
+	 * writer skipped them while the carry-through was told they were known and
+	 * erased Pro's stored values (#968); the predicate that claimed to be the
+	 * one answer had two of five callers (#970). One missing definition, four
+	 * findings.
+	 *
+	 * get() reads this (through normalized()); save() binds it once, and the
+	 * refusal takes its complement (absent()), both reads of the row
+	 * normalize to it, the writer iterates it and with_foreign_keys() takes it
+	 * as $known — an absent key is FOREIGN here by construction and rides
+	 * through raw. A door that reads
+	 * the DEFAULTS constant or calls Edition::toggle_unit() anywhere else is a
+	 * PHPStan error, blocklane.chokepointMember (tools/phpstan-rules/rules.neon).
+	 *
+	 * Outside the mechanism, and pinned so nobody documents it wider: the RAW
+	 * readers of the row are exactly the files bin/toggle-wiring-check.php's
+	 * invariant 5 lists — Settings::advanced_stored() (the fallback for both
+	 * toggle polarities when this class is not loaded), Modules::toggle_on_stored()
+	 * (the boot gate's fallback), Content_Toggle::on() (the content runtimes'
+	 * mirror of get()'s isset() semantics) and uninstall.php's final read. Each
+	 * reads only and never writes; a fifth reader anywhere under inc/ fails
+	 * that check by name (#1004). This class is final so the member rule's
+	 * "referenced class" resolution cannot be walked around by a subclass
+	 * reading DEFAULTS through its own name (#1006).
+	 *
+	 * Not memoized: Edition::data() already is, and a per-request cache is one
+	 * more state a battery could leave stale. Computing it once per save() is
+	 * a local variable, which outlives nothing.
+	 *
+	 * @return array<string, bool|int|array<int, string>|string> Key => shipped default, this edition's subset.
 	 */
-	public static function save( array $settings ): array|\WP_Error {
-		// A key whose toggle belongs to a unit this edition does not carry is
-		// refused before anything is written (#844). The only client that
-		// sends one is a stale Pro tab after Pro left; accepting it would
-		// store an ON for a feature with no code behind it — honored, without
-		// anyone opting in, the day Pro is installed.
-		foreach ( array_keys( self::DEFAULTS ) as $key ) {
-			if ( ! array_key_exists( $key, $settings ) ) {
-				continue;
-			}
+	private static function known(): array {
+		$known = array();
+		foreach ( self::DEFAULTS as $key => $default ) {
 			$unit = Edition::toggle_unit( (string) $key );
 			if ( null !== $unit && ! Edition::has( $unit ) ) {
+				continue;
+			}
+			$known[ $key ] = $default;
+		}
+		return $known;
+	}
+
+	/**
+	 * The complement of the known() view it is handed: shipped keys whose unit
+	 * this edition does not carry. Empty in Pro. Read by save()'s refusal and
+	 * nothing else.
+	 *
+	 * @param array<string, bool|int|array<int, string>|string> $known The known() view save() bound.
+	 * @return array<string, bool|int|array<int, string>|string>
+	 */
+	private static function absent( array $known ): array {
+		return array_diff_key( self::DEFAULTS, $known );
+	}
+
+	/**
+	 * Persist from a request payload; values re-normalized. Unknown keys in the
+	 * PAYLOAD are ignored; keys in the STORED row this edition does not own —
+	 * another edition's, or a newer build's — are preserved verbatim
+	 * (Helper::with_foreign_keys, handed known() as its template, so an absent
+	 * unit's key is foreign by construction). Omitted keys keep their CURRENTLY
+	 * STORED value (normalized to the view, as get() reads it) — never the shipped
+	 * default: the REST route accepts partial maps, and filling absences from
+	 * the shipped table let any partial payload silently reset every toggle
+	 * the caller didn't mention.
+	 *
+	 * @param array<string, mixed> $settings The payload.
+	 * @return array<string, bool|int|array<int, string>|string>|\WP_Error The normalized settings as stored, or the typed refusal (nothing written).
+	 */
+	public static function save( array $settings ): array|\WP_Error {
+		// The view, once: every step below reads this binding (#1005).
+		$known = self::known();
+
+		// A key whose toggle belongs to a unit this edition does not carry is
+		// refused before anything is written (#844). get() never hands one
+		// out, so the only clients that send one are a stale Pro tab after
+		// Pro left and a hand-built request; accepting it would store an ON
+		// for a feature with no code behind it — honored, without anyone
+		// opting in, the day Pro is installed. The whole request is refused
+		// rather than the key ignored: a 200 would tell that stale tab its
+		// Pro toggles saved (spec 2026-09-22 D1). In Pro, absent() is empty
+		// and this loop is a no-op.
+		foreach ( array_keys( self::absent( $known ) ) as $key ) {
+			if ( array_key_exists( $key, $settings ) ) {
 				return new \WP_Error(
 					'blocklane_pro_absent_toggle',
 					sprintf(
@@ -176,10 +263,18 @@ class Advanced implements Bootable {
 			}
 		}
 
-		$current = self::get();
+		$current = self::normalized( $known );
 
+		// The writer authors exactly the keys this edition owns — $known, the
+		// same view the read above used and the carry-through below is
+		// handed. A key for a unit this build does not carry is never
+		// authored here, from this build's copy of the other edition's
+		// defaults or from anything else: on a site that never ran the other
+		// edition it stays ABSENT, so that edition starts its feature at its
+		// own default when it arrives; on a site that did, the stored value
+		// rides through untouched.
 		$next = array();
-		foreach ( self::DEFAULTS as $key => $default ) {
+		foreach ( $known as $key => $default ) {
 			if ( is_bool( $default ) ) {
 				$next[ $key ] = isset( $settings[ $key ] ) ? (bool) $settings[ $key ] : $current[ $key ];
 			} elseif ( is_int( $default ) ) {
@@ -196,24 +291,31 @@ class Advanced implements Bootable {
 		// Constrain reorder-post-types to types that are actually eligible for
 		// manual ordering. sanitize_key above only guards the slug format, not that
 		// the type exists and is orderable, so drop stale/removed/ineligible slugs.
-		if ( ! empty( $next['reorder-post-types'] ) ) {
+		// Narrowed by type, not by truthiness: known() declares its values as
+		// the union of every default's type, so the list must be asserted a
+		// list here before array_intersect() can be typed over it.
+		if ( isset( $next['reorder-post-types'] ) && is_array( $next['reorder-post-types'] ) && array() !== $next['reorder-post-types'] ) {
 			$eligible                   = wp_list_pluck( self::eligible_post_types(), 'slug' );
 			$next['reorder-post-types'] = array_values(
 				array_intersect( $next['reorder-post-types'], $eligible )
 			);
 		}
 
-		// Carry through any stored key this build does not know about — the
+		// Carry through every stored key this EDITION does not own — the
 		// two-editions rule, shared by every store (Helper::with_foreign_keys
-		// says why the RAW row and not self::get()).
-		$merged = Helper::with_foreign_keys( self::OPTION, $next, self::DEFAULTS );
+		// says why the RAW row and not self::get()). The template is known(),
+		// never the shipped table: merge_foreign() keeps a raw key only when
+		// it is absent from the template, so handing it the whole table made
+		// the other edition's five keys "known" and erased their stored values
+		// on every save (#968).
+		$merged = Helper::with_foreign_keys( self::OPTION, $next, $known );
 		if ( is_wp_error( $merged ) ) {
 			return $merged;
 		}
 
 		update_option( self::OPTION, $merged );
 
-		return self::get();
+		return self::normalized( $known );
 	}
 
 	public static function is_on( $key ) {
@@ -1276,7 +1378,9 @@ class Advanced implements Bootable {
 			);
 		}
 
-		if ( ! $this->replace_attachment_file( $id, $upload['file'] ) ) {
+		$swapped = $this->replace_attachment_file( $id, $upload['file'] );
+		$left    = is_wp_error( $swapped ) && 'blocklane_pro_swap_aside_left' === $swapped->get_error_code();
+		if ( is_wp_error( $swapped ) && ! $left ) {
 			wp_delete_file( $upload['file'] );
 			return new \WP_Error(
 				'blocklane_pro_replace_failed',
@@ -1286,22 +1390,39 @@ class Advanced implements Bootable {
 		}
 
 		// The URL is unchanged; append a cache-buster so the UI shows the new file.
-		return array( 'url' => add_query_arg( 't', time(), wp_get_attachment_url( $id ) ) );
+		$response = array( 'url' => add_query_arg( 't', time(), wp_get_attachment_url( $id ) ) );
+		if ( $left ) {
+			// The new file is in place; the old bytes are still on disk under
+			// the set-aside name, and the media modal shows this instead of
+			// "Replaced".
+			$response['notice'] = sprintf(
+				/* translators: %s: file name of the previous copy left in the uploads folder. */
+				__( 'Replaced, but the previous file could not be removed: %s', 'blocklane' ),
+				wp_basename( (string) ( $swapped->get_error_data()['aside'] ?? '' ) )
+			);
+		}
+		return $response;
 	}
 
 	/**
-	 * Swap an attachment's file in place: delete its old sub-size files, move the
-	 * new file onto the original path, and regenerate metadata/thumbnails. The
-	 * attachment ID, filename, and URL are unchanged.
+	 * Swap an attachment's file in place: move the new file onto the original
+	 * path (File_Ops::uploads_swap(), which keeps the original until the new
+	 * file is there), then delete the old sub-size files and regenerate
+	 * metadata/thumbnails. The attachment ID, filename, and URL are unchanged.
 	 *
-	 * @param int    $id          Attachment ID.
-	 * @param string $source_path Path to the new (already-validated) file.
-	 * @return bool
+	 * @param int                       $id          Attachment ID.
+	 * @param string                    $source_path Path to the new (already-validated) file.
+	 * @param \WP_Filesystem_Base|null $fs          The swap's transport; null for the
+	 *                                                direct one (a battery injects a failing one).
+	 * @return true|\WP_Error True when swapped; 'blocklane_pro_swap_aside_left' when
+	 *                        swapped with the previous copy still on disk (metadata
+	 *                        is regenerated either way); any other error when the
+	 *                        original is still the attachment's file.
 	 */
-	private function replace_attachment_file( $id, $source_path ) {
+	private function replace_attachment_file( int $id, string $source_path, ?\WP_Filesystem_Base $fs = null ): bool|\WP_Error {
 		$old_path = get_attached_file( $id );
-		if ( ! $old_path || ! file_exists( $source_path ) ) {
-			return false;
+		if ( ! $old_path ) {
+			return new \WP_Error( 'blocklane_pro_replace_no_file', 'Attachment ' . $id . ' has no file path.' );
 		}
 
 		require_once ABSPATH . 'wp-admin/includes/image.php';
@@ -1311,11 +1432,11 @@ class Advanced implements Bootable {
 
 		// Move the new content onto the original path FIRST (same name → same URL).
 		// Only clean up old sizes and regenerate once the swap has actually
-		// succeeded — otherwise a failed rename would leave the attachment with its
+		// succeeded — otherwise a failed move would leave the attachment with its
 		// thumbnails already deleted and metadata regenerated from the old file.
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename,WordPress.PHP.NoSilencedErrors.Discouraged -- moving within the uploads dir; failure handled below.
-		if ( ! @rename( $source_path, $old_path ) ) {
-			return false;
+		$swapped = File_Ops::uploads_swap( $source_path, $old_path, $fs );
+		if ( is_wp_error( $swapped ) && 'blocklane_pro_swap_aside_left' !== $swapped->get_error_code() ) {
+			return $swapped;
 		}
 
 		// Remove the old generated sizes + the pristine "big image" original so
@@ -1336,7 +1457,7 @@ class Advanced implements Bootable {
 			wp_update_attachment_metadata( $id, $new_meta );
 		}
 
-		return true;
+		return $swapped;
 	}
 
 }

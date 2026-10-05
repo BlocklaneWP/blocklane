@@ -79,28 +79,34 @@ class Extensions_Controller implements Rest_Registrable {
 			)
 		);
 
-		register_rest_route(
-			Branding::rest_namespace(),
-			'/grid-canvas-tools',
-			array(
+		// The grid canvas tools belong to extension:advanced-grid: the route
+		// exists exactly when the unit does, decided once here at the one
+		// registration site (#1015). Under free the unit is absent and this
+		// controller registers nothing for it.
+		if ( Edition::has( 'extension:advanced-grid' ) ) {
+			register_rest_route(
+				Branding::rest_namespace(),
+				'/grid-canvas-tools',
 				array(
-					'methods'             => \WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'get_grid_canvas_tools' ),
-					'permission_callback' => array( $this, 'permission_check' ),
-				),
-				array(
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'save_grid_canvas_tools' ),
-					'permission_callback' => array( $this, 'permission_check' ),
-					'args'                => array(
-						'enabled' => array(
-							'type'     => 'boolean',
-							'required' => true,
+					array(
+						'methods'             => \WP_REST_Server::READABLE,
+						'callback'            => array( $this, 'get_grid_canvas_tools' ),
+						'permission_callback' => array( $this, 'permission_check' ),
+					),
+					array(
+						'methods'             => \WP_REST_Server::CREATABLE,
+						'callback'            => array( $this, 'save_grid_canvas_tools' ),
+						'permission_callback' => array( $this, 'permission_check' ),
+						'args'                => array(
+							'enabled' => array(
+								'type'     => 'boolean',
+								'required' => true,
+							),
 						),
 					),
-				),
-			)
-		);
+				)
+			);
+		}
 	}
 
 	/**

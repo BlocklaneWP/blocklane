@@ -98,6 +98,9 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 // (the uninstall battery's U19 holds each probe to the file's last
 // declaration). Every function in those files is function_exists-wrapped,
 // so requiring ours beside a lender's copy adds only what is missing.
+if ( ! function_exists( 'blocklane_pro_log_failure' ) ) {
+	require_once __DIR__ . '/inc/log.php';
+}
 if ( ! function_exists( 'blocklane_pro_edition_outranking' ) ) {
 	require_once __DIR__ . '/inc/edition-identity.php';
 }
@@ -174,8 +177,9 @@ if ( ! $blocklane_pro_plan['shared'] ) {
 	// manager, animation designer, content types) sweep theirs in their own
 	// fragments above, so a surviving free site carries no daily no-op cron
 	// and no autoloaded Pro row.
-	// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- the one trace that a delete deliberately swept nothing.
-	error_log(
+	// The one trace that a delete deliberately swept nothing, written in
+	// production too: nothing else will ever say why the settings stayed.
+	blocklane_pro_log_failure(
 		'Blocklane: uninstall kept every shared setting: ' . $blocklane_pro_plan['reason']
 		. ( array() === $blocklane_pro_plan['others'] ? '' : ' [' . implode( ', ', $blocklane_pro_plan['others'] ) . ']' )
 	);
@@ -205,8 +209,10 @@ if ( ! $blocklane_pro_plan['shared'] ) {
  * icons, which render icons already placed in saved content. Icons are
  * content, not plugin state; deleting the row would blank them. Their
  * uploads mirror (uploads/blocklane-icons/) is kept for the same reason:
- * the companion theme registers placed icons from it after this plugin is
- * gone. Both go only with the clean-uninstall opt-in below.
+ * reinstalling EITHER edition registers those icons again from the row and
+ * the mirror. Nothing else registers the collection — the companion theme
+ * stopped in its 1.0.0, when the registrar moved into this plugin. Both go
+ * only with the clean-uninstall opt-in below.
  *
  * Deliberately kept for the same reason: blocklane_pro_scripts — the header,
  * body and footer code the USER wrote. Since 2026-08 this row is the ONLY
@@ -426,6 +432,10 @@ $blocklane_pro_prefixes = array(
 	'_transient_timeout_blocklane_pro_ps_',
 	'_transient_blocklane_pro_pc_',
 	'_transient_timeout_blocklane_pro_pc_',
+	// The failure-level log door's throttle (inc/log.php): one transient per
+	// distinct message, a day each, named by the message's hash.
+	'_transient_blocklane_pro_log_',
+	'_transient_timeout_blocklane_pro_log_',
 );
 foreach ( $blocklane_pro_prefixes as $blocklane_pro_prefix ) {
 	$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- uninstall cleanup; no core API deletes by prefix.
@@ -596,8 +606,8 @@ if ( is_array( $blocklane_pro_advanced_final ) && ! empty( $blocklane_pro_advanc
  * the Advanced opt-in was off — after DROP TABLE had already run (#818).
  */
 if ( array() !== $blocklane_pro_left ) {
-	// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- uninstall has no other channel; mirrors the sibling-guard line above.
-	error_log(
+	// Uninstall has no other channel, so this is written whatever WP_DEBUG says.
+	blocklane_pro_log_failure(
 		'Blocklane: uninstall left these in place'
 		. ( is_wp_error( $blocklane_pro_fs ) ? ' (' . $blocklane_pro_fs->get_error_message() . ')' : '' )
 		. ': ' . implode( '; ', $blocklane_pro_left )

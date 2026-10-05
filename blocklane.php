@@ -3,12 +3,12 @@
  * Plugin Name:       Blocklane
  * Plugin URI:        https://blocklanewp.com/
  * Description:       Everything a WordPress site should have out of the box: SEO, a contact form, popups, a coming soon page, and security hardening. In one plugin.
- * Version:           0.11.4
- * Requires at least: 7.0
+ * Version:           1.0.0
+ * Requires at least: 7.1
  * Tested up to:      7.1
  * Requires PHP:      8.1
- * Author:            Garrett Johnson
- * Author URI:        https://profiles.wordpress.org/garrettmichaelj/
+ * Author:            Blocklane
+ * Author URI:        https://profiles.wordpress.org/blocklane/
  * License:           GPLv2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       blocklane
@@ -26,11 +26,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Blocklane ships as two plugins built from this one tree: blocklane-pro
  * (every unit) and blocklane (the wordpress.org build, a subset). BOTH STAY
- * ACTIVE when both are installed. That is deliberate: wordpress.org counts a
- * plugin's active installs from the update-check ping, so deactivating the
- * free plugin on upgrade would cost a directory ranking input on every
- * conversion — and keeping it active gives the site a working fallback if Pro
- * is ever removed.
+ * ACTIVE when both are installed. That is deliberate: an active free plugin
+ * is the site's working fallback if Pro is ever removed, with nothing to
+ * reactivate by hand.
  *
  * Pro is a strict superset, so exactly ONE of them may register anything;
  * two copies of the same hooks would double every emitter on the page. The
@@ -97,7 +95,7 @@ define( 'BLOCKLANE_PRO_RANK', (int) ( $blocklane_pro_boot_me['rank'] ?? 0 ) );
 unset( $blocklane_pro_boot_me );
 define( 'BLOCKLANE_PRO_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
 define( 'BLOCKLANE_PRO_URL', untrailingslashit( plugin_dir_url( __FILE__ ) ) );
-define( 'BLOCKLANE_PRO_VERSION', '0.11.4' );
+define( 'BLOCKLANE_PRO_VERSION', '1.0.0' );
 define( 'BLOCKLANE_PRO_BASENAME', plugin_basename( __FILE__ ) );
 
 

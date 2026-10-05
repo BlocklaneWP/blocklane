@@ -174,8 +174,8 @@ class Site_Lock_Gate implements Bootable {
 			__( 'The Coming Soon page renders without its password form, so visitors with the password cannot unlock the site, until the assets are rebuilt.', 'blocklane' ),
 			array( 'render_callback' => array( __CLASS__, 'render_password_block' ) )
 		);
-		if ( $missing && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'Blocklane: site-password block build missing at ' . $build_dir . '/' . self::BLOCK_SLUG ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug-only build-skew trail.
+		if ( $missing ) {
+			blocklane_pro_log( 'Blocklane: site-password block build missing at ' . $build_dir . '/' . self::BLOCK_SLUG );
 		}
 	}
 
@@ -459,9 +459,12 @@ class Site_Lock_Gate implements Bootable {
 	 *
 	 * No nonce, by design: the link is opened cold by a visitor who has no
 	 * session, so there is nothing to bind a nonce to. Authorization is the
-	 * secret key itself, compared in Site_Lock::check_preview_key() (constant
-	 * time, throttled); the parameter is read-only input that is sanitized
-	 * before use and never echoed.
+	 * secret key itself, compared in Site_Lock::check_preview_key() in
+	 * constant time. It is NOT throttled: the password form's per-client
+	 * throttle does not cover this path, and the key's defense is its size —
+	 * 24 random alphanumerics (about 143 bits), which no request rate can
+	 * guess. The parameter is read-only input that is sanitized before use
+	 * and never echoed.
 	 */
 	private function maybe_handle_preview() {
 		if ( ! isset( $_GET[ self::PREVIEW_PARAM ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- capability-less preview link; the secret key checked below is the authorization.
@@ -819,29 +822,32 @@ class Site_Lock_Gate implements Bootable {
 	</main>
 	<?php
 	wp_footer();
-	?>
-	<script>
-	( function () {
-		document.addEventListener( 'click', function ( e ) {
-			var btn = e.target.closest( '.blocklane-pro-site-lock__reveal' );
+	// The password field's show/hide toggle — the splash is a standalone
+	// document (no theme template), so it prints its one script itself,
+	// through core's inline-script printer.
+	wp_print_inline_script_tag(
+		'( function () {
+		document.addEventListener( "click", function ( e ) {
+			var btn = e.target.closest( ".blocklane-pro-site-lock__reveal" );
 			if ( ! btn ) {
 				return;
 			}
-			var input = btn.parentNode.querySelector( '.blocklane-pro-site-lock__input' );
+			var input = btn.parentNode.querySelector( ".blocklane-pro-site-lock__input" );
 			if ( ! input ) {
 				return;
 			}
-			var show = input.type === 'password';
-			input.type = show ? 'text' : 'password';
-			btn.setAttribute( 'aria-pressed', show ? 'true' : 'false' );
-			var icon = btn.querySelector( '.dashicons' );
+			var show = input.type === "password";
+			input.type = show ? "text" : "password";
+			btn.setAttribute( "aria-pressed", show ? "true" : "false" );
+			var icon = btn.querySelector( ".dashicons" );
 			if ( icon ) {
-				icon.classList.toggle( 'dashicons-visibility', ! show );
-				icon.classList.toggle( 'dashicons-hidden', show );
+				icon.classList.toggle( "dashicons-visibility", ! show );
+				icon.classList.toggle( "dashicons-hidden", show );
 			}
 		} );
-	} )();
-	</script>
+	} )();'
+	);
+	?>
 </body>
 </html>
 		<?php

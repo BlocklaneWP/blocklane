@@ -44,6 +44,7 @@ import {
 
 import useToolsPanelDropdownMenuProps from '../../shared/use-tools-panel-dropdown-menu-props';
 import { ANIMATION_OPTIONS } from '../../shared/animation-options';
+import { makeOptionHelpers } from './options';
 
 import './editor.css';
 
@@ -66,22 +67,24 @@ const slugToMatrix = ( slug ) =>
 		? 'center center'
 		: ( slug || 'center' ).replace( '-', ' ' );
 
-const TRIGGER_OPTIONS = [
-	{ label: __( 'Time on page', 'blocklane' ), value: 'time' },
-	{ label: __( 'Scroll percentage', 'blocklane' ), value: 'scroll' },
-	{ label: __( 'Exit intent', 'blocklane' ), value: 'exit' },
-	{ label: __( 'Manual only', 'blocklane' ), value: 'manual' },
-];
-
-const CONDITION_OPTIONS = [
-	{ label: __( 'Everywhere', 'blocklane' ), value: 'everywhere' },
-	{ label: __( 'Front page', 'blocklane' ), value: 'front-page' },
-	{ label: __( 'Page', 'blocklane' ), value: 'page' },
-	{ label: __( 'Post', 'blocklane' ), value: 'post' },
-	{ label: __( 'Post type', 'blocklane' ), value: 'post-type' },
-	{ label: __( 'URL path', 'blocklane' ), value: 'url' },
-	{ label: __( 'Logged in', 'blocklane' ), value: 'logged-in' },
-];
+/*
+ * The option rows THIS EDITION offers, localized by the runtime before this
+ * script (blocklane_pro_popups_editor_options() — the third registry of the
+ * popups vocabularies, edition-manifest rule 6): `trigger` and `condition`
+ * rows plus `qualifier`, the one label map for the qualifier vocabulary.
+ * Labels arrive translated. The helpers are a pure module so they can be
+ * tested (inc/popups/src/options.js, options.test.js); neither file quotes a
+ * vocabulary value of its own, so the free bundle names no Pro option.
+ */
+const {
+	triggerOptions,
+	conditionOptions,
+	qualifierOptions,
+	defaultQualifier,
+	triggerRow,
+	isValueless,
+	triggerHelp,
+} = makeOptionHelpers( window.blocklaneProPopupsOptions );
 
 /**
  * CSS-length units for the width controls. Viewport units are excluded:
@@ -112,11 +115,11 @@ const parseLength = ( value ) => {
  * HeightControl anatomy (BaseControl label/help around a Flex with two
  * isBlock halves), restricted to px/em/rem.
  *
- * @param {Object}   props          Component props.
- * @param {string}   props.label    Control label.
- * @param {string}   props.help     Guidance under the control.
- * @param {string}   props.value    Current CSS length ('' = unset).
- * @param {Function} props.onChange Receives the next CSS length ('' to clear).
+ * @param {Object}                  props          Component props.
+ * @param {string}                  props.label    Control label.
+ * @param {string}                  props.help     Guidance under the control.
+ * @param {string}                  props.value    Current CSS length ('' = unset).
+ * @param {(value: string) => void} props.onChange Receives the next CSS length ('' to clear).
  */
 function LengthControl( { label, help, value, onChange } ) {
 	const [ number, unit ] = parseLength( value );
@@ -162,51 +165,6 @@ function LengthControl( { label, help, value, onChange } ) {
 	);
 }
 
-/**
- * Qualifier choices per condition — URL gets contains, the rest is/is-not.
- *
- * @param {string} condition Rule condition slug.
- * @return {Array} Select options.
- */
-const qualifierOptions = ( condition ) =>
-	'url' === condition
-		? [
-				{ label: __( 'contains', 'blocklane' ), value: 'contains' },
-				{
-					label: __( 'does not contain', 'blocklane' ),
-					value: 'not-contains',
-				},
-			]
-		: [
-				{ label: __( 'is', 'blocklane' ), value: 'is' },
-				{ label: __( 'is not', 'blocklane' ), value: 'is-not' },
-			];
-
-/** Conditions that are pure state checks — no value to assign. */
-const VALUELESS = [ 'everywhere', 'front-page', 'logged-in' ];
-
-/**
- * Contextual help for the trigger select.
- *
- * @param {string} type Trigger type.
- * @return {string|undefined} Help text.
- */
-function triggerHelp( type ) {
-	if ( 'manual' === type ) {
-		return __(
-			'Bind any Button, Navigation Link, Image, or Cover from its Popup panel — or point a link at #blocklane-popup-{ID}, or add a blocklane-popup-open-{ID} class to any element.',
-			'blocklane'
-		);
-	}
-	if ( 'exit' === type ) {
-		return __(
-			'Fires when the pointer leaves through the top of the window (desktop).',
-			'blocklane'
-		);
-	}
-	return undefined;
-}
-
 /** Per-slice defaults, for ToolsPanelItem resets. */
 const SLICE_DEFAULTS = {
 	trigger: { type: 'time', value: 0 },
@@ -230,10 +188,10 @@ function usePopupSettings() {
  * it — the wrapping panel's own header is display:none'd (editor.css), so
  * the anatomy matches the block inspector's top-level ToolsPanels.
  *
- * @param {Object} props          Component props.
- * @param {string} props.name     Panel machine name.
- * @param {string} props.title    Panel title (preferences list).
- * @param {*}      props.children Section content.
+ * @param {Object}                    props          Component props.
+ * @param {string}                    props.name     Panel machine name.
+ * @param {string}                    props.title    Panel title (preferences list).
+ * @param {import('react').ReactNode} props.children Section content.
  */
 function Section( { name, title, children } ) {
 	// The wrapper panel's own header is hidden, so it can never be toggled by
@@ -519,25 +477,25 @@ function TriggerSection() {
 							__next40pxDefaultSize
 							__nextHasNoMarginBottom
 							label={ __( 'Show when', 'blocklane' ) }
-							options={ TRIGGER_OPTIONS }
+							options={ triggerOptions( trigger.type ) }
 							value={ trigger.type }
 							onChange={ ( type ) =>
 								// Write each type's own default value into
 								// the store on switch. Carrying the previous
 								// type's value across (time's 0 riding into
-								// scroll) stored 0 while the control showed
-								// 50 — and the front end fired the popup on
-								// page load.
+								// a percentage) stored 0 while the control
+								// showed 50 — and the front end fired the
+								// popup on page load.
 								update( {
 									trigger: {
 										type,
-										value: 'scroll' === type ? 50 : 0,
+										value: triggerRow( type ).default || 0,
 									},
 								} )
 							}
 							help={ triggerHelp( trigger.type ) }
 						/>
-						{ 'time' === trigger.type && (
+						{ 'seconds' === triggerRow( trigger.type ).control && (
 							<RangeControl
 								__next40pxDefaultSize
 								__nextHasNoMarginBottom
@@ -552,7 +510,7 @@ function TriggerSection() {
 								}
 							/>
 						) }
-						{ 'scroll' === trigger.type && (
+						{ 'percent' === triggerRow( trigger.type ).control && (
 							<RangeControl
 								__next40pxDefaultSize
 								__nextHasNoMarginBottom
@@ -784,15 +742,17 @@ function RulesSection() {
 										__nextHasNoMarginBottom
 										label={ __( 'Condition', 'blocklane' ) }
 										hideLabelFromVision
-										options={ CONDITION_OPTIONS }
+										options={ conditionOptions(
+											item.condition || 'everywhere'
+										) }
 										value={ item.condition || 'everywhere' }
 										onChange={ ( condition ) =>
 											setItem( index, {
 												condition,
 												qualifier:
-													'url' === condition
-														? 'contains'
-														: 'is',
+													defaultQualifier(
+														condition
+													) || 'is',
 												value: '',
 											} )
 										}
@@ -803,7 +763,8 @@ function RulesSection() {
 										label={ __( 'Qualifier', 'blocklane' ) }
 										hideLabelFromVision
 										options={ qualifierOptions(
-											item.condition
+											item.condition,
+											item.qualifier || 'is'
 										) }
 										value={ item.qualifier || 'is' }
 										onChange={ ( qualifier ) =>
@@ -829,7 +790,7 @@ function RulesSection() {
 										}
 									/>
 								</HStack>
-								{ VALUELESS.includes( item.condition ) ? (
+								{ isValueless( item.condition ) ? (
 									<Text variant="muted" size={ 12 } as="p">
 										{ __(
 											'This condition needs no value — it matches on its own.',

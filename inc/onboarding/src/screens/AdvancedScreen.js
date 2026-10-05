@@ -2,7 +2,7 @@
  * Advanced screen — opt-in admin, content, and security enhancements.
  *
  * Core admin-ui page arrangement (ScreenHeader + ScreenTabs, shared with
- * SEO, Forms, Content Types, and Extensions): a page header, then one tab
+ * SEO, Forms, the content-types screen, and Extensions): a page header, then one tab
  * per category (Content & Editing, Site Tools, Updates & Performance,
  * Security & Hardening), then the tab's content — a toolbar (Enable/Disable
  * All for the tab, a search box scoped to the tab) above the tab's feature
@@ -41,7 +41,11 @@
  * The former Security screen merged in here (2026-07) as the Security &
  * Hardening tab. It was a UI merge only: those six toggles keep their own
  * option and REST route (blocklane_pro_security), so each feature declares the
- * store it writes through and nothing migrated. Security toggles the
+ * store it writes through and nothing migrated. Two of the six (the forced
+ * plugin and theme updates) are contributed by Pro units and live in
+ * advanced/rows/ like any unit-owned row: in an edition without those units
+ * they are Pro rows, and the security store neither hands out nor accepts
+ * their keys. Security toggles the
  * environment forces on (a wp-config constant) render locked with an
  * "Enforced" badge, exactly as they did on their own screen; the legacy
  * ?screen=security&sec=<slug> links still land on the same toggle — the
@@ -49,7 +53,7 @@
  * (components/legacy-routes.js), so this screen never sees `sec`.
  */
 
-import { __, sprintf } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import {
 	useState,
 	useEffect,
@@ -75,6 +79,7 @@ import {
 } from '../api/client';
 import { errorMessage } from '../api/errors';
 import { FeatureItem } from '../components/FeatureItem';
+import { ProDetailHeading } from '../components/ProDetailHeading';
 import { FeatureDescription } from '../components/FeatureDescription';
 import { FeatureToolbar } from '../components/FeatureToolbar';
 import { HelpTab, useHelpPreference } from '../components/HelpTab';
@@ -82,9 +87,13 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { ScreenTabs, ScreenTabPanel } from '../components/ScreenTabs';
 import { useFeatureTabs } from '../components/use-feature-tabs';
 import { pluginName } from '../edition';
+// The ONE predicate for "this row belongs to a product this build is not":
+// it reads the factory's private mark, never a row's own `pro` property (#986).
+import { isProRow } from './pro-row.js';
 // Every Advanced row a UNIT owns, one re-export per line — the index the
-// generator filters. Namespace import on purpose: the object is whatever
-// lines survived, and nothing here names an absent unit.
+// generator rewrites. Namespace import on purpose: the object is whatever the
+// index exports after the rewrite — live rows for present units, proRow()
+// stand-ins for absent ones — and THIS file names no unit; the index does.
 import * as UNIT_ROW_MODULES from './advanced/rows';
 
 /* Display + detail copy per feature. `short` shows in the row; `description`
@@ -155,32 +164,6 @@ const SHARED_ROW_LIST = [
 		),
 	},
 	// Updates & Performance.
-	{
-		slug: 'auto-update-plugins',
-		store: 'security',
-		title: __( 'Auto-Update Plugins', 'blocklane' ),
-		short: __(
-			'Install plugin updates automatically as they ship.',
-			'blocklane'
-		),
-		description: __(
-			'Outdated plugins are the #1 way WordPress sites get compromised, so this is the single highest-impact setting here. While on, it applies to all plugins and overrides their individual auto-update settings.',
-			'blocklane'
-		),
-	},
-	{
-		slug: 'auto-update-themes',
-		store: 'security',
-		title: __( 'Auto-Update Themes', 'blocklane' ),
-		short: __(
-			'Install theme updates automatically as they ship.',
-			'blocklane'
-		),
-		description: __(
-			'Keeps every installed theme current. While on, it applies to all themes and overrides their individual settings. (Core minor releases already auto-update by default.)',
-			'blocklane'
-		),
-	},
 	{
 		slug: 'limit-revisions',
 		title: __( 'Limit Post Revisions', 'blocklane' ),
@@ -278,7 +261,7 @@ const SHARED_ROW_LIST = [
 		description: sprintf(
 			/* translators: %s: the plugin name. */
 			__(
-				'Deleting %s always stops what it renders — forms, popups, menus, content types, dynamic values — because everything runs from the plugin itself. By default it leaves two things behind, because they are yours rather than plugin state: your uploaded SVG icons and your Custom Scripts code. A reinstall picks both back up. Turn this on and Delete clears those as well, along with every remaining Blocklane setting. Your content records — pages, entries, terms, form submissions — are kept either way. Leave this off unless you are removing Blocklane for good.',
+				'Deleting %s always stops what it renders — forms, popups, menus, content types, dynamic values — because everything runs from the plugin itself. By default it leaves two things behind, because they are yours rather than plugin state: your uploaded SVG icons and any header, body and footer code saved on this site. A reinstall picks both back up. Turn this on and Delete clears those as well, along with every remaining Blocklane setting. Your content records — pages, entries, terms, form submissions — are kept either way. Leave this off unless you are removing Blocklane for good.',
 				'blocklane'
 			),
 			pluginName()
@@ -295,16 +278,24 @@ export const SHARED_ROWS = Object.fromEntries(
 
 /* Whatever the index still re-exports — keyed by each row's OWN slug, so the
    key comes from the row data rather than from an export name that could
-   drift from it. In free this object is short by every absent unit's row. */
+   drift from it. In free an absent unit's row is a proRow() stand-in, or null
+   and dropped when the catalog has no entry for it. */
 export const UNIT_ROWS = Object.fromEntries(
-	Object.values( UNIT_ROW_MODULES ).map( ( f ) => [ f.slug, f ] )
+	// A proRow() entry is null when the localized catalog has no entry for
+	// its unit — a build fault, a screen rendered outside wp-admin, a test.
+	// Dropped here rather than crashing the whole screen on `.slug`: the
+	// generator writes these lines, so the index is not hand-checkable.
+	Object.values( UNIT_ROW_MODULES )
+		.filter( Boolean )
+		.map( ( f ) => [ f.slug, f ] )
 );
 
 const ROWS = { ...SHARED_ROWS, ...UNIT_ROWS };
 
 /* Display order — every row this PRODUCT has, unit-owned or not, in the order
-   the screen lists them. A slug whose unit this edition does not carry simply
-   drops out of FEATURES; nothing here reads an edition. */
+   the screen lists them. A slug whose unit this edition does not carry keeps
+   its place as a Pro row (proRow), or drops out of FEATURES when the catalog
+   has no entry for it; nothing here reads an edition. */
 export const ROW_ORDER = [
 	// Content & Editing.
 	'seo',
@@ -632,6 +623,14 @@ export const AdvancedScreen = ( { initialFeature } = {} ) => {
 	);
 	const isOn = useCallback(
 		( feature ) => {
+			// A row whose feature is not in this build has no state to read:
+			// GET never hands its key out (Advanced::get returns only the keys
+			// this edition owns), save refuses one sent and never fills one in,
+			// so "off" is the only honest answer — and the whole-object PUT
+			// this screen makes carries no such key by construction.
+			if ( isProRow( feature ) ) {
+				return false;
+			}
 			if ( isForced( feature ) ) {
 				return true;
 			}
@@ -642,8 +641,42 @@ export const AdvancedScreen = ( { initialFeature } = {} ) => {
 		[ isForced, secSettings, settings ]
 	);
 
+	// The one predicate for "this row is not writable here" — a Pro row (no
+	// code in this build) or a row the server configuration pins. Every BULK
+	// door reads this rather than testing the two conditions itself: the last
+	// time a guard was added at one door and not its sibling, the sibling was
+	// the defect (AGENTS.md, the half-applied class). Adding a third bulk
+	// action means calling this, not repeating it.
+	const isLocked = useCallback(
+		( feature ) => isProRow( feature ) || isForced( feature ),
+		[ isForced ]
+	);
+
+	// The row's badge: the Pro mark, the server-pinned mark, or none. Beside
+	// isLocked because they answer the same question from two directions.
+	const badgeOf = useCallback(
+		( feature ) => {
+			if ( isProRow( feature ) ) {
+				return feature.badge;
+			}
+			return isForced( feature )
+				? __( 'Enforced', 'blocklane' )
+				: undefined;
+		},
+		[ isForced ]
+	);
+
 	const toggle = useCallback(
 		( feature, value ) => {
+			// Defense in depth behind FeatureItem, which draws no switch for a
+			// Pro row: a Pro row has no code behind it, so writing its key would
+			// store an ON for a feature that cannot run — and have it honored,
+			// without anyone opting in, the day Pro is installed. The server refuses the same
+			// key (Advanced::save, #844) and never hands it out (Advanced::get,
+			// #969); this keeps the request from being made at all.
+			if ( isProRow( feature ) ) {
+				return;
+			}
 			if ( CHROME_CHANGING.includes( feature.slug ) ) {
 				reloadAfterSave.current = true;
 			}
@@ -688,7 +721,13 @@ export const AdvancedScreen = ( { initialFeature } = {} ) => {
 		slugs: FEATURE_SLUGS,
 		deepLink: initialFeature,
 		textOf,
-		isOn: ( s ) => isOn( FEATURE_BY_SLUG.get( s ) ),
+		isOn: ( s ) => {
+			const f = FEATURE_BY_SLUG.get( s );
+			// A locked row is excluded from "all on" rather than counted as
+			// off: counting it off would pin the bulk button to "Enable all"
+			// on every tab that shows a Pro row.
+			return f && isLocked( f ) ? true : isOn( f );
+		},
 	} );
 	const { pinned, pin, open, unpin, tab, tabLabel, search, setSearch } = ft;
 	const tabFeatures = useMemo(
@@ -737,7 +776,7 @@ export const AdvancedScreen = ( { initialFeature } = {} ) => {
 		const secPatch = {};
 		let chromeChanges = false;
 		tabFeatures.forEach( ( f ) => {
-			if ( isForced( f ) ) {
+			if ( isLocked( f ) ) {
 				return;
 			}
 			if ( isOn( f ) !== next && CHROME_CHANGING.includes( f.slug ) ) {
@@ -752,17 +791,82 @@ export const AdvancedScreen = ( { initialFeature } = {} ) => {
 		if ( chromeChanges ) {
 			reloadAfterSave.current = true;
 		}
-		const message = next
-			? sprintf(
-					/* translators: %s: the tab (category) name. */
-					__( 'All %s features enabled', 'blocklane' ),
-					tabLabel
-				)
-			: sprintf(
-					/* translators: %s: the tab (category) name. */
-					__( 'All %s features disabled', 'blocklane' ),
-					tabLabel
-				);
+		// The snackbar says what the action DID (#1000): "All" only when no
+		// row was skipped; otherwise the count that changed, then one
+		// sentence per skipped kind — the rows that belong to Blocklane Pro,
+		// the rows the server configuration enforces — `_n()` on each count
+		// and no combinatorial strings (D6).
+		const proSkipped = tabFeatures.filter( ( f ) => isProRow( f ) ).length;
+		const forcedSkipped = tabFeatures.filter(
+			( f ) => ! isProRow( f ) && isForced( f )
+		).length;
+		const changed = tabFeatures.length - proSkipped - forcedSkipped;
+		let message;
+		if ( 0 === proSkipped && 0 === forcedSkipped ) {
+			message = next
+				? sprintf(
+						/* translators: %s: the tab (category) name. */
+						__( 'All %s features enabled', 'blocklane' ),
+						tabLabel
+					)
+				: sprintf(
+						/* translators: %s: the tab (category) name. */
+						__( 'All %s features disabled', 'blocklane' ),
+						tabLabel
+					);
+		} else {
+			message = next
+				? sprintf(
+						/* translators: 1: the number of features enabled, 2: the tab (category) name. */
+						_n(
+							'%1$d %2$s feature enabled.',
+							'%1$d %2$s features enabled.',
+							changed,
+							'blocklane'
+						),
+						changed,
+						tabLabel
+					)
+				: sprintf(
+						/* translators: 1: the number of features disabled, 2: the tab (category) name. */
+						_n(
+							'%1$d %2$s feature disabled.',
+							'%1$d %2$s features disabled.',
+							changed,
+							'blocklane'
+						),
+						changed,
+						tabLabel
+					);
+			if ( proSkipped ) {
+				message +=
+					' ' +
+					sprintf(
+						/* translators: %d: the number of rows on the tab that belong to Blocklane Pro and were not changed. */
+						_n(
+							'%d is part of Blocklane Pro.',
+							'%d are part of Blocklane Pro.',
+							proSkipped,
+							'blocklane'
+						),
+						proSkipped
+					);
+			}
+			if ( forcedSkipped ) {
+				message +=
+					' ' +
+					sprintf(
+						/* translators: %d: the number of rows on the tab the server configuration enforces on and that were not changed. */
+						_n(
+							'%d is enforced by your server configuration.',
+							'%d are enforced by your server configuration.',
+							forcedSkipped,
+							'blocklane'
+						),
+						forcedSkipped
+					);
+			}
+		}
 		if ( Object.keys( secPatch ).length ) {
 			secRef.current = { ...( secRef.current || {} ), ...secPatch };
 			setSecSettings( secRef.current );
@@ -777,6 +881,7 @@ export const AdvancedScreen = ( { initialFeature } = {} ) => {
 		allOn,
 		tabFeatures,
 		tabLabel,
+		isLocked,
 		isForced,
 		isOn,
 		flushSecurity,
@@ -912,7 +1017,7 @@ export const AdvancedScreen = ( { initialFeature } = {} ) => {
 							onToggleAll={ toggleAll }
 							disabled={
 								! loaded ||
-								! tabFeatures.some( ( f ) => ! isForced( f ) )
+								! tabFeatures.some( ( f ) => ! isLocked( f ) )
 							}
 							search={ search }
 							onSearch={ setSearch }
@@ -965,14 +1070,8 @@ export const AdvancedScreen = ( { initialFeature } = {} ) => {
 												description={ f.short }
 												checked={ isOn( f ) }
 												disabled={ isForced( f ) }
-												badge={
-													isForced( f )
-														? __(
-																'Enforced',
-																'blocklane'
-															)
-														: undefined
-												}
+												pro={ isProRow( f ) }
+												badge={ badgeOf( f ) }
 												isActive={ pinned === f.slug }
 												itemKey={ f.slug }
 												onChange={ ( v ) =>
@@ -1010,16 +1109,22 @@ export const AdvancedScreen = ( { initialFeature } = {} ) => {
 								{ /* No close X: Escape, re-clicking the pinned
 								     row, and the drawer handle all dismiss —
 								     a third X crowded the toggle row. */ }
-								<ToggleControl
-									label={ detailFeature.title }
-									checked={ isOn( detailFeature ) }
-									disabled={ isForced( detailFeature ) }
-									onChange={ ( v ) =>
-										toggle( detailFeature, v )
-									}
-									className="blocklane-pro-extensions__detail-toggle"
-									__nextHasNoMarginBottom
-								/>
+								{ isProRow( detailFeature ) ? (
+									<ProDetailHeading
+										feature={ detailFeature }
+									/>
+								) : (
+									<ToggleControl
+										label={ detailFeature.title }
+										checked={ isOn( detailFeature ) }
+										disabled={ isForced( detailFeature ) }
+										onChange={ ( v ) =>
+											toggle( detailFeature, v )
+										}
+										className="blocklane-pro-extensions__detail-toggle"
+										__nextHasNoMarginBottom
+									/>
+								) }
 								{ isForced( detailFeature ) ? (
 									<p className="blocklane-pro-extensions__detail-note">
 										{ __(

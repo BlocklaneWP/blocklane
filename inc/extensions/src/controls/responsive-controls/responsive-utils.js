@@ -7,11 +7,11 @@
 /**
  * Update a property inside blocklaneProResponsive for a given breakpoint.
  *
- * @param {Object}   attributes    Current block attributes.
- * @param {Function} setAttributes Block setAttributes function.
- * @param {string}   property      The responsive property key (e.g. 'fontSize', 'padding').
- * @param {string}   breakpoint    The breakpoint key ('tablet' or 'mobile').
- * @param {*}        value         The new value, or undefined to clear.
+ * @param {Object}                       attributes    Current block attributes.
+ * @param {(attributes: Object) => void} setAttributes Block setAttributes function.
+ * @param {string}                       property      The responsive property key (e.g. 'fontSize', 'padding').
+ * @param {string}                       breakpoint    The breakpoint key ('tablet' or 'mobile').
+ * @param {unknown}                      value         The new value, or undefined to clear.
  */
 export function updateResponsiveValue(
 	attributes,
@@ -94,9 +94,9 @@ const ORIENTATION_VALUES = [ 'horizontal', 'vertical' ];
 
 /**
  * Resolve the legacy tablet→mobile cascade into explicit per-breakpoint
- * values. Core's @tablet band is exclusive (mobile < width <= tablet), while
+ * values. Core's `@tablet` band is exclusive (mobile < width <= tablet), while
  * the legacy pipeline let a tablet-only override apply at mobile widths too —
- * so a tablet value is materialized at @mobile unless mobile set its own.
+ * so a tablet value is materialized at `@mobile` unless mobile set its own.
  *
  * @param {Object|undefined} data Legacy { tablet, mobile } values.
  * @return {Object} { tablet?, mobile? } with the cascade applied.
@@ -128,7 +128,7 @@ function cascadePair( data ) {
  *
  * @param {Object}   target Object to write into (mutated).
  * @param {string[]} path   Key path.
- * @param {*}        value  Value to set.
+ * @param {unknown}  value  Value to set.
  */
 function setIfAbsent( target, path, value ) {
 	let node = target;

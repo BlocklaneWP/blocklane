@@ -63,13 +63,41 @@ if ( ! function_exists( 'blocklane_pro_popups_register' ) ) {
 	/** The post type key. */
 	define( 'BLOCKLANE_PRO_POPUPS_CPT', 'blocklane_popup' );
 
-	/** Allowed enum values for the settings meta (server-side allowlists). */
-	function blocklane_pro_popups_enums() {
+	/**
+	 * Allowed enum values for the settings meta (server-side allowlists).
+	 *
+	 * `trigger` and `condition` are the popups VOCABULARIES (edition-manifest
+	 * rule 6): whole in BOTH editions, keyed by value, ONE VALUE PER LINE.
+	 * The sanitizer keys on them, so a popup authored under Pro reads back
+	 * byte-identical under free (H1: never normalize away Pro-authored data)
+	 * — what free cannot do with a value is decided by the three registries
+	 * (resolvers, client arms, editor options), never by the table. Per-value
+	 * schema rides the value: `max` clamps a numeric trigger value. The
+	 * lines are a grammar bin/popups-mirror-check.php reads and holds the
+	 * registries and the manifest's `contributes` to; a contributed value is
+	 * quoted nowhere else in a base popups file.
+	 *
+	 * @return array<string, mixed>
+	 */
+	function blocklane_pro_popups_enums(): array {
 		return array(
 			'position'   => array( 'center', 'top-left', 'top-center', 'top-right', 'center-left', 'center-right', 'bottom-left', 'bottom-center', 'bottom-right' ),
-			'trigger'    => array( 'time', 'scroll', 'exit', 'manual' ),
+			'trigger'    => array(
+				'time'   => array(),
+				'scroll' => array( 'max' => 100 ),
+				'exit'   => array(),
+				'manual' => array(),
+			),
 			'qualifier'  => array( 'is', 'is-not', 'contains', 'not-contains' ),
-			'condition'  => array( 'everywhere', 'front-page', 'page', 'post', 'post-type', 'url', 'logged-in' ),
+			'condition'  => array(
+				'everywhere' => array(),
+				'front-page' => array(),
+				'page'       => array(),
+				'post'       => array(),
+				'post-type'  => array(),
+				'url'        => array(),
+				'logged-in'  => array(),
+			),
 			// The Animation extension's shared keyframes (they ride the
 			// extensions front-end bundle; absent bundle = graceful no-op).
 			'animation'  => array(
@@ -150,11 +178,15 @@ if ( ! function_exists( 'blocklane_pro_popups_register' ) ) {
 			$clean[ $length_key ] = ( is_string( $length ) && preg_match( '/^\d*\.?\d+(px|em|rem)$/', trim( $length ) ) ) ? trim( $length ) : '';
 		}
 
+		// Keyed on the vocabulary, in either edition: a Pro trigger read under
+		// free stays what the author stored (rule 6, H1); only a value outside
+		// the vocabulary falls back. The clamp is the value's own schema.
 		$trigger                   = is_array( $value['trigger'] ?? null ) ? $value['trigger'] : array();
-		$clean['trigger']['type']  = in_array( $trigger['type'] ?? '', $enums['trigger'], true ) ? $trigger['type'] : $defaults['trigger']['type'];
+		$trigger_type              = is_string( $trigger['type'] ?? null ) ? $trigger['type'] : '';
+		$clean['trigger']['type']  = isset( $enums['trigger'][ $trigger_type ] ) ? $trigger_type : $defaults['trigger']['type'];
 		$clean['trigger']['value'] = max( 0, absint( $trigger['value'] ?? 0 ) );
-		if ( 'scroll' === $clean['trigger']['type'] ) {
-			$clean['trigger']['value'] = min( 100, $clean['trigger']['value'] );
+		if ( isset( $enums['trigger'][ $clean['trigger']['type'] ]['max'] ) ) {
+			$clean['trigger']['value'] = min( (int) $enums['trigger'][ $clean['trigger']['type'] ]['max'], $clean['trigger']['value'] );
 		}
 
 		$frequency                      = is_array( $value['frequency'] ?? null ) ? $value['frequency'] : array();
@@ -168,7 +200,7 @@ if ( ! function_exists( 'blocklane_pro_popups_register' ) ) {
 			if ( ! is_array( $item ) ) {
 				continue;
 			}
-			$condition = in_array( $item['condition'] ?? '', $enums['condition'], true ) ? $item['condition'] : 'everywhere';
+			$condition = is_string( $item['condition'] ?? null ) && isset( $enums['condition'][ $item['condition'] ] ) ? $item['condition'] : 'everywhere';
 			$qualifier = in_array( $item['qualifier'] ?? '', $enums['qualifier'], true ) ? $item['qualifier'] : 'is';
 			$clean['rules']['items'][] = array(
 				'condition' => $condition,
@@ -358,46 +390,94 @@ if ( ! function_exists( 'blocklane_pro_popups_register' ) ) {
 	 * @return bool
 	 */
 	function blocklane_pro_popups_rule_matches( array $rule ) {
-		$values = array_filter( array_map( 'trim', explode( ',', (string) $rule['value'] ) ) );
+		$values = array_values( array_filter( array_map( 'trim', explode( ',', (string) $rule['value'] ) ) ) );
 		$negate = in_array( $rule['qualifier'], array( 'is-not', 'not-contains' ), true );
 
-		switch ( $rule['condition'] ) {
-			case 'everywhere':
-				$result = true;
-				break;
-			case 'front-page':
-				$result = is_front_page();
-				break;
-			case 'page':
-				// Empty value = any page; else IDs or slugs.
-				$result = empty( $values ) ? is_page() : is_page( $values );
-				break;
-			case 'post':
-				$result = empty( $values ) ? is_singular( 'post' ) : is_single( $values );
-				break;
-			case 'post-type':
-				$queried = get_post_type();
-				$result  = empty( $values ) ? is_singular() : ( $queried && in_array( $queried, $values, true ) );
-				break;
-			case 'url':
-				$path   = (string) wp_parse_url( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ), PHP_URL_PATH );
-				$result = false;
-				foreach ( $values as $needle ) {
-					if ( false !== stripos( $path, $needle ) ) {
-						$result = true;
-						break;
-					}
-				}
-				// URL with no value never matches (nothing to compare).
-				break;
-			case 'logged-in':
-				$result = is_user_logged_in();
-				break;
-			default:
-				$result = false;
-		}
+		// A condition this edition has no resolver for is FALSE — the shape
+		// the unknown-condition default always had — and the qualifier then
+		// applies as authored: a Pro `is` rule under free never matches
+		// (inert, never widened to everywhere); its `is-not` twin matches,
+		// because the exclusion is the half free cannot evaluate.
+		$resolvers = blocklane_pro_popups_rule_resolvers();
+		$condition = (string) $rule['condition'];
+		$result    = isset( $resolvers[ $condition ] ) ? (bool) call_user_func( $resolvers[ $condition ], $values ) : false;
 
 		return $negate ? ! $result : $result;
+	}
+
+	/**
+	 * The rule resolvers THIS EDITION carries: condition => callable taking
+	 * the rule's comma-split values, answering whether the current request
+	 * matches. The FIRST registry of the popups vocabularies (rule 6): the
+	 * base map is ONE ENTRY PER LINE (bin/popups-mirror-check.php reads the
+	 * lines), and the Pro file adds its conditions through the filter. A
+	 * condition with no resolver never matches (rule_matches).
+	 *
+	 * THE REGISTRY VALIDATES AT ITS ONE DOOR. rule_matches() calls an entry
+	 * unguarded, and rules_match() runs in both render passes on every
+	 * front-end request — so a filter that put a non-callable here threw a
+	 * TypeError site-wide (#1024). An entry survives only with a string key
+	 * and a callable value; a failing entry whose key is in the base map
+	 * falls back to the base callable (the site keeps evaluating that
+	 * condition), any other failing entry is dropped (its condition then
+	 * never matches, the shape an unknown condition always had), and each
+	 * one raises _doing_it_wrong — the WordPress convention for a filter that
+	 * returned the wrong shape, which fires under WP_DEBUG and never on a
+	 * production request. The sibling seam validates its callables the same
+	 * way (blocklane_pro_forms_field_type_registry).
+	 *
+	 * @return array<string, callable(array<int, string>): bool>
+	 */
+	function blocklane_pro_popups_rule_resolvers(): array {
+		$base = array(
+			'everywhere' => static fn( array $values ): bool => true,
+			'page'       => static fn( array $values ): bool => empty( $values ) ? is_page() : is_page( $values ),
+			'post'       => static fn( array $values ): bool => empty( $values ) ? is_singular( 'post' ) : is_single( $values ),
+		);
+
+		/**
+		 * The rule resolvers. A contributing unit adds the conditions it owns;
+		 * the vocabulary decides what a stored value may be, this map decides
+		 * what this edition can evaluate.
+		 *
+		 * The CONTRACT is array<string, callable(array<int, string>): bool>.
+		 * The declared type is `mixed` because a filter is not obliged to
+		 * honor a contract, and that is the whole point of the validation
+		 * below: typing the contract here would make PHPStan believe it and
+		 * read every check as dead code (#1024).
+		 *
+		 * @param mixed $base The base map.
+		 */
+		$resolvers = apply_filters( 'blocklane_pro_popups_rule_resolvers', $base );
+		if ( ! is_array( $resolvers ) ) {
+			return $base;
+		}
+
+		$checked = array();
+		foreach ( $resolvers as $condition => $resolver ) {
+			if ( is_string( $condition ) && is_callable( $resolver ) ) {
+				$checked[ $condition ] = $resolver;
+				continue;
+			}
+			$blocklane_key = is_string( $condition ) ? $condition : gettype( $condition );
+			if ( is_string( $condition ) && isset( $base[ $condition ] ) ) {
+				$checked[ $condition ] = $base[ $condition ];
+			}
+			_doing_it_wrong(
+				'blocklane_pro_popups_rule_resolvers',
+				esc_html(
+					sprintf(
+						/* translators: 1: a rule condition key, 2: a PHP type name. */
+						__( 'The resolver for "%1$s" is a %2$s, not a callable. Every entry must be callable; this one was ignored.', 'blocklane' ),
+						$blocklane_key,
+						gettype( $resolver )
+					)
+				),
+				esc_html( defined( 'BLOCKLANE_PRO_VERSION' ) ? BLOCKLANE_PRO_VERSION : '0.0.0' )
+			);
+		}
+
+		return $checked;
 	}
 
 	/**
@@ -423,6 +503,165 @@ if ( ! function_exists( 'blocklane_pro_popups_register' ) ) {
 		}
 
 		return 'all' === $rules['match'];
+	}
+
+	/**
+	 * Enqueue the front-end style and script — the ONE door (both render
+	 * passes call it, and wp_enqueue_* is idempotent). Fires
+	 * blocklane_pro_popups_front_enqueued so a contributing unit can add its
+	 * trigger arms with 'blocklane-pro-popups' as the dependency — the SECOND
+	 * registry (rule 6): view.js's `window.blocklanePopups.register()`.
+	 */
+	function blocklane_pro_popups_enqueue_front(): void {
+		$url = plugin_dir_url( __FILE__ );
+		wp_enqueue_style( 'blocklane-pro-popups', $url . 'style.css', array(), (string) filemtime( __DIR__ . '/style.css' ) );
+		wp_enqueue_script( 'blocklane-pro-popups', $url . 'view.js', array(), (string) filemtime( __DIR__ . '/view.js' ), true );
+
+		/**
+		 * Fires after the popups front-end script is enqueued (once per render
+		 * pass that produced markup; enqueues are idempotent).
+		 */
+		do_action( 'blocklane_pro_popups_front_enqueued' );
+	}
+
+	/**
+	 * The editor's trigger and condition option rows for THIS EDITION — the
+	 * THIRD registry (rule 6). One row per line (bin/popups-mirror-check.php
+	 * reads `'value' => '…'`); the Pro file appends its rows through the
+	 * filter and may replace a base row's help. Labels are translated HERE,
+	 * so the Pro labels live in the Pro file and the free bundle carries
+	 * none — the forbidden_ui_strings posture without a needle. Rows are
+	 * localized to the editor as window.blocklaneProPopupsOptions
+	 * (blocklane_pro_popups_editor_assets); src/index.js quotes no value.
+	 *
+	 * Trigger row: value, label, order, control ('seconds' | 'percent' | null:
+	 * which numeric control the editor shows), default (the value written on
+	 * switch), help. Condition row: value, label, order, valueless (a pure
+	 * state check), qualifiers (a LIST of qualifier vocabulary values, in the
+	 * order the select offers them). The payload's third key, `qualifier`, is
+	 * the one label map for that vocabulary — a row names values, never
+	 * labels, so the labels exist once (#1026, #1028).
+	 *
+	 * @return array{trigger: list<array<string, mixed>>, condition: list<array<string, mixed>>, qualifier: array<string, string>}
+	 */
+	function blocklane_pro_popups_editor_options(): array {
+		$base = array(
+			'trigger'   => array(
+				array( 'value' => 'time', 'label' => __( 'Time on page', 'blocklane' ), 'order' => 10, 'control' => 'seconds', 'default' => 0, 'help' => '' ),
+				array( 'value' => 'manual', 'label' => __( 'Manual only', 'blocklane' ), 'order' => 40, 'control' => null, 'default' => 0, 'help' => __( 'Point a link at #blocklane-popup-{ID}, or add a blocklane-popup-open-{ID} class to any element.', 'blocklane' ) ),
+			),
+			'condition' => array(
+				array( 'value' => 'everywhere', 'label' => __( 'Everywhere', 'blocklane' ), 'order' => 10, 'valueless' => true, 'qualifiers' => array( 'is', 'is-not' ) ),
+				array( 'value' => 'page', 'label' => __( 'Page', 'blocklane' ), 'order' => 30, 'valueless' => false, 'qualifiers' => array( 'is', 'is-not' ) ),
+				array( 'value' => 'post', 'label' => __( 'Post', 'blocklane' ), 'order' => 40, 'valueless' => false, 'qualifiers' => array( 'is', 'is-not' ) ),
+			),
+			'qualifier' => blocklane_pro_popups_qualifier_labels(),
+		);
+
+		/**
+		 * The editor option rows. A contributing unit appends the rows for
+		 * the values it owns (and may replace a base row's help). The
+		 * `qualifier` label map belongs to the base vocabulary and is not a
+		 * contribution point.
+		 *
+		 * @param array{trigger: list<array<string, mixed>>, condition: list<array<string, mixed>>, qualifier: array<string, string>} $base The base rows.
+		 */
+		$options = apply_filters( 'blocklane_pro_popups_editor_options', $base );
+
+		return is_array( $options ) ? $options : $base;
+	}
+
+	/**
+	 * The qualifier vocabulary's labels — the ONE source.
+	 *
+	 * The same is/is-not pair used to be written three times: here, in
+	 * inc/popups/pro/runtime.php, and as a JS fallback in src/index.js. Three
+	 * copies of a label map are three chances to disagree, and the JS copy
+	 * did something worse than disagree: it stood in for "this condition's
+	 * qualifiers" on a condition with no row at all, so a free author could
+	 * switch the qualifier of a rule this edition cannot evaluate (#1026,
+	 * #1028). Condition rows now carry a LIST of values; the labels are here;
+	 * and the editor receives this map as the payload's `qualifier` key, so a
+	 * stored qualifier a condition does not offer can be shown under its own
+	 * name instead of "Not available in this edition", which under Pro
+	 * (`page` + `contains`, storable because the sanitizer checks the whole
+	 * vocabulary) was simply false.
+	 *
+	 * Every key is a base vocabulary value, so no contributed literal enters
+	 * a base file and bin/popups-mirror-check.php stays satisfied.
+	 *
+	 * @return array<string, string> Qualifier value => translated label.
+	 */
+	function blocklane_pro_popups_qualifier_labels(): array {
+		return array(
+			'is'           => __( 'is', 'blocklane' ),
+			'is-not'       => __( 'is not', 'blocklane' ),
+			'contains'     => __( 'contains', 'blocklane' ),
+			'not-contains' => __( 'does not contain', 'blocklane' ),
+		);
+	}
+
+	/**
+	 * How a popup opens by itself, in one phrase — for a consumer that needs
+	 * to SAY it rather than act on it (the Popup Bindings panel's "this popup
+	 * also opens automatically (…)" hint).
+	 *
+	 * Derived from registry 3's rows, never from a switch. The binding panel
+	 * had its own switch over time/scroll/exit with hand-written labels — a
+	 * fourth reader of the trigger vocabulary, and one living outside
+	 * inc/popups/ where the mirror check's base-file scan could not see it,
+	 * so a renamed or retired trigger would have left it quietly wrong
+	 * (#1027). It cannot read window.blocklaneProPopupsOptions either: that
+	 * bridge is localized on the popup CPT screen only, and the panel renders
+	 * on every editor screen. So the label comes from the server, with the
+	 * payload that already carries the trigger.
+	 *
+	 * '' means "nothing opens this by itself": `manual` (a base value the
+	 * base may quote) or a trigger with no row in this edition — for which
+	 * "opens on click only" is the true sentence, since this build has no arm
+	 * for it.
+	 *
+	 * @param array<string, mixed> $trigger A settings trigger { type, value }.
+	 * @return string A translated phrase, or '' .
+	 */
+	function blocklane_pro_popups_trigger_summary( array $trigger ): string {
+		$type = isset( $trigger['type'] ) ? (string) $trigger['type'] : '';
+		if ( '' === $type || 'manual' === $type ) {
+			return '';
+		}
+
+		$row = null;
+		foreach ( blocklane_pro_popups_editor_options()['trigger'] as $candidate ) {
+			if ( isset( $candidate['value'] ) && $type === $candidate['value'] ) {
+				$row = $candidate;
+				break;
+			}
+		}
+		if ( null === $row ) {
+			return '';
+		}
+
+		$label   = isset( $row['label'] ) ? (string) $row['label'] : $type;
+		$value   = isset( $trigger['value'] ) ? (int) $trigger['value'] : 0;
+		$control = $row['control'] ?? null;
+		if ( 'seconds' === $control ) {
+			return sprintf(
+				/* translators: 1: a trigger label, e.g. "Time on page", 2: a number of seconds. */
+				_n( '%1$s, %2$d second', '%1$s, %2$d seconds', $value, 'blocklane' ),
+				$label,
+				$value
+			);
+		}
+		if ( 'percent' === $control ) {
+			return sprintf(
+				/* translators: 1: a trigger label, e.g. "Scroll percentage", 2: a percentage. */
+				__( '%1$s, %2$d%%', 'blocklane' ),
+				$label,
+				$value
+			);
+		}
+
+		return $label;
 	}
 
 	/**
@@ -1330,10 +1569,7 @@ if ( ! function_exists( 'blocklane_pro_popups_register' ) ) {
 			return;
 		}
 
-		$base    = plugin_dir_url( __FILE__ );
-		$version = (string) filemtime( __DIR__ . '/view.js' );
-		wp_enqueue_style( 'blocklane-pro-popups', $base . 'style.css', array(), (string) filemtime( __DIR__ . '/style.css' ) );
-		wp_enqueue_script( 'blocklane-pro-popups', $base . 'view.js', array(), $version, true );
+		blocklane_pro_popups_enqueue_front();
 
 		// The block-support rules the popup renders just generated (see the
 		// snapshot above). Only the delta — everything in the snapshot was
@@ -1427,9 +1663,7 @@ if ( ! function_exists( 'blocklane_pro_popups_register' ) ) {
 			return;
 		}
 
-		$base = plugin_dir_url( __FILE__ );
-		wp_enqueue_style( 'blocklane-pro-popups', $base . 'style.css', array(), (string) filemtime( __DIR__ . '/style.css' ) );
-		wp_enqueue_script( 'blocklane-pro-popups', $base . 'view.js', array(), (string) filemtime( __DIR__ . '/view.js' ), true );
+		blocklane_pro_popups_enqueue_front();
 
 		$new_rules = array_diff_key( $store->get_all_rules(), $before );
 		if ( $new_rules ) {
@@ -1516,6 +1750,13 @@ if ( ! function_exists( 'blocklane_pro_popups_register' ) ) {
 			$asset['dependencies'],
 			$asset['version'],
 			true
+		);
+		// The option rows this edition offers (the third registry): the
+		// bundle reads them instead of carrying its own tables.
+		wp_add_inline_script(
+			'blocklane-pro-popups-editor',
+			'window.blocklaneProPopupsOptions = ' . wp_json_encode( blocklane_pro_popups_editor_options() ) . ';',
+			'before'
 		);
 
 		if ( file_exists( __DIR__ . '/build/index.css' ) ) {

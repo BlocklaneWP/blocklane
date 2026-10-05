@@ -39,6 +39,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { ScreenTabs, ScreenTabPanel } from '../components/ScreenTabs';
 import { useTabShell } from '../components/use-tab-shell';
 import { forms as formsApi } from '../api/client';
+import { hasUnit } from '../edition.js';
 import {
 	ScreenDisabledNotice,
 	isToolScreenOn,
@@ -820,20 +821,32 @@ function FormsSettingsTab( { settings, onSave, initialPanel } ) {
 						setPurgeDays( value ? parseInt( value, 10 ) : 0 )
 					}
 				/>
-				<NumberControl
-					__next40pxDefaultSize
-					label={ __( 'Maximum upload size (MB)', 'blocklane' ) }
-					help={ __(
-						'Caps every File Upload field site-wide. 0 lets each field use its own limit, up to the server maximum.',
-						'blocklane'
-					) }
-					min={ 0 }
-					max={ 1024 }
-					value={ maxUploadMb }
-					onChange={ ( value ) =>
-						setMaxUploadMb( value ? parseInt( value, 10 ) : 0 )
-					}
-				/>
+				{ /* The site-wide upload cap governs the File Upload field, a
+				     block of block:form-file. An edition without that unit has
+				     nothing for the cap to govern, so the control is not shown
+				     — a live control that does nothing is the shape the charter
+				     rules out. PRESENCE decides, not the catalog: the catalog
+				     has an entry only for a LABELED absent unit, so blanking the
+				     label would have flipped this control live over nothing
+				     (#1043); hasUnit() reads the payload's unit list and fails
+				     closed. The stored value still rides through a save
+				     untouched (a writer preserves what it does not offer). */ }
+				{ hasUnit( 'block:form-file' ) && (
+					<NumberControl
+						__next40pxDefaultSize
+						label={ __( 'Maximum upload size (MB)', 'blocklane' ) }
+						help={ __(
+							'Caps every File Upload field site-wide. 0 lets each field use its own limit, up to the server maximum.',
+							'blocklane'
+						) }
+						min={ 0 }
+						max={ 1024 }
+						value={ maxUploadMb }
+						onChange={ ( value ) =>
+							setMaxUploadMb( value ? parseInt( value, 10 ) : 0 )
+						}
+					/>
+				) }
 				<ToggleControl
 					__nextHasNoMarginBottom
 					label={ __( 'Delete data on uninstall', 'blocklane' ) }

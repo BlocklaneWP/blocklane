@@ -2,10 +2,10 @@
 /**
  * Filesystem work, routed through WordPress instead of PHP primitives.
  *
- * Two jobs, both of which uninstall.php and the Scripts runtime were each
- * hand-rolling with `@rename` / `@mkdir` / `@rmdir` / `@unlink`: retire the
- * legacy mu-plugins scripts file out of the load path WITHOUT deleting it, and
- * remove a directory tree the plugin owns.
+ * Three jobs: retire the legacy mu-plugins scripts file out of the load path
+ * WITHOUT deleting it, and remove a directory tree the plugin owns (both once
+ * hand-rolled by uninstall.php and the Scripts runtime); and write inside
+ * uploads (uploads_put(), uploads_swap()), refusing any path outside it.
  *
  * WHY THE WORDPRESS LAYER AND NOT rename(). Not to satisfy a sniff. A raw
  * rename() is performed by the web server user, and on a host whose filesystem
@@ -96,6 +96,149 @@ final class File_Ops {
 		}
 
 		return $wp_filesystem;
+	}
+
+	/**
+	 * Write one file inside the uploads directory, through WordPress's direct
+	 * transport (see uploads_direct() for why that transport).
+	 *
+	 * @param string $path     Absolute path; its directory must exist inside
+	 *                         wp_upload_dir()'s basedir.
+	 * @param string $contents The bytes.
+	 * @return true|\WP_Error True when written; a typed refusal for a path
+	 *                        outside uploads or a failed write.
+	 */
+	public static function uploads_put( string $path, string $contents ): bool|\WP_Error {
+		$outside = self::uploads_refusal( $path );
+		if ( null !== $outside ) {
+			return $outside;
+		}
+		$fs = self::uploads_direct(); // Defines FS_CHMOD_FILE when nothing has.
+		if ( ! $fs->put_contents( $path, $contents, FS_CHMOD_FILE ) ) {
+			return new \WP_Error( 'blocklane_pro_uploads_write', 'Could not write ' . $path . '.' );
+		}
+		return true;
+	}
+
+	/**
+	 * Put a new file in place of an existing one inside uploads, keeping the
+	 * original until the new file is in place (media replace: same name, same
+	 * URL). Three moves: the original steps aside, the new file takes its
+	 * name, the original goes. WP_Filesystem's own overwrite deletes the
+	 * destination BEFORE it moves, which is the one order this must not use.
+	 *
+	 * Every step is checked, and a failure leaves the original at $target:
+	 *
+	 *   1 the step-aside move fails  — the target was never touched; a partial
+	 *     copy the transport's copy fallback may have left at the aside name is
+	 *     removed.
+	 *   2 the new file's move fails  — whatever the copy fallback left at the
+	 *     target is replaced by the original (overwrite, because a partial file
+	 *     may sit there). If even that fails, the error names where the
+	 *     original is kept ('blocklane_pro_swap_rollback', data `aside`).
+	 *   3 the original's delete fails — the swap DID happen; the error
+	 *     'blocklane_pro_swap_aside_left' (data `aside`) says the superseded
+	 *     bytes are still on disk under that name, for the caller to report.
+	 *
+	 * @param string                    $source Absolute path of the new file.
+	 * @param string                    $target Absolute path it replaces.
+	 * @param \WP_Filesystem_Base|null $fs     The transport; null for the
+	 *                                           direct one. A battery passes one
+	 *                                           that fails a chosen step.
+	 * @return true|\WP_Error
+	 */
+	public static function uploads_swap( string $source, string $target, ?\WP_Filesystem_Base $fs = null ): bool|\WP_Error {
+		foreach ( array( $source, $target ) as $path ) {
+			$outside = self::uploads_refusal( $path );
+			if ( null !== $outside ) {
+				return $outside;
+			}
+		}
+		$fs ??= self::uploads_direct();
+		if ( ! $fs->exists( $source ) ) {
+			return new \WP_Error( 'blocklane_pro_swap_no_source', 'The replacement file ' . $source . ' does not exist.' );
+		}
+
+		$aside = $fs->exists( $target ) ? $target . '.blocklane-replaced-' . wp_generate_password( 8, false, false ) : '';
+		if ( '' !== $aside && ! $fs->move( $target, $aside ) ) {
+			if ( $fs->exists( $aside ) ) {
+				$fs->delete( $aside );
+			}
+			return new \WP_Error( 'blocklane_pro_swap_aside', 'Could not move ' . $target . ' aside; it is untouched.' );
+		}
+
+		if ( ! $fs->move( $source, $target ) ) {
+			if ( '' === $aside ) {
+				// No original: whatever the copy fallback left at the target is
+				// partial; a delete of nothing is a harmless false.
+				$fs->delete( $target );
+			} elseif ( ! $fs->move( $aside, $target, true ) ) {
+				return new \WP_Error( 'blocklane_pro_swap_rollback', 'Could not move the replacement in, nor the original back; the original is kept at ' . $aside . '.', array( 'aside' => $aside ) );
+			}
+			return new \WP_Error( 'blocklane_pro_swap_move', 'Could not move the replacement onto ' . $target . '; the original is back in place.' );
+		}
+
+		if ( '' !== $aside && ! $fs->delete( $aside ) ) {
+			return new \WP_Error( 'blocklane_pro_swap_aside_left', 'The file was replaced, but the previous copy could not be removed: ' . $aside . '.', array( 'aside' => $aside ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Why a path may not be written through the uploads methods, or null
+	 * when it may. Judged on the directory AND on the final path (#1846):
+	 *
+	 *   - the directory must exist and resolve inside wp_upload_dir()'s
+	 *     basedir (realpath collapses `..` and symlinks, so a traversal or a
+	 *     linked directory loses the prefix);
+	 *   - the path itself must not be a symlink, dangling or not: a write
+	 *     follows a link planted at the file name, wherever it points;
+	 *   - a path that exists must itself resolve inside the basedir (its
+	 *     own `..` or `.` name included).
+	 *
+	 * @param string $path Absolute path.
+	 * @return \WP_Error|null
+	 */
+	private static function uploads_refusal( string $path ): ?\WP_Error {
+		$uploads = wp_upload_dir( null, false );
+		$base    = empty( $uploads['error'] ) ? realpath( (string) $uploads['basedir'] ) : false;
+		$inside  = static fn( string|false $real ): bool => false !== $base && false !== $real && str_starts_with( $real . '/', rtrim( $base, '/' ) . '/' );
+		if ( ! $inside( realpath( dirname( $path ) ) ) ) {
+			return new \WP_Error( 'blocklane_pro_uploads_outside', 'Refusing a path outside the uploads directory: ' . $path . '.' );
+		}
+		if ( is_link( $path ) || ( file_exists( $path ) && ! $inside( realpath( $path ) ) ) ) {
+			return new \WP_Error( 'blocklane_pro_uploads_outside', 'Refusing a path that is a link, or resolves outside the uploads directory: ' . $path . '.' );
+		}
+		return null;
+	}
+
+	/**
+	 * WordPress's direct transport, for the uploads methods above only.
+	 *
+	 * Core writes media into uploads with PHP's own file functions on every
+	 * host, whatever get_filesystem_method() says (wp_handle_upload(),
+	 * wp_unique_filename(), the image editors), because the web server is the
+	 * uploads directory's writer. So a write that belongs there goes through
+	 * WP_Filesystem_Direct: the WordPress API, with exactly the reach the PHP
+	 * primitive had, instead of a connection an FTP-method host could not open
+	 * on a front-end request. Private, so the only way to it is through a
+	 * method that has refused every path outside uploads; filesystem() above
+	 * is the door for anything else.
+	 *
+	 * @return \WP_Filesystem_Direct
+	 */
+	private static function uploads_direct(): \WP_Filesystem_Direct {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+		// put_contents() and mkdir() chmod with these; WP_Filesystem() defines
+		// them, which this door never calls. The same expressions core uses.
+		if ( ! defined( 'FS_CHMOD_DIR' ) ) {
+			define( 'FS_CHMOD_DIR', ( fileperms( ABSPATH ) & 0777 | 0755 ) ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- core's own constant, defined exactly as WP_Filesystem() defines it.
+		}
+		if ( ! defined( 'FS_CHMOD_FILE' ) ) {
+			define( 'FS_CHMOD_FILE', ( fileperms( ABSPATH . 'index.php' ) & 0777 | 0644 ) ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- core's own constant, defined exactly as WP_Filesystem() defines it.
+		}
+		return new \WP_Filesystem_Direct( null );
 	}
 
 	/**

@@ -211,7 +211,16 @@ if ( ! function_exists( 'blocklane_pro_edition_builds' ) ) {
 	function blocklane_pro_edition_builds( string $text_domain, string $plugins_dir, array $dirs ): array {
 		$builds = array();
 		foreach ( $dirs as $dir ) {
-			$head = blocklane_pro_edition_marks( rtrim( $plugins_dir, '/' ) . '/' . $dir, $text_domain );
+			$path = rtrim( $plugins_dir, '/' ) . '/' . $dir;
+			// A stray FILE in plugins/ (.DS_Store, a leftover zip) is a
+			// candidate name but not a plugin directory: probing under it is an
+			// open_basedir warning on hosts that set one, and that warning
+			// broke wp-admin's headers (#1014). One check at the one resolver
+			// every door (hold, installer, uninstall plan) reads through.
+			if ( ! is_dir( $path ) ) {
+				continue;
+			}
+			$head = blocklane_pro_edition_marks( $path, $text_domain );
 			if ( ! is_wp_error( $head ) ) {
 				$builds[ (string) $head['basename'] ] = $head;
 			}

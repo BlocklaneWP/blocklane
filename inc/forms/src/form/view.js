@@ -196,6 +196,91 @@ const applyConditions = ( form ) => {
 	} );
 };
 
+const setNotification = ( form, type, visible ) => {
+	const notification = form.querySelector(
+		`[data-bl-notification="${ type }"]`
+	);
+	if ( notification ) {
+		notification.classList.toggle( 'is-visible', visible );
+		// The markup ships `hidden` (#743): the attribute, not the
+		// stylesheet, is what keeps a message off the page until now.
+		notification.hidden = ! visible;
+	}
+	return notification;
+};
+
+const clearFeedback = ( form ) => {
+	form.querySelectorAll( '.blocklane-form__error' ).forEach( ( node ) =>
+		node.remove()
+	);
+	// The errors are gone, so the server's override goes with them and the
+	// rules resume deciding. Without this the field stays pinned open forever.
+	form.querySelectorAll( '[data-bl-server-active]' ).forEach( ( wrapper ) => {
+		delete wrapper.dataset.blServerActive;
+	} );
+	form.querySelectorAll( '[aria-invalid="true"]' ).forEach( ( control ) => {
+		control.removeAttribute( 'aria-invalid' );
+		const described = ( control.getAttribute( 'aria-describedby' ) || '' )
+			.split( /\s+/ )
+			.filter( ( id ) => id && id !== errorIdOf( control ) )
+			.join( ' ' );
+		if ( described ) {
+			control.setAttribute( 'aria-describedby', described );
+		} else {
+			control.removeAttribute( 'aria-describedby' );
+		}
+	} );
+	setNotification( form, 'success', false );
+	setNotification( form, 'error', false );
+};
+
+const showFieldError = ( form, control, message ) => {
+	const wrapper = wrapperOf( control );
+	const errorId = errorIdOf( control );
+	if ( ! wrapper || wrapper.querySelector( `[id="${ errorId }"]` ) ) {
+		return;
+	}
+	// If this field is condition-hidden, the client's verdict is stale: the
+	// server has just told us the field is active AND invalid, and the server
+	// is the one that decides what a submission may contain. Appending the
+	// error into a display:none wrapper produced a dead end — the form failed,
+	// nothing was highlighted, and the control could not be reached or fixed.
+	// Reveal it and re-enable it so the message is visible and answerable.
+	if ( wrapper.classList.contains( 'is-bl-hidden' ) || wrapper.hidden ) {
+		// Marked, not just revealed: applyConditions runs on the very next
+		// keystroke and re-hides from scratch, which would have swallowed the
+		// error again a moment after showing it. The mark says "the server has
+		// ruled on this field" and applyConditions honours it until the error
+		// is cleared.
+		wrapper.dataset.blServerActive = '1';
+		wrapper.classList.remove( 'is-bl-hidden' );
+		wrapper.hidden = false;
+		if ( wrapper.matches( 'input, select, textarea' ) ) {
+			wrapper.disabled = false;
+		}
+		wrapper
+			.querySelectorAll( 'input, select, textarea' )
+			.forEach( ( el ) => {
+				el.disabled = false;
+			} );
+	}
+
+	const error = form.ownerDocument.createElement( 'p' );
+	error.className = 'blocklane-form__error';
+	error.id = errorId;
+	error.textContent = message;
+	wrapper.append( error );
+
+	control.setAttribute( 'aria-invalid', 'true' );
+	const described = ( control.getAttribute( 'aria-describedby' ) || '' )
+		.split( /\s+/ )
+		.filter( Boolean );
+	if ( ! described.includes( errorId ) ) {
+		described.push( errorId );
+	}
+	control.setAttribute( 'aria-describedby', described.join( ' ' ) );
+};
+
 /*
  * Multi-step (v3). Steps are UX only — every step's inputs stay ENABLED
  * (they all submit; the server validates the full schema regardless);
@@ -342,74 +427,34 @@ const validateStep = ( form, step ) => {
 	return true;
 };
 
-const initStepping = ( form ) => {
-	if ( ! form.dataset.blStepped ) {
-		return;
-	}
-	applyStepView( form );
-	form.addEventListener( 'click', ( event ) => {
-		const next = event.target.closest( '[data-bl-step-next]' );
-		const back = event.target.closest( '[data-bl-step-back]' );
-		if ( ! next && ! back ) {
-			return;
-		}
-		event.preventDefault();
-		// The step the visitor is ON is read before feedback clears; the
-		// TARGET is read after it. clearFeedback() re-hides notifications,
-		// and a revealed one keeps its step reachable — so the current step
-		// itself may leave the list (a message-pinned step), and the target
-		// is "the next reachable step after it", never an index into a list
-		// the current step is no longer in.
-		const current =
-			stepState.get( form ) ?? effectiveStepIndexes( form )[ 0 ];
-		clearFeedback( form );
-		if ( next ) {
-			const step = stepsOf( form )[ current ];
-			if ( step && ! validateStep( form, step ) ) {
-				return;
-			}
-			stepState.set( form, stepAfter( form, current ) );
-		} else {
-			stepState.set( form, stepBefore( form, current ) );
-		}
-		applyStepView( form );
-		form.scrollIntoView( { behavior: 'smooth', block: 'start' } );
-		focusStep( form );
-	} );
+/**
+ * The next reachable step after `current` (or the last reachable one), read
+ * from the CURRENT list — `current` itself need not be in it.
+ *
+ * @param {HTMLFormElement} form    The form.
+ * @param {number}          current The step index the visitor is on.
+ * @return {number} The target step index.
+ */
+const stepAfter = ( form, current ) => {
+	const effective = effectiveStepIndexes( form );
+	return (
+		effective.find( ( index ) => index > current ) ??
+		effective[ effective.length - 1 ]
+	);
 };
 
 /**
- * Move focus into the newly active step and say where we are.
+ * The previous reachable step before `current` (or the first reachable one),
+ * read from the CURRENT list — `current` itself need not be in it.
  *
- * The button the visitor just pressed lives on the step being hidden, so
- * without this focus falls to <body>: keyboard users restart from the top of
- * the document on every step, and a screen reader announces nothing at all —
- * the page silently became a different page.
- *
- * @param {HTMLFormElement} form The form element.
+ * @param {HTMLFormElement} form    The form.
+ * @param {number}          current The step index the visitor is on.
+ * @return {number} The target step index.
  */
-const focusStep = ( form ) => {
-	const steps = stepsOf( form );
+const stepBefore = ( form, current ) => {
 	const effective = effectiveStepIndexes( form );
-	const current = stepState.get( form ) ?? effective[ 0 ];
-	const step = steps[ current ];
-	if ( ! step ) {
-		return;
-	}
-
-	const control = Array.from(
-		step.querySelectorAll( 'input, select, textarea' )
-	).find( ( el ) => isCandidate( el ) && ! el.disabled );
-
-	if ( control ) {
-		control.focus();
-	} else {
-		// A content-only step has nothing to focus, so focus the step itself.
-		step.setAttribute( 'tabindex', '-1' );
-		step.focus();
-	}
-
-	announceStep( form, effective.indexOf( current ) + 1, effective.length );
+	const earlier = effective.filter( ( index ) => index < current );
+	return earlier.length ? earlier[ earlier.length - 1 ] : effective[ 0 ];
 };
 
 /**
@@ -447,33 +492,73 @@ const announceStep = ( form, position, total ) => {
 };
 
 /**
- * The next reachable step after `current` (or the last reachable one), read
- * from the CURRENT list — `current` itself need not be in it.
+ * Move focus into the newly active step and say where we are.
  *
- * @param {HTMLFormElement} form    The form.
- * @param {number}          current The step index the visitor is on.
- * @return {number} The target step index.
+ * The button the visitor just pressed lives on the step being hidden, so
+ * without this focus falls to <body>: keyboard users restart from the top of
+ * the document on every step, and a screen reader announces nothing at all —
+ * the page silently became a different page.
+ *
+ * @param {HTMLFormElement} form The form element.
  */
-const stepAfter = ( form, current ) => {
+const focusStep = ( form ) => {
+	const steps = stepsOf( form );
 	const effective = effectiveStepIndexes( form );
-	return (
-		effective.find( ( index ) => index > current ) ??
-		effective[ effective.length - 1 ]
-	);
+	const current = stepState.get( form ) ?? effective[ 0 ];
+	const step = steps[ current ];
+	if ( ! step ) {
+		return;
+	}
+
+	const control = Array.from(
+		step.querySelectorAll( 'input, select, textarea' )
+	).find( ( el ) => isCandidate( el ) && ! el.disabled );
+
+	if ( control ) {
+		control.focus();
+	} else {
+		// A content-only step has nothing to focus, so focus the step itself.
+		step.setAttribute( 'tabindex', '-1' );
+		step.focus();
+	}
+
+	announceStep( form, effective.indexOf( current ) + 1, effective.length );
 };
 
-/**
- * The previous reachable step before `current` (or the first reachable one),
- * read from the CURRENT list — `current` itself need not be in it.
- *
- * @param {HTMLFormElement} form    The form.
- * @param {number}          current The step index the visitor is on.
- * @return {number} The target step index.
- */
-const stepBefore = ( form, current ) => {
-	const effective = effectiveStepIndexes( form );
-	const earlier = effective.filter( ( index ) => index < current );
-	return earlier.length ? earlier[ earlier.length - 1 ] : effective[ 0 ];
+const initStepping = ( form ) => {
+	if ( ! form.dataset.blStepped ) {
+		return;
+	}
+	applyStepView( form );
+	form.addEventListener( 'click', ( event ) => {
+		const next = event.target.closest( '[data-bl-step-next]' );
+		const back = event.target.closest( '[data-bl-step-back]' );
+		if ( ! next && ! back ) {
+			return;
+		}
+		event.preventDefault();
+		// The step the visitor is ON is read before feedback clears; the
+		// TARGET is read after it. clearFeedback() re-hides notifications,
+		// and a revealed one keeps its step reachable — so the current step
+		// itself may leave the list (a message-pinned step), and the target
+		// is "the next reachable step after it", never an index into a list
+		// the current step is no longer in.
+		const current =
+			stepState.get( form ) ?? effectiveStepIndexes( form )[ 0 ];
+		clearFeedback( form );
+		if ( next ) {
+			const step = stepsOf( form )[ current ];
+			if ( step && ! validateStep( form, step ) ) {
+				return;
+			}
+			stepState.set( form, stepAfter( form, current ) );
+		} else {
+			stepState.set( form, stepBefore( form, current ) );
+		}
+		applyStepView( form );
+		form.scrollIntoView( { behavior: 'smooth', block: 'start' } );
+		focusStep( form );
+	} );
 };
 
 // Submit-time correction for stepped forms: an invalid control living on a
@@ -504,91 +589,6 @@ const armTimeTrap = ( form ) => {
 			token.value = '1';
 		}, delay );
 	}
-};
-
-const setNotification = ( form, type, visible ) => {
-	const notification = form.querySelector(
-		`[data-bl-notification="${ type }"]`
-	);
-	if ( notification ) {
-		notification.classList.toggle( 'is-visible', visible );
-		// The markup ships `hidden` (#743): the attribute, not the
-		// stylesheet, is what keeps a message off the page until now.
-		notification.hidden = ! visible;
-	}
-	return notification;
-};
-
-const clearFeedback = ( form ) => {
-	form.querySelectorAll( '.blocklane-form__error' ).forEach( ( node ) =>
-		node.remove()
-	);
-	// The errors are gone, so the server's override goes with them and the
-	// rules resume deciding. Without this the field stays pinned open forever.
-	form.querySelectorAll( '[data-bl-server-active]' ).forEach( ( wrapper ) => {
-		delete wrapper.dataset.blServerActive;
-	} );
-	form.querySelectorAll( '[aria-invalid="true"]' ).forEach( ( control ) => {
-		control.removeAttribute( 'aria-invalid' );
-		const described = ( control.getAttribute( 'aria-describedby' ) || '' )
-			.split( /\s+/ )
-			.filter( ( id ) => id && id !== errorIdOf( control ) )
-			.join( ' ' );
-		if ( described ) {
-			control.setAttribute( 'aria-describedby', described );
-		} else {
-			control.removeAttribute( 'aria-describedby' );
-		}
-	} );
-	setNotification( form, 'success', false );
-	setNotification( form, 'error', false );
-};
-
-const showFieldError = ( form, control, message ) => {
-	const wrapper = wrapperOf( control );
-	const errorId = errorIdOf( control );
-	if ( ! wrapper || wrapper.querySelector( `[id="${ errorId }"]` ) ) {
-		return;
-	}
-	// If this field is condition-hidden, the client's verdict is stale: the
-	// server has just told us the field is active AND invalid, and the server
-	// is the one that decides what a submission may contain. Appending the
-	// error into a display:none wrapper produced a dead end — the form failed,
-	// nothing was highlighted, and the control could not be reached or fixed.
-	// Reveal it and re-enable it so the message is visible and answerable.
-	if ( wrapper.classList.contains( 'is-bl-hidden' ) || wrapper.hidden ) {
-		// Marked, not just revealed: applyConditions runs on the very next
-		// keystroke and re-hides from scratch, which would have swallowed the
-		// error again a moment after showing it. The mark says "the server has
-		// ruled on this field" and applyConditions honours it until the error
-		// is cleared.
-		wrapper.dataset.blServerActive = '1';
-		wrapper.classList.remove( 'is-bl-hidden' );
-		wrapper.hidden = false;
-		if ( wrapper.matches( 'input, select, textarea' ) ) {
-			wrapper.disabled = false;
-		}
-		wrapper
-			.querySelectorAll( 'input, select, textarea' )
-			.forEach( ( el ) => {
-				el.disabled = false;
-			} );
-	}
-
-	const error = form.ownerDocument.createElement( 'p' );
-	error.className = 'blocklane-form__error';
-	error.id = errorId;
-	error.textContent = message;
-	wrapper.append( error );
-
-	control.setAttribute( 'aria-invalid', 'true' );
-	const described = ( control.getAttribute( 'aria-describedby' ) || '' )
-		.split( /\s+/ )
-		.filter( Boolean );
-	if ( ! described.includes( errorId ) ) {
-		described.push( errorId );
-	}
-	control.setAttribute( 'aria-describedby', described.join( ' ' ) );
 };
 
 const controlForName = ( form, name ) => {

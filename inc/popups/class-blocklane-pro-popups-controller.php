@@ -47,6 +47,12 @@ class Popups_Controller implements Rest_Registrable {
 		return true;
 	}
 
+	/**
+	 * Every bindable popup, for the binding panel's picker.
+	 *
+	 * @param \WP_REST_Request<array<string, mixed>> $request Unused.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
 	public function list_popups( \WP_REST_Request $request ) {
 		unset( $request );
 
@@ -86,11 +92,25 @@ class Popups_Controller implements Rest_Registrable {
 			// guarantees it loaded.
 			$settings = blocklane_pro_popups_settings( $post->ID );
 
+			// `opens` is the SAYING half, derived from the editor option rows
+			// (registry 3) rather than from a switch in the panel's JS: the
+			// panel lives outside inc/popups/ and cannot read the vocabulary
+			// without becoming a fourth copy of it (#1027). `trigger` stays
+			// for the Make click-only flow, which WRITES a base value, and
+			// for an older cached bundle. An empty summary means nothing
+			// opens the popup by itself — `manual`, or a trigger this edition
+			// has no arm for, for which "click only" is the true sentence.
+			$summary = blocklane_pro_popups_trigger_summary( $settings['trigger'] );
+
 			$items[] = array(
 				'id'      => $post->ID,
 				'title'   => '' !== $post->post_title ? $post->post_title : __( '(no title)', 'blocklane' ),
 				'status'  => $post->post_status,
 				'trigger' => $settings['trigger'],
+				'opens'   => array(
+					'auto'    => '' !== $summary,
+					'summary' => $summary,
+				),
 			);
 		}
 

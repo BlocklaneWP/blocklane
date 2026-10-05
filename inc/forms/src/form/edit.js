@@ -12,6 +12,7 @@ import { useSelect, useDispatch } from '@wordpress/data';
 import {
 	cloneBlock,
 	createBlocksFromInnerBlocksTemplate,
+	getBlockType,
 } from '@wordpress/blocks';
 import {
 	useBlockProps,
@@ -41,6 +42,7 @@ import {
 } from '@wordpress/components';
 import useFormFieldNames from '../shared/use-form-field-names';
 import useResolvedFieldNames from '../shared/use-resolved-field-names';
+import { makeRequiredCapable } from '../shared/required-capable';
 import { envelope } from '@wordpress/icons';
 import useToolsPanelDropdownMenuProps from '../../../shared/use-tools-panel-dropdown-menu-props';
 import { inputStyleVars } from '../shared/input-styles';
@@ -74,16 +76,33 @@ const DEFAULT_TEMPLATE = [
 	[ 'blocklane/form-notification', { type: 'error' } ],
 ];
 
-// Mirrors blocklane_pro_forms_has_required() in inc/forms/runtime.php — the
-// required-fields notice must render identically in the canvas and the front.
-// Keep the two block-name lists in sync.
-const REQUIRED_CAPABLE = [
-	'blocklane/form-input',
-	'blocklane/form-textarea',
-	'blocklane/form-select',
-	'blocklane/form-group',
-	'blocklane/form-file',
-];
+/* Two questions the server answers, both localized by
+   blocklane_pro_forms_editor_state() before this script runs, and both with a
+   DERIVED fallback rather than a literal list — so a canvas without the bridge
+   still agrees with what the server would do, and there is nothing here to
+   keep in sync by hand.
+
+   KNOWN_SUITE — which suite blocks THIS EDITION registers
+   (blocklane_pro_forms_known_blocks(), the one view, rule 6). Absent bridge =
+   the whole suite, so the canvas never hides a block the server would register.
+
+   isRequiredCapable — whether a block can carry a required value; mirrors
+   blocklane_pro_forms_has_required(), so the required-fields notice renders
+   identically in the canvas and on the front. Absent bridge = whatever the
+   REGISTERED type declares a `required` attribute (#1037). */
+const KNOWN_SUITE =
+	( window.blocklaneProForms && window.blocklaneProForms.blocks ) || null;
+const known = ( slug ) => ! KNOWN_SUITE || KNOWN_SUITE.includes( slug );
+const STEPS_KNOWN = known( 'form-step' );
+const isRequiredCapable = makeRequiredCapable(
+	window.blocklaneProForms && window.blocklaneProForms.fieldBlocks,
+	getBlockType
+);
+/* Field-shaped rows for the condition picker: required-capable minus the
+   Choice Group, which the caller below gives its own row shape (a legend, not
+   a label). The form-group name is that one distinction, not a field list. */
+const isInputLike = ( name ) =>
+	isRequiredCapable( name ) && 'blocklane/form-group' !== name;
 
 /* Tri-state submission toggle (v2): "Default" inherits the site-wide form
    default from the Forms screen (undefined attribute — the block.json
@@ -146,8 +165,7 @@ const generateFormId = () =>
 const hasRequiredField = ( blocks ) =>
 	blocks.some(
 		( block ) =>
-			( REQUIRED_CAPABLE.includes( block.name ) &&
-				block.attributes?.required ) ||
+			( isRequiredCapable( block.name ) && block.attributes?.required ) ||
 			hasRequiredField( block.innerBlocks || [] )
 	);
 
@@ -239,6 +257,7 @@ export default function FormEdit( { attributes, setAttributes, clientId } ) {
 				hasInnerBlocks: inner.length > 0,
 				showRequiredNotice: hasRequiredField( inner ),
 				hasSteps:
+					STEPS_KNOWN &&
 					inner.filter(
 						( child ) => 'blocklane/form-step' === child.name
 					).length > 1,
@@ -328,14 +347,7 @@ export default function FormEdit( { attributes, setAttributes, clientId } ) {
 							condition: attrs.condition,
 						} );
 					}
-					if (
-						[
-							'blocklane/form-input',
-							'blocklane/form-textarea',
-							'blocklane/form-select',
-							'blocklane/form-file',
-						].includes( block )
-					) {
+					if ( isInputLike( block ) ) {
 						rows.push( {
 							clientId: inner.clientId,
 							step: inStep,
@@ -477,7 +489,11 @@ export default function FormEdit( { attributes, setAttributes, clientId } ) {
 				return out;
 			};
 			const submits = findSubmits( inner );
-			if ( ! submits.length ) {
+			// Under an edition that does not register steps, no lock pass
+			// runs at all — not even the "lift the lock" half — so a
+			// Pro-authored form saved here keeps its lock attribute byte for
+			// byte (rule 6, H1).
+			if ( ! STEPS_KNOWN || ! submits.length ) {
 				return { moves: [], locks: [], unlocks: [] };
 			}
 			const steps = inner.filter(
@@ -676,7 +692,7 @@ export default function FormEdit( { attributes, setAttributes, clientId } ) {
 			'blocklane/form-step',
 			'blocklane/form-submit-button',
 			'blocklane/form-notification',
-		],
+		].filter( ( name ) => known( name.replace( 'blocklane/', '' ) ) ),
 	} );
 
 	const setInputStyle = ( key ) => ( value ) =>

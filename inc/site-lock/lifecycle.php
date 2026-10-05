@@ -152,7 +152,7 @@ function blocklane_pro_admin_notice_site_lock_not_enforced(): void {
 add_action(
 	is_multisite() ? 'network_admin_notices' : 'admin_notices',
 	static function () {
-		if ( ! function_exists( 'wp_is_block_theme' ) || ! wp_is_block_theme() ) {
+		if ( ! wp_is_block_theme() ) {
 			blocklane_pro_admin_notice_site_lock_not_enforced();
 		}
 	}

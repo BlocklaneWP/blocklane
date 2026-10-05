@@ -22,7 +22,7 @@
 import { useState, useRef, useCallback } from '@wordpress/element';
 
 /**
- * @return {{busy: boolean, run: Function}} busy, and run( items, write ).
+ * @return {{busy: boolean, run: (items: Array, write: (item: unknown) => Promise<unknown>) => Promise<unknown>|null}} busy, and run( items, write ).
  */
 export function useSerialWrites() {
 	const busyRef = useRef( false );

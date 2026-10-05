@@ -47,6 +47,14 @@ final class Module_Miss {
 	 * simply never happened.
 	 */
 	public const PHASE_LIFECYCLE = 'lifecycle';
+	/**
+	 * An extension's ADMIN half — the editor controls, settings row and usage
+	 * tracking a present extension carries beside its content runtime
+	 * (Extensions_Handler::ADMIN_RUNTIMES). Its own phase because its
+	 * consequence is its own: content already built with the extension keeps
+	 * rendering while the controls to edit it are gone (#875).
+	 */
+	public const PHASE_ADMIN = 'admin';
 
 	/** A `runtimes` entry is not a file. Subject: the path relative to inc/. */
 	public const RUNTIME_MISSING = 'runtime-missing';
@@ -73,7 +81,8 @@ final class Module_Miss {
 	) {}
 
 	/**
-	 * The English, untranslated log line — what error_log() records.
+	 * The English, untranslated log line — what blocklane_pro_log_failure()
+	 * writes to the PHP error log, WP_DEBUG or not.
 	 */
 	public function describe(): string {
 		$what = match ( $this->phase ) {

@@ -626,6 +626,7 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 						'post_type'   => $type,
 						'title_li'    => '',
 						'echo'        => false,
+						// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- the HTML sitemap's exclusion list is the administrator's own short list of pages; wp_list_pages() has no other way to honor it.
 						'exclude'     => implode( ',', array_map( 'absint', $exclude ) ),
 						'sort_column' => 'menu_order,post_title',
 					)
@@ -717,8 +718,8 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 		// Parent pages collapse like the sections: a chevron button after
 		// each parent link toggles its children. Injected client-side so the
 		// wp_list_pages walker stays stock.
-		echo '<script id="blocklane-seo-sitemap-js">'
-			. 'document.addEventListener("DOMContentLoaded",function(){'
+		wp_print_inline_script_tag(
+			'document.addEventListener("DOMContentLoaded",function(){'
 			. 'document.querySelectorAll(".blocklane-seo-sitemap .page_item_has_children").forEach(function(li){'
 			. 'var link=li.querySelector(":scope > a");if(!link){return;}'
 			. 'var btn=document.createElement("button");'
@@ -731,8 +732,9 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 			. 'btn.setAttribute("aria-expanded",String(!collapsed));'
 			. '});'
 			. '});'
-			. '});'
-			. '</script>';
+			. '});',
+			array( 'id' => 'blocklane-seo-sitemap-js' )
+		);
 	}
 
 	/**
@@ -2057,9 +2059,7 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 			'before'
 		);
 
-		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations( 'blocklane-pro-seo', 'blocklane', BLOCKLANE_PRO_PATH . '/languages' );
-		}
+		wp_set_script_translations( 'blocklane-pro-seo', 'blocklane', BLOCKLANE_PRO_PATH . '/languages' );
 
 		$style = BLOCKLANE_PRO_PATH . '/inc/seo/build/index.css';
 		if ( file_exists( $style ) ) {
@@ -2328,6 +2328,11 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 
 		echo '<select name="blocklane_seo_filter" id="blocklane-seo-filter">';
 		foreach ( $options as $value => $label ) {
+			// $current is request-derived, but selected() does not echo it: it COMPARES it and
+			// returns either the literal " selected='selected'" or ''. The echoed values are
+			// $value and $label from the local $options map, both escaped. Semgrep sees a tainted
+			// variable reach an echo argument and cannot see that the callee discards it.
+			// nosemgrep: php.lang.security.injection.echoed-request.echoed-request
 			echo '<option value="' . esc_attr( $value ) . '"' . selected( $current, $value, false ) . '>'
 				. esc_html( $label )
 				. '</option>';

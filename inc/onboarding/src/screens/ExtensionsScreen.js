@@ -2,7 +2,7 @@
  * Extensions screen — the toggle list for the block-editor extensions.
  *
  * Core admin-ui page arrangement (ScreenHeader + ScreenTabs, shared with
- * SEO, Forms, Content Types, and Advanced): a page header, then one tab
+ * SEO, Forms, the content-types screen, and Advanced): a page header, then one tab
  * per category (Styling & Effects, Layout & Responsive, Workflow & Tools),
  * then the tab's content — a toolbar (Enable/Disable All for the tab, a
  * search box scoped to the tab) above the tab's feature rows (toggle ·
@@ -17,10 +17,11 @@
  * Every row's display copy is OWNED by its `extension:*` unit: it lives in
  * extensions/rows/<slug>.js behind the one-line-per-row index
  * extensions/rows.js, so an edition that does not carry the extension carries
- * neither the file nor the line and the copy is never in the bundle. This
- * screen keeps DISPLAY_ORDER (the slugs are shared data, like PHP's
- * KNOWN_SLUGS) and lists a slug only when it has BOTH a row and a server-side
- * `enabled` entry.
+ * neither the file nor its copy: the generator rewrites that line to a
+ * proRow() call, and the row renders with a Pro badge and no switch from the
+ * localized catalog. This screen keeps DISPLAY_ORDER (the slugs are shared data, like
+ * PHP's KNOWN_SLUGS) and lists a slug when it has a row AND either a
+ * server-side `enabled` entry or the row is a Pro row.
  *
  * URL: ?screen=extensions&exttab=<category> (the default tab clears the
  * param); ?ext=<slug> pins that extension on its own tab — the editor's
@@ -38,7 +39,7 @@
  * interleave in either order.
  */
 
-import { __, sprintf } from '@wordpress/i18n';
+import { __, _n, sprintf } from '@wordpress/i18n';
 import {
 	useCallback,
 	useEffect,
@@ -64,6 +65,7 @@ import {
 import { extensions as extensionsApi } from '../api/client';
 import { errorMessage } from '../api/errors';
 import { FeatureItem } from '../components/FeatureItem';
+import { ProDetailHeading } from '../components/ProDetailHeading';
 import { FeatureDescription } from '../components/FeatureDescription';
 import { FeatureToolbar } from '../components/FeatureToolbar';
 import { HelpTab, useHelpPreference } from '../components/HelpTab';
@@ -72,9 +74,13 @@ import { ScreenTabs, ScreenTabPanel } from '../components/ScreenTabs';
 import { useFeatureTabs } from '../components/use-feature-tabs';
 import { useSerialWrites } from '../components/use-serial-writes';
 import { pluginName } from '../edition';
+// The ONE predicate for "this row belongs to a product this build is not":
+// it reads the factory's private mark, never a row's own `pro` property (#986).
+import { isProRow } from './pro-row.js';
 // Every extension row, one re-export per line — the index the generator
-// filters. Namespace import on purpose: the object is whatever lines
-// survived, and nothing here names an absent unit.
+// rewrites. Namespace import on purpose: the object is whatever the index
+// exports after the rewrite — live rows for present units, proRow()
+// stand-ins for absent ones — and THIS file names no unit; the index does.
 import * as ROW_MODULES from './extensions/rows';
 
 /* ROWS — display data for each extension slug. PHP remains the source of
@@ -89,8 +95,22 @@ import * as ROW_MODULES from './extensions/rows';
    slug, so the key comes from the row data and not from an export name that
    could drift from it. */
 export const ROWS = Object.fromEntries(
-	Object.values( ROW_MODULES ).map( ( row ) => [ row.slug, row ] )
+	// A proRow() entry is null when the localized catalog has no entry for
+	// its unit — a build fault, a screen rendered outside wp-admin, a test.
+	// Dropped here rather than crashing the whole screen on `.slug`: the
+	// generator writes these lines, so the index is not hand-checkable.
+	Object.values( ROW_MODULES )
+		.filter( Boolean )
+		.map( ( row ) => [ row.slug, row ] )
 );
+
+/* Is this slug a row for an extension this build does not contain? The ONE
+   answer, because both write doors below and the row filter above need it and
+   a guard added to one door and not its sibling is this repo's most-repeated
+   defect (AGENTS.md). A Pro row has no server-side entry and never will, so
+   nothing may send its slug to the toggle endpoint. Answered by the factory's
+   mark (isProRow), never by a row's own `pro` property (#986). */
+const isProSlug = ( slug ) => isProRow( ROWS[ slug ] );
 
 /* The user-facing toggle list, alphabetical by title to match BlocklanePro's admin
    display order (so the two lists scan straight down side by side; BlocklanePro's
@@ -466,14 +486,30 @@ export const ExtensionsScreen = ( { initialExtension } = {} ) => {
 	// handler also returns are intentionally not listed. A slug needs BOTH
 	// halves: a row this artifact carries (`s in ROWS` — the unit is present)
 	// and a server-side entry (`s in enabled` — the handler offers it). Either
-	// one alone would render a toggle for an extension that is not here.
+	// one alone would render a TOGGLE for an extension that is not here.
+	//
+	// A Pro row is the deliberate exception, and it is safe for the same
+	// reason the rule exists: it renders no toggle. Its unit is absent, so the
+	// handler offers no entry and never will — requiring one would filter out
+	// exactly the rows this screen now exists to show.
 	// Memoized so the fallback [] keeps a stable identity for the hook below.
 	const slugs = useMemo(
 		() =>
 			enabled
-				? DISPLAY_ORDER.filter( ( s ) => s in ROWS && s in enabled )
+				? DISPLAY_ORDER.filter(
+						( s ) => s in ROWS && ( isProSlug( s ) || s in enabled )
+					)
 				: [],
 		[ enabled ]
+	);
+
+	// Whether this edition shows any Pro row at all. Drives the one line of
+	// panel copy that would otherwise be wrong in Pro (where nothing is
+	// marked) and incomplete in free (where "enabled by default" does not
+	// describe a feature that is not in the download).
+	const hasProRows = useMemo(
+		() => slugs.some( ( s ) => isProSlug( s ) ),
+		[ slugs ]
 	);
 
 	// The tabbed composition: registry entry, tab shell, the pinned item
@@ -491,7 +527,9 @@ export const ExtensionsScreen = ( { initialExtension } = {} ) => {
 		// filter above is one door, the deep link is the other.
 		deepLink: initialExtension in ROWS ? initialExtension : null,
 		textOf,
-		isOn: ( s ) => !! enabled?.[ s ],
+		// A Pro row has no state; report it ON so it is excluded from the
+		// bulk "all on" test rather than pinning that control to "enable".
+		isOn: ( s ) => ( isProSlug( s ) ? true : !! enabled?.[ s ] ),
 	} );
 	const {
 		pinned,
@@ -557,6 +595,12 @@ export const ExtensionsScreen = ( { initialExtension } = {} ) => {
 	}, [ loadExtensions ] );
 
 	const handleToggle = useCallback( async ( slug, next ) => {
+		// Behind FeatureItem, which draws no switch for a Pro row: nothing
+		// here to enable, and the endpoint would refuse a slug whose unit is
+		// absent anyway.
+		if ( isProSlug( slug ) ) {
+			return;
+		}
 		// Capture `previous` from the latest committed state inside the
 		// functional updater so a rapid double-toggle rolls back to the
 		// correct value rather than a stale render-time snapshot.
@@ -611,7 +655,9 @@ export const ExtensionsScreen = ( { initialExtension } = {} ) => {
 	const { busy, run } = useSerialWrites();
 	const handleToggleAll = useCallback( async () => {
 		const next = ! allOn;
-		const targets = tabSlugs;
+		// Pro rows are not writable, so they are not targets — sending one
+		// would fail the whole batch on a tab that merely displays one.
+		const targets = tabSlugs.filter( ( s ) => ! isProSlug( s ) );
 		const loop = run( targets, ( s ) => extensionsApi.toggle( s, next ) );
 		if ( ! loop ) {
 			return;
@@ -622,8 +668,15 @@ export const ExtensionsScreen = ( { initialExtension } = {} ) => {
 		} );
 		setEnabled( ( prev ) => ( { ...prev, ...updated } ) );
 		setError( '' );
-		setSnackbarMessage(
-			next
+		// The snackbar says what the action DID (#1000): "All" only when
+		// every row on the tab was a target; on a tab that shows Pro rows,
+		// the count that changed and, in one more sentence, how many belong
+		// to Blocklane Pro. One sentence per skipped kind, `_n()` on each
+		// count — no combinatorial strings (D6).
+		const skipped = tabSlugs.length - targets.length;
+		let message;
+		if ( 0 === skipped ) {
+			message = next
 				? sprintf(
 						/* translators: %s: the tab (category) name. */
 						__( 'All %s extensions enabled', 'blocklane' ),
@@ -633,8 +686,45 @@ export const ExtensionsScreen = ( { initialExtension } = {} ) => {
 						/* translators: %s: the tab (category) name. */
 						__( 'All %s extensions disabled', 'blocklane' ),
 						tabLabel
+					);
+		} else {
+			message = next
+				? sprintf(
+						/* translators: 1: the number of extensions enabled, 2: the tab (category) name. */
+						_n(
+							'%1$d %2$s extension enabled.',
+							'%1$d %2$s extensions enabled.',
+							targets.length,
+							'blocklane'
+						),
+						targets.length,
+						tabLabel
 					)
-		);
+				: sprintf(
+						/* translators: 1: the number of extensions disabled, 2: the tab (category) name. */
+						_n(
+							'%1$d %2$s extension disabled.',
+							'%1$d %2$s extensions disabled.',
+							targets.length,
+							'blocklane'
+						),
+						targets.length,
+						tabLabel
+					);
+			message +=
+				' ' +
+				sprintf(
+					/* translators: %d: the number of rows on the tab that belong to Blocklane Pro and were not changed. */
+					_n(
+						'%d is part of Blocklane Pro.',
+						'%d are part of Blocklane Pro.',
+						skipped,
+						'blocklane'
+					),
+					skipped
+				);
+		}
+		setSnackbarMessage( message );
 		try {
 			const last = await loop;
 			if ( last?.enabled ) {
@@ -677,7 +767,12 @@ export const ExtensionsScreen = ( { initialExtension } = {} ) => {
 							onToggleAll={ handleToggleAll }
 							disabled={
 								loading ||
-								! tabSlugs.length ||
+								// A tab whose rows are ALL Pro has nothing this
+								// build can write, so the bulk control would be
+								// a button that visibly does nothing. Counting
+								// slugs alone missed it: the rows are there, they
+								// are just not ours to toggle.
+								! tabSlugs.some( ( s ) => ! isProSlug( s ) ) ||
 								Object.keys( pending ).length > 0
 							}
 							busy={ busy }
@@ -759,6 +854,7 @@ export const ExtensionsScreen = ( { initialExtension } = {} ) => {
 														busy ||
 														!! pending[ slug ]
 													}
+													pro={ isProRow( meta ) }
 													isActive={ pinned === slug }
 													itemKey={ slug }
 													badge={ meta.badge }
@@ -824,10 +920,18 @@ export const ExtensionsScreen = ( { initialExtension } = {} ) => {
 								</p>
 								<p>
 									{ __(
-										"All extensions are enabled by default, but you can always disable the ones you don't need to curate your building experience.",
+										"The extensions this plugin includes are enabled by default, and you can disable the ones you don't need to curate your building experience.",
 										'blocklane'
 									) }
 								</p>
+								{ hasProRows ? (
+									<p>
+										{ __(
+											'Rows marked "Pro" are part of Blocklane Pro and are not included here — their switches are shown but cannot be turned on. Open one to read what it does.',
+											'blocklane'
+										) }
+									</p>
+								) : null }
 								<Divider />
 								<p>
 									<strong>
@@ -852,18 +956,24 @@ export const ExtensionsScreen = ( { initialExtension } = {} ) => {
 								{ /* No close X: Escape, re-clicking the pinned
 								     row, and the drawer handle all dismiss —
 								     a third X crowded the toggle row. */ }
-								<ToggleControl
-									label={ metaFor( detailSlug ).title }
-									checked={ !! enabled?.[ detailSlug ] }
-									disabled={
-										busy || !! pending[ detailSlug ]
-									}
-									onChange={ ( v ) =>
-										handleToggle( detailSlug, v )
-									}
-									className="blocklane-pro-extensions__detail-toggle"
-									__nextHasNoMarginBottom
-								/>
+								{ isProRow( metaFor( detailSlug ) ) ? (
+									<ProDetailHeading
+										feature={ metaFor( detailSlug ) }
+									/>
+								) : (
+									<ToggleControl
+										label={ metaFor( detailSlug ).title }
+										checked={ !! enabled?.[ detailSlug ] }
+										disabled={
+											busy || !! pending[ detailSlug ]
+										}
+										onChange={ ( v ) =>
+											handleToggle( detailSlug, v )
+										}
+										className="blocklane-pro-extensions__detail-toggle"
+										__nextHasNoMarginBottom
+									/>
+								) }
 								<div className="blocklane-pro-extensions__detail-desc">
 									<FeatureDescription
 										description={

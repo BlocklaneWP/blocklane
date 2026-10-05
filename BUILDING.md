@@ -4,6 +4,12 @@ The PHP needs no build. The JavaScript and CSS under `inc/*/src`, `inc/onboardin
 
 Requirements: Node.js 22 and npm 10 (what the plugin's own CI uses).
 
+Two files under `inc/shared/` are generated copies, committed here so the editor
+stand-ins build from one definition: `inc/shared/mega-menu/block-metadata.json`
+and `inc/shared/forms/form-step-metadata.json` are the Pro blocks' `block.json`,
+rendered by the plugin's edition generator (which this source tree does not
+include). Do not edit them; a release regenerates them.
+
 ```
 npm ci
 npm run build

@@ -169,8 +169,8 @@ addFilter(
  * sees through them; the remaining parent must be the header template part
  * itself, or the editor root when the part is edited in isolation.
  *
- * @param {Function} select   Registry select (from useSelect).
- * @param {string}   clientId Block client id.
+ * @param {(storeName: string) => Object} select   Registry select (from useSelect).
+ * @param {string}                        clientId Block client id.
  * @return {boolean} Whether to expose the controls.
  */
 function isHeaderOuterGroup( select, clientId ) {
@@ -205,8 +205,8 @@ function isHeaderOuterGroup( select, clientId ) {
  * server does. Keeping two copies of the rule is how the editor and the front
  * end drift apart.
  *
- * @param {Function} select   Registry select (from useSelect).
- * @param {string}   clientId Block client id inside the part.
+ * @param {(storeName: string) => Object} select   Registry select (from useSelect).
+ * @param {string}                        clientId Block client id inside the part.
  * @return {?string} The target group's client id, or null.
  */
 export function headerTargetClientId( select, clientId ) {
@@ -259,10 +259,10 @@ export function headerTargetClientId( select, clientId ) {
  * It sits in the styles group so it lands next to Position, which is the
  * setting it interacts with.
  *
- * @param {Object}   props
- * @param {string}   props.clientId      Block client id (panel identity).
- * @param {Object}   props.attributes    Block attributes.
- * @param {Function} props.setAttributes Attribute setter.
+ * @param {Object}                       props
+ * @param {string}                       props.clientId      Block client id (panel identity).
+ * @param {Object}                       props.attributes    Block attributes.
+ * @param {(attributes: Object) => void} props.setAttributes Attribute setter.
  */
 function TransparentHeaderControls( { clientId, attributes, setAttributes } ) {
 	const {
@@ -546,8 +546,8 @@ function TransparentHeaderControls( { clientId, attributes, setAttributes } ) {
  * Hooks-bearing edit wrapper, mounted only for core/group so its hooks run
  * unconditionally.
  *
- * @param {Object}   props
- * @param {Function} props.BlockEdit The original BlockEdit component.
+ * @param {Object}                         props
+ * @param {(props: Object) => JSX.Element} props.BlockEdit The original BlockEdit component.
  */
 function TransparentHeaderEdit( { BlockEdit, ...props } ) {
 	const { clientId, attributes, setAttributes } = props;

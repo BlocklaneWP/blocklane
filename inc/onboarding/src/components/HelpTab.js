@@ -21,7 +21,7 @@ const storageKey = ( screen ) => `blocklane-pro-help:${ screen }`;
  * (private windows) just mean the choice doesn't stick.
  *
  * @param {string} screen Screen key, e.g. 'extensions'.
- * @return {[boolean, Function]} [preference, setPreference].
+ * @return {[boolean, (open: boolean) => void]} [preference, setPreference].
  */
 export const useHelpPreference = ( screen ) => {
 	const [ pref, setPrefState ] = useState( () => {
@@ -57,10 +57,10 @@ export const useHelpPreference = ( screen ) => {
  * open it flips onto the panel's padding — same tint, so it reads as part
  * of the drawer face and never overlaps the list content.
  *
- * @param {Object}   props
- * @param {boolean}  props.isOpen   Whether the help sidebar is showing.
- * @param {Function} props.onToggle Toggle handler.
- * @param {string}   props.panelId  id of the sidebar element it controls.
+ * @param {Object}     props
+ * @param {boolean}    props.isOpen   Whether the help sidebar is showing.
+ * @param {() => void} props.onToggle Toggle handler.
+ * @param {string}     props.panelId  id of the sidebar element it controls.
  */
 export const HelpTab = ( { isOpen, onToggle, panelId } ) => {
 	const label = isOpen

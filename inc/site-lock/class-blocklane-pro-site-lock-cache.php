@@ -45,6 +45,7 @@ class Site_Lock_Cache {
 		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
 			// Honored by WP Rocket, W3TC, WP Super Cache, LiteSpeed, SG
 			// Optimizer, Breeze, Hummingbird, WP Fastest Cache, WP-Optimize.
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- the page-cache convention those plugins read; a prefixed name would tell them nothing.
 			define( 'DONOTCACHEPAGE', true );
 		}
 		if ( headers_sent() ) {
@@ -64,11 +65,13 @@ class Site_Lock_Cache {
 	 * @return void
 	 */
 	public static function purge_page_caches() {
+		// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- other plugins' purge hooks, fired on purpose so THEIR listeners run; the names are theirs.
 		do_action( 'litespeed_purge_all' );                // LiteSpeed Cache.
 		do_action( 'breeze_clear_all_cache' );             // Breeze (Cloudways).
 		do_action( 'cache_enabler_clear_complete_cache' ); // Cache Enabler.
 		do_action( 'wphb_clear_page_cache' );              // Hummingbird.
 		do_action( 'rt_nginx_helper_purge_all' );          // Nginx Helper.
+		// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 
 		// Direct purge entry points, kept as callable strings rather than bare
 		// symbols so no third-party plugin needs to exist for this file to load

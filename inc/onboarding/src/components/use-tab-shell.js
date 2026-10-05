@@ -1,6 +1,6 @@
 /**
- * The tab-shell state machine shared by the tabbed screens (SEO, Forms,
- * Content Types, Extensions, Advanced — ScreenTabs.js renders the row):
+ * The tab-shell state machine shared by the tabbed screens (SEO, Forms, the
+ * content-types screen, Extensions, Advanced — ScreenTabs.js renders the row):
  * real-anchor tabs (?<param>=slug) that ⌘/middle-click like any link but
  * switch client-side on a plain click, URL sync that keeps the active tab
  * bookmarkable (and normalizes an invalid param on mount), one-shot
@@ -13,16 +13,16 @@ import { useState, useEffect, useCallback, useRef } from '@wordpress/element';
 import { buildRouteUrl, isModifiedClick } from '../router';
 
 /**
- * @param {Object}   options
- * @param {string}   options.screen       Screen slug (?screen=…).
- * @param {string}   options.param        Tab query param (e.g. 'seotab').
- * @param {Array}    options.tabs         [ { slug, label } ] tab list.
- * @param {string}   options.defaultTab   Slug whose URL clears the param.
- * @param {string}   [options.initialTab] Deep-linked tab from the URL.
- * @param {Function} [options.onSwitch]   Extra per-screen switch effect.
- * @param {Array}    [options.linkClears] Params a tab LINK drops (the
- *                                        screen's pinned-item param, e.g.
- *                                        'ext') — see tabHref.
+ * @param {Object}                 options
+ * @param {string}                 options.screen       Screen slug (?screen=…).
+ * @param {string}                 options.param        Tab query param (e.g. 'seotab').
+ * @param {Array}                  options.tabs         [ { slug, label } ] tab list.
+ * @param {string}                 options.defaultTab   Slug whose URL clears the param.
+ * @param {string}                 [options.initialTab] Deep-linked tab from the URL.
+ * @param {(slug: string) => void} [options.onSwitch]   Extra per-screen switch effect.
+ * @param {Array}                  [options.linkClears] Params a tab LINK drops (the
+ *                                                      screen's pinned-item param, e.g.
+ *                                                      'ext') — see tabHref.
  * @return {Object} { tab, targetPanel, tabHref, switchTab, onTabClick,
  *                  onTabKeyDown } — the two handlers are stable across
  *                  renders and read the tab's slug from the anchor's

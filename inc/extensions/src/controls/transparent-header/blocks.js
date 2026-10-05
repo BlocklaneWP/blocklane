@@ -278,11 +278,11 @@ const COLOR_SLOTS = {
 /**
  * The color dropdowns for one block, mirroring colors-controls.js.
  *
- * @param {Object}   props
- * @param {string}   props.clientId      Block client id.
- * @param {Object}   props.attributes    Block attributes.
- * @param {Function} props.setAttributes Attribute setter.
- * @param {Object[]} props.slots         COLOR_SLOTS entry for this block.
+ * @param {Object}                       props
+ * @param {string}                       props.clientId      Block client id.
+ * @param {Object}                       props.attributes    Block attributes.
+ * @param {(attributes: Object) => void} props.setAttributes Attribute setter.
+ * @param {Object[]}                     props.slots         COLOR_SLOTS entry for this block.
  */
 function TransparentBlockColors( {
 	clientId,
@@ -349,10 +349,10 @@ function TransparentBlockColors( {
  * the image IS the transparent look, and filtering a hand-picked logo to a
  * silhouette would defeat the point of picking it.
  *
- * @param {Object}   props
- * @param {string}   props.clientId      Block client id.
- * @param {Object}   props.attributes    Block attributes.
- * @param {Function} props.setAttributes Attribute setter.
+ * @param {Object}                       props
+ * @param {string}                       props.clientId      Block client id.
+ * @param {Object}                       props.attributes    Block attributes.
+ * @param {(attributes: Object) => void} props.setAttributes Attribute setter.
  */
 function TransparentLogoControls( { clientId, attributes, setAttributes } ) {
 	const {
@@ -508,8 +508,8 @@ function TransparentLogoControls( { clientId, attributes, setAttributes } ) {
  * Hooks-bearing wrapper so the header-area lookup only runs on the three
  * participating blocks.
  *
- * @param {Object}   props
- * @param {Function} props.BlockEdit The original BlockEdit component.
+ * @param {Object}                         props
+ * @param {(props: Object) => JSX.Element} props.BlockEdit The original BlockEdit component.
  */
 function TransparentBlockEdit( { BlockEdit, ...props } ) {
 	const { name, clientId, attributes, setAttributes } = props;

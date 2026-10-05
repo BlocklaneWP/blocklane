@@ -5,7 +5,8 @@ The source code of the [Blocklane](https://wordpress.org/plugins/blocklane/) Wor
 This repository is published from the plugin's build so that the JavaScript shipped in the plugin can be read, studied, built and forked (WordPress plugin directory guideline 4). Every release is one commit, tagged with the plugin version.
 
 - Install the plugin from wordpress.org: https://wordpress.org/plugins/blocklane/
-- Support: the plugin's support forum on wordpress.org (issues are off here).
+- Bugs and feature requests: the Issues tab here. Pull requests are welcome too: this repository is a release mirror of a private monorepo, so a pull request is ported there, tested, credited in the changelog, and closed once the port ships (see CONTRIBUTING). Security reports: the Security tab, "Report a vulnerability".
+- Usage questions: the plugin's support forum on WordPress.org once it is listed.
 - Build it yourself: see [BUILDING.md](BUILDING.md).
 
 Blocklane Pro is a separate product and is not in this repository.

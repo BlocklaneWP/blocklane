@@ -112,8 +112,13 @@
 				}
 				if ( link ) {
 					link.style.pointerEvents = '';
-					link.textContent = cfg.done;
-					window.setTimeout( restore, 3000 );
+					// A swap that left the previous copy on disk says so.
+					link.textContent =
+						( result.json && result.json.notice ) || cfg.done;
+					window.setTimeout(
+						restore,
+						result.json && result.json.notice ? 6000 : 3000
+					);
 				}
 			} )
 			.catch( function () {

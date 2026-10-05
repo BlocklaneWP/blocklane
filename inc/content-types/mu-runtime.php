@@ -2,6 +2,12 @@
 /**
  * Content Types — runtime (canonical source).
  *
+ * SHIPS IN BOTH EDITIONS (free-edition build-target spec, Amendment 9): a
+ * site that authored content types and taxonomies under Blocklane Pro keeps them registered, routable and editable in WordPress's own screens
+ * after Pro is deactivated, because the free plugin renders that data. This
+ * file registers no editor UI and offers no way to author a definition; on a
+ * site that never had Pro the option is empty and it registers nothing.
+ *
  * SELF-CONTAINED on purpose: it does NOT reference the plugin's namespace,
  * classes or constants, only core WordPress. That rule was written when this
  * file was stamped into a must-use plugin and ran outside the plugin; the
@@ -10,7 +16,7 @@
  * cannot be tripped by load order.
  *
  * The plugin requires this file in-process, so the types it registers exist
- * only while Blocklane Pro is active. Definitions come from the option, and
+ * only while a Blocklane plugin, free or Pro, is active. Definitions come from the option, and
  * an absent row means none — there is no second source.
  *
  * Because both copies are separate files loaded in the same request, every
@@ -1350,8 +1356,7 @@ if ( ! function_exists( 'blocklane_pro_ct_register' ) ) {
 				foreach ( $gallery_ids as $gallery_id ) {
 					$thumb = wp_get_attachment_image( $gallery_id, 'thumbnail' );
 					if ( $thumb ) {
-						// wp_get_attachment_image returns core-escaped markup.
-						echo '<span class="blocklane-pro-ct-mb__galthumb">' . $thumb . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						echo '<span class="blocklane-pro-ct-mb__galthumb">' . wp_kses_post( $thumb ) . '</span>';
 					}
 				}
 				echo '</span>';

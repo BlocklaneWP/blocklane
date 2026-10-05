@@ -104,6 +104,17 @@ class Advanced_Controller implements Rest_Registrable {
 		return true;
 	}
 
+	/**
+	 * The Advanced settings, EDITION-SHAPED: `settings` holds exactly the keys
+	 * this build owns (Advanced::known() — DEFAULTS minus the toggles of absent units: 19 under free, 24 under Pro today), never
+	 * a key for a unit this edition does not carry. That is a contract the
+	 * client depends on: it PUTs this object back whole on every save, and
+	 * save() refuses a payload naming an absent unit's key (#844, #969). The
+	 * save response below is the same shape, and the client adopts it whole.
+	 *
+	 * @param \WP_REST_Request $request The request.
+	 * @return \WP_REST_Response
+	 */
 	public function get_settings( \WP_REST_Request $request ) {
 		unset( $request );
 

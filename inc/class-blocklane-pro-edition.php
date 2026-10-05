@@ -128,8 +128,9 @@ final class Edition {
 	 * id => array{kind, label, blurb}. Empty in pro.
 	 *
 	 * Strings only, and the generator's token check proves it: this is what
-	 * the free dashboard's single Pro card reads, and no functional code may
-	 * ride along with it (that would be the guideline 5 case again).
+	 * the free dashboard's Pro rows read (screens/pro-row.js, one lookup per
+	 * absent unit), and no functional code may ride along with it (that would
+	 * be the guideline 5 case again).
 	 *
 	 * @return array<string, array{kind: string, label: string, blurb: string}>
 	 */
@@ -161,6 +162,37 @@ final class Edition {
 	public static function toggle_unit( string $toggle ): ?string {
 		$toggles = (array) ( self::data()['toggles'] ?? array() );
 		return isset( $toggles[ $toggle ] ) ? (string) $toggles[ $toggle ] : null;
+	}
+
+	/**
+	 * The unit that contributes a value to a shared vocabulary, or null for a
+	 * base value every edition carries.
+	 *
+	 * A line INSIDE a unit — a block of the forms suite, a popup trigger — is a
+	 * CONTRIBUTING UNIT in the manifest (rule 6), and this is its one reader.
+	 * Rendered from every unit's `contributes`, for every vocabulary any unit
+	 * declares, so it is edition-independent like toggle_unit(): the parent's
+	 * derived view (blocklane_pro_forms_known_blocks(), the popups registries)
+	 * subtracts the contributors THIS edition does not carry via has().
+	 *
+	 * A vocabulary no unit declares is a typo in our own source and is thrown,
+	 * never answered "base": a mistyped vocabulary would otherwise make every
+	 * Pro value read as free, silently, in the build that must not have it.
+	 *
+	 * @param string $vocabulary A vocabulary some unit declares, e.g. 'blocks'.
+	 * @param string $value      A value in it, e.g. 'blocklane/form-step'.
+	 * @return string|null The contributing unit id, or null for a base value.
+	 * @throws \LogicException When the vocabulary is not in the rendered map.
+	 */
+	public static function contributor( string $vocabulary, string $value ): ?string {
+		$map = (array) ( self::data()['contributions'] ?? array() );
+		if ( ! array_key_exists( $vocabulary, $map ) ) {
+			throw new \LogicException(
+				esc_html( 'Blocklane: unknown edition vocabulary [' . $vocabulary . ']; declare it on the owning unit in edition-manifest.json, or fix the typo.' )
+			);
+		}
+		$values = (array) $map[ $vocabulary ];
+		return isset( $values[ $value ] ) ? (string) $values[ $value ] : null;
 	}
 
 	/**
@@ -246,8 +278,9 @@ final class Edition {
 	 * against.
 	 *
 	 * Empty means the installer does nothing at all rather than trusting the slug
-	 * on its own. The manifest carries the account (pending registration at the
-	 * time of writing), so Pro builds from this tree have the installer LIVE; a
+	 * on its own. The manifest carries the account (`blocklane`, the brand
+	 * account the free plugin is submitted under, registered 2026-10-02), so Pro
+	 * builds from this tree have the installer LIVE; a
 	 * name that turns out wrong fails as "refuses to install our own plugin",
 	 * logged daily, never as "installs someone else's" (#816).
 	 */

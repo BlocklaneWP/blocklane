@@ -32,7 +32,8 @@ class Branding {
 	const VENDOR_CAMEL  = 'blocklanePro';
 	const VENDOR_CONST  = 'BLOCKLANE_PRO';
 
-	const AUTHOR        = 'Garrett Johnson';
+	const AUTHOR        = 'Blocklane';
+	const AUTHOR_URI    = 'https://profiles.wordpress.org/blocklane/';
 
 	const MENU_SLUG     = 'blocklane-pro';
 

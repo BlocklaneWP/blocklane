@@ -13,15 +13,15 @@ import { __ } from '@wordpress/i18n';
 import { Button, SearchControl } from '@wordpress/components';
 
 /**
- * @param {Object}   props
- * @param {boolean}  props.allOn             Every toggleable row on the tab is on.
- * @param {Function} props.onToggleAll       Click handler.
- * @param {boolean}  [props.disabled]        Not loaded, or nothing toggleable.
- * @param {boolean}  [props.busy]            A write loop is in flight.
- * @param {string}   props.search            The query.
- * @param {Function} props.onSearch          Query change handler.
- * @param {string}   props.searchLabel       Accessible label for the box.
- * @param {string}   props.searchPlaceholder Placeholder for the box.
+ * @param {Object}                  props
+ * @param {boolean}                 props.allOn             Every toggleable row on the tab is on.
+ * @param {() => void}              props.onToggleAll       Click handler.
+ * @param {boolean}                 [props.disabled]        Not loaded, or nothing toggleable.
+ * @param {boolean}                 [props.busy]            A write loop is in flight.
+ * @param {string}                  props.search            The query.
+ * @param {(query: string) => void} props.onSearch          Query change handler.
+ * @param {string}                  props.searchLabel       Accessible label for the box.
+ * @param {string}                  props.searchPlaceholder Placeholder for the box.
  */
 export const FeatureToolbar = ( {
 	allOn,
