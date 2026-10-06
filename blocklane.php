@@ -5,7 +5,6 @@
  * Description:       Everything a WordPress site should have out of the box: SEO, a contact form, popups, a coming soon page, and security hardening. In one plugin.
  * Version:           1.0.0
  * Requires at least: 7.1
- * Tested up to:      7.1
  * Requires PHP:      8.1
  * Author:            Blocklane
  * Author URI:        https://profiles.wordpress.org/blocklane/
