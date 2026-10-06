@@ -23,10 +23,10 @@ if ( '' === $blocklane_ta_placeholder && ! empty( $attributes['hideLabel'] ) ) {
 	$blocklane_ta_placeholder = wp_strip_all_tags( $blocklane_ta['label'] );
 }
 ?>
-<div <?php echo $blocklane_ta['wrapper']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core-escaped. ?>>
+<div <?php echo get_block_wrapper_attributes( $blocklane_ta['wrapper_args'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core-escaped. ?>>
 	<label class="<?php echo esc_attr( $blocklane_ta['label_class'] ); ?>" for="<?php echo esc_attr( $blocklane_ta['id'] ); ?>">
 		<span class="blocklane-form__label-text"><?php echo wp_kses_post( $blocklane_ta['label'] ); ?></span>
-		<?php echo $blocklane_ta['required_mark']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static markup. ?>
+		<?php if ( $blocklane_ta['required'] ) : ?><span class="blocklane-form__required" aria-hidden="true">*</span><?php endif; ?>
 	</label>
 	<textarea
 		class="blocklane-form__control"
@@ -40,6 +40,6 @@ if ( '' === $blocklane_ta_placeholder && ! empty( $attributes['hideLabel'] ) ) {
 		<?php if ( ! empty( $attributes['maxlength'] ) ) : ?>
 			maxlength="<?php echo absint( $attributes['maxlength'] ); ?>"
 		<?php endif; ?>
-		<?php echo $blocklane_ta['style_attr']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- attribute-escaped in the helper. ?>
+		<?php if ( '' !== $blocklane_ta['control_css'] ) : ?> style="<?php echo esc_attr( $blocklane_ta['control_css'] ); ?>"<?php endif; ?>
 	><?php echo esc_textarea( isset( $attributes['defaultValue'] ) ? (string) $attributes['defaultValue'] : '' ); ?></textarea>
 </div>

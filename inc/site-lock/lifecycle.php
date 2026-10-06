@@ -121,11 +121,16 @@ blocklane_pro_seed_on_version_change( 'blocklane_pro_site_lock' );
  * and it is the only surface that catches the doors the pre-switch dialog
  * cannot reach — WP-CLI, the network admin, the theme installer, a Customizer
  * "Activate & Publish". Not dismissible: it describes a live state, so it
- * belongs on screen exactly as long as that state lasts.
+ * belongs on screen exactly as long as that state lasts — for a user who can
+ * manage the lock, on the Dashboard, Plugins and Themes screens (D7: it
+ * describes a live exposure, so the Dashboard is one of them).
  *
  * @return void
  */
 function blocklane_pro_admin_notice_site_lock_not_enforced(): void {
+	if ( ! blocklane_pro_notice_where_actionable( 'manage_options' ) ) {
+		return;
+	}
 	$mode = blocklane_pro_site_lock_gating_mode();
 	if ( '' === $mode ) {
 		return;

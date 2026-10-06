@@ -1,14 +1,18 @@
 <?php
 /**
- * Render the Form wrapper: the real <form>, the required-fields notice, the
- * anti-spam fields, and the rendered inner blocks. The canvas renders the
- * same structure (edit.js) — 1:1 is the contract.
+ * The Form's SHELL: the real <form>, the required-fields notice, the
+ * anti-spam fields, and the slot where the rendered inner blocks go. The
+ * canvas renders the same structure (edit.js) — 1:1 is the contract.
+ *
+ * A container shell (Block_Suite::render_shell()): it never sees the inner
+ * blocks, it prints the slot comment once where they belong, and the block
+ * renderer splices them in. A closed form prints no slot: its message is the
+ * whole render.
  *
  * @package blocklane_pro
  *
- * @var array    $attributes Block attributes.
- * @var string   $content    Rendered inner blocks.
- * @var WP_Block $block      Block instance.
+ * @var array<string, mixed> $attributes Block attributes.
+ * @var WP_Block             $block      Block instance.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -110,8 +114,7 @@ if ( ! $blocklane_form_availability['open'] ) {
 			<?php endforeach; ?>
 		</ol>
 	<?php endif; ?>
-	<?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- rendered inner blocks. ?>
-	<?php
+	<!--blocklane:inner-blocks-->	<?php
 	// Turnstile is the form's LAST child, always its own block-level row —
 	// never a flex sibling of the button, where inline layouts (signup rows)
 	// pulled it beside the fields. Rendering here keeps the script enqueue

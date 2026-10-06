@@ -246,6 +246,60 @@ class Helper {
 	}
 
 	/**
+	 * The ONE derivation of a per-client throttle key (spec 2026-10-06 §4.3,
+	 * F3), for every public door that counts attempts per client: the forms
+	 * rate limiter, the site-lock unlock throttle and the login throttle.
+	 * Before it, three doors each derived their own and only the login
+	 * throttle collapsed IPv6 to its /64 — so the two public forms could be
+	 * sidestepped by rotating addresses inside one routed prefix, and each
+	 * rotation wrote an options row.
+	 *
+	 * REMOTE_ADDR, then the door's filter (a trusted proxy or CDN supplies
+	 * the real client address there — X-Forwarded-For is spoofable and never
+	 * read here), then IPv6 collapsed to its /64 network, then an HMAC with
+	 * the auth salt, so the key names no address and cannot be guessed.
+	 *
+	 * With no address: null, which the forms limiter reads as "cannot count,
+	 * allow" (unchanged); a door that must keep counting passes
+	 * $count_unknown and gets one fixed bucket every address-less request
+	 * shares, so its lockout still engages.
+	 *
+	 * @param string      $prefix        The door's transient prefix.
+	 * @param string|null $ip_filter     The door's client-address filter, or null for none.
+	 * @param bool        $count_unknown Whether a request with no address shares one bucket (true) or gets no key (false).
+	 */
+	public static function client_key( string $prefix, ?string $ip_filter = null, bool $count_unknown = false ): ?string {
+		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+		if ( null !== $ip_filter ) {
+			/**
+			 * Filters the client address a throttle keys on (the door names
+			 * which filter; see Helper::client_key()).
+			 *
+			 * @param string $ip The REMOTE_ADDR value.
+			 */
+			$ip = (string) apply_filters( $ip_filter, $ip );
+		}
+		if ( '' === $ip ) {
+			return $count_unknown ? $prefix . hash_hmac( 'sha256', 'no-address', wp_salt( 'auth' ) ) : null;
+		}
+		return $prefix . hash_hmac( 'sha256', self::ip_bucket( $ip ), wp_salt( 'auth' ) );
+	}
+
+	/**
+	 * Collapse an IPv6 address to its /64 network prefix (anything else,
+	 * IPv4 included, returned unchanged), so a per-client throttle can't be
+	 * sidestepped by rotating addresses within a routed prefix.
+	 */
+	private static function ip_bucket( string $ip ): string {
+		$packed = inet_pton( $ip );
+		if ( false === $packed || 16 !== strlen( $packed ) ) {
+			return $ip;
+		}
+		$back = inet_ntop( substr( $packed, 0, 8 ) . str_repeat( "\0", 8 ) );
+		return false !== $back ? $back . '/64' : $ip;
+	}
+
+	/**
 	 * Atomically add one failed attempt to a throttle counter and return the
 	 * running total. Used by the Security login limiter and the site-lock
 	 * unlock form. A get_transient()+1 / set_transient() pair is a

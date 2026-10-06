@@ -36,7 +36,7 @@ class Blog_Features_Disabler {
 
 		// Writing settings page: hide the now-inert Update Services + Default Post
 		// Format rows, and explain why.
-		add_action( 'admin_head-options-writing.php', array( $this, 'hide_writing_sections' ) );
+		add_action( 'admin_print_styles-options-writing.php', array( $this, 'hide_writing_sections' ) );
 		add_action( 'admin_notices', array( $this, 'writing_notice' ) );
 	}
 
@@ -48,15 +48,17 @@ class Blog_Features_Disabler {
 	 * Hide the leftover Writing-page sections. Post via Email is already gone
 	 * (server-side filter), so the only `h2.title` section left is Update Services
 	 * — hide its heading, its paragraph, and (on public sites) its ping_sites
-	 * textarea. Also hide the Default Post Format row. Prints only on this screen.
+	 * textarea. Also hide the Default Post Format row. Queued only on this
+	 * screen, into its head's style print, so the rows never flash.
 	 */
-	public function hide_writing_sections() {
-		echo '<style>'
-			. '#wpbody-content form h2.title,'
+	public function hide_writing_sections(): void {
+		Inline_Asset::style(
+			'blocklane-pro-writing-hide',
+			'#wpbody-content form h2.title,'
 			. '#wpbody-content form h2.title + p,'
 			. '#wpbody-content form h2.title + p + textarea,'
 			. '#wpbody-content form tr:has(#default_post_format){display:none}'
-			. '</style>' . "\n";
+		);
 	}
 
 	/**

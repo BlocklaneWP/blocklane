@@ -8,12 +8,16 @@
  * file registers no editor UI and offers no way to author a definition; on a
  * site that never had Pro the option is empty and it registers nothing.
  *
- * SELF-CONTAINED on purpose: it does NOT reference the plugin's namespace,
- * classes or constants, only core WordPress. That rule was written when this
- * file was stamped into a must-use plugin and ran outside the plugin; the
- * stamping was removed in 2026-08 and the rule is kept, because registering
- * post types is early work and a runtime that needs no plugin class loaded
- * cannot be tripped by load order.
+ * SELF-CONTAINED on purpose: its registration work references none of the
+ * plugin's namespace, classes or constants, only core WordPress. That rule
+ * was written when this file was stamped into a must-use plugin and ran
+ * outside the plugin; the stamping was removed in 2026-08 and the rule is
+ * kept for the early work, because registering post types runs early and a
+ * runtime that needs no plugin class loaded cannot be tripped by load order.
+ * The ONE plugin class it calls is the side-effect-free inline-asset door,
+ * blocklane_pro\Inline_Asset, and only from the review JSON-LD printer at
+ * wp_head and the gallery block's style at render — long after the classmap
+ * autoloader (registered at plugin-file scope) can resolve it.
  *
  * The plugin requires this file in-process, so the types it registers exist
  * only while a Blocklane plugin, free or Pro, is active. Definitions come from the option, and
@@ -879,9 +883,9 @@ if ( ! function_exists( 'blocklane_pro_ct_register' ) ) {
 			return;
 		}
 		$done = true;
-		wp_register_style( 'blocklane-pro-ct-gallery', false, array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- src-less handle carrying only inline CSS; there is no file to version.
-		wp_enqueue_style( 'blocklane-pro-ct-gallery' );
-		wp_add_inline_style(
+		// Through the inline-asset door: a versioned src-less handle, queued
+		// for the next style print (at render time, core's late footer print).
+		\blocklane_pro\Inline_Asset::style(
 			'blocklane-pro-ct-gallery',
 			'.blocklane-pro-ct-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}'
 			. '.blocklane-pro-ct-gallery__item{margin:0}'
@@ -1202,10 +1206,9 @@ if ( ! function_exists( 'blocklane_pro_ct_register' ) ) {
 			return;
 		}
 
-		// JSON_HEX_TAG escapes < and > so the payload can't break out of <script>.
-		echo '<script type="application/ld+json">'
-			. wp_json_encode( $data, JSON_HEX_TAG | JSON_HEX_AMP )
-			. '</script>' . "\n";
+		// Through the inline-asset door, which encodes <, > and & so the
+		// payload can't close its tag.
+		\blocklane_pro\Inline_Asset::print_json_ld( $data );
 	}
 
 	/* ---- Classic-editor fields meta box -----------------------------------

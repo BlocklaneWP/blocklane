@@ -31,6 +31,7 @@ return array(
 	'blocklane_pro\\Forms' => 'inc/forms/class-blocklane-pro-forms.php',
 	'blocklane_pro\\Forms_Controller' => 'inc/forms/class-blocklane-pro-forms-controller.php',
 	'blocklane_pro\\Helper' => 'inc/class-blocklane-pro-helper.php',
+	'blocklane_pro\\Inline_Asset' => 'inc/class-blocklane-pro-inline-asset.php',
 	'blocklane_pro\\Module_Miss' => 'inc/class-blocklane-pro-module-miss.php',
 	'blocklane_pro\\Modules' => 'inc/class-blocklane-pro-modules.php',
 	'blocklane_pro\\Popups_Controller' => 'inc/popups/class-blocklane-pro-popups-controller.php',

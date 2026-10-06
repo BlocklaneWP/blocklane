@@ -128,7 +128,7 @@ select.blocklane-form__control {
 /* Turnstile renders inside the submit-button block, above the button —
    sibling roots in one block, so the layout gap doesn't separate them. */
 
-/* The form's last child, its own block-level row (form/render.php appends it
+/* The form's last child, its own block-level row (form/shell.php appends it
    after the inner blocks — never inline with field layouts). */
 .blocklane-form__turnstile {
 	margin-block-start: 0.75em;

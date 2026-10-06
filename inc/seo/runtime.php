@@ -15,10 +15,12 @@
  * not involved — nothing gates on it at runtime (see the License class).
  *
  * Self-contained by construction: it assumes no module has booted, and the
- * one side-effect-free plugin class it uses — the toggle reader,
- * Content_Toggle — is resolved by the classmap autoloader, registered at
+ * two side-effect-free plugin classes it uses — the toggle reader,
+ * Content_Toggle, and the inline-asset door its inline styles and JSON-LD
+ * scripts go through, Inline_Asset (its meta and link tags are echoed here,
+ * each value escaped at the sink) — are resolved by the classmap autoloader, registered at
  * plugin-file scope before any runtime loads, so load order can never trip
- * it (the must-use bake the old "core WordPress only" rule was written for
+ * them (the must-use bake the old "core WordPress only" rule was written for
  * was retired in 2026-08). All declarations live inside one
  * `if ( ! function_exists() )` block so a second copy of the file is a clean
  * no-op.
@@ -684,10 +686,12 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 	/**
 	 * Tree styles for the sitemap page — the Pages dashboard's reorder-tree
 	 * language (a rail down each level's siblings with a tick into every
-	 * child, 20px indent per level), in theme-neutral grays. Printed only
-	 * on the designated page.
+	 * child, 20px indent per level), in theme-neutral grays. Queued only on
+	 * the designated page, at wp_enqueue_scripts:100 so the head prints it
+	 * after the theme's styles (it still wins ties) and before the
+	 * Customizer's CSS (wp_head:101).
 	 */
-	function blocklane_pro_seo_html_sitemap_styles() {
+	function blocklane_pro_seo_html_sitemap_styles(): void {
 		$target = blocklane_pro_seo_html_sitemap_target();
 
 		if ( ! $target || ! is_page( $target ) ) {
@@ -696,9 +700,10 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 
 		// The chevron sits to the RIGHT of section headings (native marker
 		// hidden) and the same treatment repeats on parent pages via the
-		// injected toggle buttons below.
-		echo '<style id="blocklane-seo-sitemap-css">'
-			. '.blocklane-seo-sitemap__section{margin-block-start:1.5em;}'
+		// injected toggle buttons blocklane_pro_seo_html_sitemap_script() adds.
+		\blocklane_pro\Inline_Asset::style(
+			'blocklane-seo-sitemap',
+			'.blocklane-seo-sitemap__section{margin-block-start:1.5em;}'
 			. '.blocklane-seo-sitemap__summary{cursor:pointer;display:inline-flex;align-items:center;gap:0.5em;list-style:none;}'
 			. '.blocklane-seo-sitemap__summary::-webkit-details-marker{display:none;}'
 			. '.blocklane-seo-sitemap__summary .blocklane-seo-sitemap__heading{margin:0;}'
@@ -713,12 +718,23 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 			. '.blocklane-seo-sitemap__toggle::before{content:"";width:0.35em;height:0.35em;border-inline-end:2px solid currentColor;border-block-end:2px solid currentColor;transform:rotate(45deg);opacity:0.55;transition:transform 0.15s ease;}'
 			. '.blocklane-seo-sitemap .is-collapsed>.blocklane-seo-sitemap__toggle::before{transform:rotate(-45deg);}'
 			. '.blocklane-seo-sitemap .is-collapsed>ul.children{display:none;}'
-			. '</style>';
+		);
+	}
 
-		// Parent pages collapse like the sections: a chevron button after
-		// each parent link toggles its children. Injected client-side so the
-		// wp_list_pages walker stays stock.
-		wp_print_inline_script_tag(
+	/**
+	 * Parent pages on the sitemap page collapse like the sections: a chevron
+	 * button after each parent link toggles its children. Injected
+	 * client-side so the wp_list_pages walker stays stock. Printed only on the
+	 * designated page, at wp_head:20, through the inline-asset door.
+	 */
+	function blocklane_pro_seo_html_sitemap_script(): void {
+		$target = blocklane_pro_seo_html_sitemap_target();
+
+		if ( ! $target || ! is_page( $target ) ) {
+			return;
+		}
+
+		\blocklane_pro\Inline_Asset::print_script(
 			'document.addEventListener("DOMContentLoaded",function(){'
 			. 'document.querySelectorAll(".blocklane-seo-sitemap .page_item_has_children").forEach(function(li){'
 			. 'var link=li.querySelector(":scope > a");if(!link){return;}'
@@ -1074,7 +1090,7 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 			}
 		}
 
-		echo '<meta name="twitter:card" content="' . ( $image ? 'summary_large_image' : 'summary' ) . '" />' . "\n";
+		echo '<meta name="twitter:card" content="' . esc_attr( $image ? 'summary_large_image' : 'summary' ) . '" />' . "\n";
 	}
 
 	/**
@@ -1188,9 +1204,9 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 			'@graph'   => $graph,
 		);
 
-		echo '<script type="application/ld+json">'
-			. wp_json_encode( $data, JSON_UNESCAPED_SLASHES )
-			. '</script>' . "\n";
+		// Through the inline-asset door: `<`, `>` and `&` are encoded, so no
+		// value can close the tag; slashes stay unescaped.
+		\blocklane_pro\Inline_Asset::print_json_ld( $data );
 	}
 
 	/**
@@ -2020,9 +2036,7 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 			'itemListElement' => $list,
 		);
 
-		echo '<script type="application/ld+json">'
-			. wp_json_encode( $data, JSON_UNESCAPED_SLASHES )
-			. '</script>' . "\n";
+		\blocklane_pro\Inline_Asset::print_json_ld( $data );
 	}
 
 	/**
@@ -2114,7 +2128,8 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 		// bails on the other's theme type.
 		add_filter( 'the_content', 'blocklane_pro_seo_html_sitemap_content', 20 );
 		add_filter( 'render_block_core/post-content', 'blocklane_pro_seo_html_sitemap_render_block', 10, 3 );
-		add_action( 'wp_head', 'blocklane_pro_seo_html_sitemap_styles', 20 );
+		add_action( 'wp_enqueue_scripts', 'blocklane_pro_seo_html_sitemap_styles', 100 );
+		add_action( 'wp_head', 'blocklane_pro_seo_html_sitemap_script', 20 );
 
 		// The sitemap toggle turns core's wp-sitemap.xml off entirely; the
 		// setting defaults on, matching core.
@@ -2400,16 +2415,19 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 	/**
 	 * Column widths for edit.php, so a long description doesn't squeeze the
 	 * title column, plus the muted empty-state dash and the Hidden flag.
+	 * Queued on edit.php's admin_print_styles-edit.php, so the head prints it
+	 * after core's list-table CSS.
 	 */
-	function blocklane_pro_seo_admin_column_styles() {
-		echo '<style id="blocklane-pro-seo-columns-css">'
-			. '.column-' . esc_attr( BLOCKLANE_PRO_SEO_META_TITLE ) . '{width:14%;}'
+	function blocklane_pro_seo_admin_column_styles(): void {
+		\blocklane_pro\Inline_Asset::style(
+			'blocklane-pro-seo-columns',
+			'.column-' . esc_attr( BLOCKLANE_PRO_SEO_META_TITLE ) . '{width:14%;}'
 			. '.column-' . esc_attr( BLOCKLANE_PRO_SEO_META_DESCRIPTION ) . '{width:22%;}'
 			. '.column-' . esc_attr( BLOCKLANE_PRO_SEO_META_SCHEMA_TYPE ) . '{width:7%;}'
 			. '.column-' . esc_attr( BLOCKLANE_PRO_SEO_META_NOINDEX ) . '{width:7%;}'
 			. '.blocklane-pro-seo-column-empty{color:#a7aaad;}'
 			. '.blocklane-pro-seo-column-hidden{color:#996800;}'
-			. '</style>';
+		);
 	}
 }
 

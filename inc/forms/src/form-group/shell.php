@@ -1,13 +1,13 @@
 <?php
 /**
- * Render a choice group: fieldset + legend wrapping the option inner blocks.
- * The options read the group's type/name/required through block context.
+ * A choice group's SHELL: fieldset + legend, and the slot where the option
+ * inner blocks go (Block_Suite::render_shell()). The options read the
+ * group's type/name/required through block context.
  *
  * @package blocklane_pro
  *
- * @var array    $attributes Block attributes.
- * @var string   $content    Rendered inner blocks (the options).
- * @var WP_Block $block      Block instance.
+ * @var array<string, mixed> $attributes Block attributes.
+ * @var WP_Block             $block      Block instance.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -46,14 +46,12 @@ $blocklane_grp_base    = blocklane_pro_forms_field_render_base(
 	$block,
 	'blocklane-form__fieldset is-type-' . $blocklane_grp_type
 );
-$blocklane_grp_wrapper = $blocklane_grp_base['wrapper'];
 ?>
-<fieldset <?php echo $blocklane_grp_wrapper; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core-escaped. ?>>
+<fieldset <?php echo get_block_wrapper_attributes( $blocklane_grp_base['wrapper_args'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core-escaped. ?>>
 	<legend class="blocklane-form__legend">
 		<span class="blocklane-form__label-text"><?php echo wp_kses_post( $blocklane_grp_legend ); ?></span>
 		<?php if ( $blocklane_grp_required ) : ?>
 			<span class="blocklane-form__required" aria-hidden="true">*</span>
 		<?php endif; ?>
 	</legend>
-	<?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- rendered inner blocks. ?>
-</fieldset>
+	<!--blocklane:inner-blocks--></fieldset>

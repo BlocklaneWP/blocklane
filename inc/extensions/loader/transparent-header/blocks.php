@@ -121,7 +121,7 @@ function blocklane_pro_th_blocks_applies() {
  *
  * The wrapper is the first tag carrying the block's own class — NOT the
  * first tag in the content: rendered block output can lead with an inline
- * <style> tag (layout/support styles on this site do), and decorating that
+ * style element (layout/support styles on this site do), and decorating that
  * silently styles nothing. Keying on the wrapper class is the same choice
  * the part filter makes with `wp-block-group`.
  *

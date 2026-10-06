@@ -35,7 +35,7 @@ class Settings {
 		add_filter( 'menu_order', array( $this, 'pin_menu_position' ), 9999 );
 		// Recolor the menu icon per state (gray at rest -> white on hover/current)
 		// exactly like the native dashicons, via a currentColor CSS mask.
-		add_action( 'admin_head', array( $this, 'print_menu_icon_styles' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_menu_icon_styles' ) );
 	}
 
 	/**
@@ -96,7 +96,7 @@ class Settings {
 		);
 
 		add_action( 'admin_print_scripts-' . $page_suffix, array( $this, 'enqueue_app_assets' ) );
-		add_action( 'admin_print_styles-' . $page_suffix, array( $this, 'print_embed_styles' ) );
+		add_action( 'admin_print_styles-' . $page_suffix, array( $this, 'enqueue_embed_styles' ) );
 		add_filter( 'admin_body_class', array( $this, 'filter_admin_body_class' ) );
 
 		// One wp-admin submenu item per dashboard screen, so wp-admin's own
@@ -419,30 +419,25 @@ class Settings {
 	 * background and paint a currentColor block masked by the same SVG — currentColor
 	 * follows the menu link's per-state color exactly like the core icon font does.
 	 */
-	public function print_menu_icon_styles() {
-		$id   = 'toplevel_page_' . Branding::MENU_SLUG;
-		$mask = 'data:image/svg+xml;base64,' . self::MENU_ICON_B64;
-		?>
-<style id="blocklane-pro-menu-icon">
-	#<?php echo esc_attr( $id ); ?> .wp-menu-image { background-image: none !important; }
-	#<?php echo esc_attr( $id ); ?> .wp-menu-image::before {
-		content: "";
-		/* Match the native dashicon ::before box exactly (inline-block 20x20 with
-		   WP's 7px vertical padding) so the mark is centered in the row identically. */
-		display: inline-block;
-		width: 20px;
-		height: 20px;
-		vertical-align: top;
-		background-color: currentColor;
-		-webkit-mask: url("<?php echo esc_attr( $mask ); ?>") no-repeat 50% 50%;
-		mask: url("<?php echo esc_attr( $mask ); ?>") no-repeat 50% 50%;
-		/* Native dashicon glyphs occupy ~16px of the 20px box — matching
-		   that keeps the mark optically level with its menu neighbours. */
-		-webkit-mask-size: auto 16px;
-		mask-size: auto 16px;
-	}
-</style>
-		<?php
+	public function enqueue_menu_icon_styles(): void {
+		$id   = '#toplevel_page_' . sanitize_html_class( Branding::MENU_SLUG );
+		$mask = 'url("data:image/svg+xml;base64,' . self::MENU_ICON_B64 . '") no-repeat 50% 50%';
+		// Queued into the admin head's style print (Inline_Asset): the menu
+		// prints on every admin screen, after core's admin CSS and the color
+		// scheme, so the !important and the ID selectors win as before.
+		Inline_Asset::style(
+			'blocklane-pro-menu-icon',
+			$id . ' .wp-menu-image{background-image:none !important;}'
+			. $id . ' .wp-menu-image::before{'
+			// Match the native dashicon ::before box exactly (inline-block
+			// 20x20 with WP's 7px vertical padding) so the mark is centered
+			// in the row identically.
+			. 'content:"";display:inline-block;width:20px;height:20px;vertical-align:top;background-color:currentColor;'
+			. '-webkit-mask:' . $mask . ';mask:' . $mask . ';'
+			// Native dashicon glyphs occupy ~16px of the 20px box — matching
+			// that keeps the mark optically level with its menu neighbors.
+			. '-webkit-mask-size:auto 16px;mask-size:auto 16px;}'
+		);
 	}
 
 	public function filter_admin_body_class( $classes ) {
@@ -459,22 +454,23 @@ class Settings {
 	 * The dashboard renders embedded in wp-admin (admin bar and admin menu stay,
 	 * like core's Appearance → Fonts screen): zero out the content area's gutters
 	 * and hide the pieces (footer, stray notices) that would break the app's
-	 * frame. Inline rather than enqueued because it's tiny and avoids a second
-	 * HTTP request.
+	 * frame. Inline rather than a file because it's tiny and avoids a second
+	 * HTTP request; queued on this screen's admin_print_styles-{page}, which
+	 * fires before the head's style print, so core prints it after its own
+	 * admin CSS (the body-class selectors outrank core's ID rules either way).
 	 */
-	public function print_embed_styles() {
-		?>
-<style id="blocklane-pro-embed-css">
-	body.blocklane-pro-embedded #wpcontent { padding-inline-start: 0; }
-	body.blocklane-pro-embedded #wpbody-content { padding-bottom: 0; }
-	body.blocklane-pro-embedded #wpfooter { display: none; }
-	body.blocklane-pro-embedded #wpbody-content > .notice,
-	body.blocklane-pro-embedded #wpbody-content > .updated,
-	body.blocklane-pro-embedded #wpbody-content > .error { display: none !important; }
-	/* Match the app's white canvas so edges/overscroll don't flash admin-gray. */
-	body.blocklane-pro-embedded #wpwrap { background: #fff; }
-</style>
-		<?php
+	public function enqueue_embed_styles(): void {
+		Inline_Asset::style(
+			'blocklane-pro-embed',
+			'body.blocklane-pro-embedded #wpcontent{padding-inline-start:0;}'
+			. 'body.blocklane-pro-embedded #wpbody-content{padding-bottom:0;}'
+			. 'body.blocklane-pro-embedded #wpfooter{display:none;}'
+			. 'body.blocklane-pro-embedded #wpbody-content > .notice,'
+			. 'body.blocklane-pro-embedded #wpbody-content > .updated,'
+			. 'body.blocklane-pro-embedded #wpbody-content > .error{display:none !important;}'
+			// Match the app's white canvas so edges/overscroll don't flash admin-gray.
+			. 'body.blocklane-pro-embedded #wpwrap{background:#fff;}'
+		);
 	}
 
 	public function render_app_root() {

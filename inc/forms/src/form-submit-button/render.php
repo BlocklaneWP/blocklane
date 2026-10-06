@@ -23,19 +23,15 @@ $blocklane_btn_busy = isset( $attributes['busyText'] ) && '' !== $attributes['bu
 
 // Width is the core dimensions support (style.dimensions.width, the same
 // control core/button uses) — the style engine serializes it onto the
-// wrapper, and the wrapper here IS the button element.
-$blocklane_btn_wrapper = get_block_wrapper_attributes(
-	array(
-		'class' => 'blocklane-form__submit wp-block-button__link wp-element-button',
-	)
-);
+// wrapper, and the wrapper here IS the button element: its attributes are
+// built at the sink below.
 
-// Turnstile renders at the FORM level (form/render.php), not here: as a
+// Turnstile renders at the FORM level (form/shell.php), not here: as a
 // sibling of the button it became a flex child in inline layouts (the
 // signup-row patterns) and sat beside the fields instead of below them.
 ?>
 <button
-	<?php echo $blocklane_btn_wrapper; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core-escaped. ?>
+	<?php echo get_block_wrapper_attributes( array( 'class' => 'blocklane-form__submit wp-block-button__link wp-element-button' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core-escaped. ?>
 	type="submit"
 	data-busy-text="<?php echo esc_attr( wp_strip_all_tags( $blocklane_btn_busy ) ); ?>"
 ><?php echo wp_kses_post( $blocklane_btn_text ); ?></button>

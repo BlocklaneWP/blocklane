@@ -4,7 +4,7 @@ Tags: seo, contact form, popup, coming soon, security
 Requires at least: 7.1
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,11 +68,6 @@ Every setting writes into WordPress's own options, post meta and block
 attributes. Deactivate Blocklane and your content is still ordinary WordPress
 content.
 
-= Source code =
-
-The JavaScript in this plugin is built with @wordpress/scripts. Source code and
-build tools: https://github.com/BlocklaneWP/blocklane
-
 == Installation ==
 
 1. Install and activate the plugin from Plugins → Add New (search for "Blocklane"), or upload the zip.
@@ -84,6 +79,24 @@ build tools: https://github.com/BlocklaneWP/blocklane
 Questions and bug reports go to the plugin's support forum on WordPress.org. We support the current release on WordPress 7.1 or newer and PHP 8.1 or newer, the versions this readme's header requires.
 
 == Frequently Asked Questions ==
+
+= Where is the source code for the compiled JavaScript and CSS? =
+
+Every script and stylesheet in the plugin's build folders is compiled from source we publish in full at https://github.com/BlocklaneWP/blocklane, with one tagged commit per release. Each bundle's source is the src folder beside its build folder (for example, inc/forms/src builds inc/forms/build).
+
+To build it yourself with Node.js 22 and npm 10:
+
+1. `git clone https://github.com/BlocklaneWP/blocklane.git`
+2. `cd blocklane`
+3. `git checkout v1.0.1` (this version's tag; every release has one, named v and its version number)
+4. `npm ci`
+5. `npm run build`
+
+The build uses @wordpress/scripts (webpack) and writes the same build folders this plugin ships, each with a THIRD-PARTY-NOTICES.txt naming the packages it bundles.
+
+= My site is behind a CDN or a proxy. Does the form rate limit still work? =
+
+Yes. Contact forms limit submissions per visitor address (an IPv6 address counts per /64 network). Behind a CDN or reverse proxy every request can arrive from the proxy's address, so return the real visitor address from the `blocklane_pro_forms_client_ip` filter, read from the header your proxy sets.
 
 = Does this add its own blocks? =
 
@@ -185,6 +198,14 @@ From WordPress.org, like any other plugin here. Blocklane contains no updater of
 its own and never contacts any other server for updates.
 
 == Changelog ==
+
+= 1.0.1 =
+* Every inline style and script the plugin adds (on its admin screens, the Coming Soon and Maintenance page, popups, the HTML sitemap page, the fallback that reveals scroll-animated blocks, and the structured data) is now printed through WordPress's own style and script functions.
+* Form fields escape every attribute where it is printed, and forms, groups and notifications return their inner blocks the way core's container blocks do. Forms look and work exactly as before.
+* The form submission route stores nothing for a form ID no page carries, and answers a form ID longer than any form has without looking it up. The per-visitor limits on form submissions and on the Coming Soon password count an IPv6 address per /64 network.
+* Reordering content checks that you can edit every item whose position it changes. When it cannot, the message names the item that blocks the move and says who can make it.
+* The "needs a block theme" and "site lock is not enforced" notices appear only on the Dashboard, Plugins and Themes screens, and only to users who can act on them.
+* The FAQ says where the source code is and how to build it.
 
 = 1.0.0 =
 * First release on WordPress.org.

@@ -15,6 +15,6 @@ npm ci
 npm run build
 ```
 
-`npm run build` runs every `build:*` script in `package.json`, one per bundle. The plugin directory's release zip is this tree with the `src/` directories and the build tooling left out; the `build/` output is what ships.
+`npm run build` runs every `build:*` script in `package.json`, one per bundle. Every bundle is built through the same config chain, which this tree includes: `webpack.config.js` at the root (the `--webpack-src-dir` builds) and `inc/extensions/webpack.config.js` (the extensions bundle), both of which load `bin/third-party-notices.cjs` to write each build folder's `THIRD-PARTY-NOTICES.txt`. The plugin directory's release zip is this tree with the `src/` directories and the build tooling left out; the `build/` output is what ships, and it is byte-identical to what `npm ci && npm run build` produces here (the release pipeline rebuilds this tree and compares).
 
-`npm run lint:js`, `npm run lint:css` and the `test:*` scripts run the linters and the unit tests the source ships with.
+`npm run lint:js` and `npm run lint:css` run the linters.

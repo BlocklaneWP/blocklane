@@ -401,42 +401,14 @@ final class Security implements Bootable {
 	/* ---- login-attempt limiting -------------------------------------------- */
 
 	/**
-	 * Per-client login throttle key — keyed on REMOTE_ADDR (hashed with the auth
-	 * salt). X-Forwarded-For is intentionally not trusted; behind a reverse proxy
-	 * this keys on the proxy address.
+	 * Per-client login throttle key, through the one derivation every public
+	 * throttle shares (Helper::client_key(): REMOTE_ADDR, the
+	 * `blocklane_pro_login_client_ip` filter for trusted-proxy and CDN setups,
+	 * IPv6 collapsed to its /64, HMAC with the auth salt). A request with no
+	 * address shares one bucket, so the lockout still engages (F3).
 	 */
-	private function login_throttle_key() {
-		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
-
-		/**
-		 * Filter the client IP used for the login throttle. REMOTE_ADDR is the safe
-		 * default (X-Forwarded-For is spoofable); trusted-proxy / CDN setups can
-		 * supply the real client IP here so the whole edge doesn't share one bucket.
-		 *
-		 * @param string $ip The REMOTE_ADDR value.
-		 */
-		$ip = (string) apply_filters( 'blocklane_pro_login_client_ip', $ip );
-		$ip = self::normalize_ip_bucket( $ip );
-
-		return self::LOGIN_FAIL_PREFIX . hash_hmac( 'sha256', $ip, wp_salt( 'auth' ) );
-	}
-
-	/**
-	 * Collapse an IPv6 address to its /64 network prefix (IPv4 returned unchanged),
-	 * so the per-IP throttle can't be sidestepped by rotating addresses within a
-	 * routed prefix.
-	 *
-	 * @param string $ip
-	 * @return string
-	 */
-	private static function normalize_ip_bucket( $ip ) {
-		$packed = function_exists( 'inet_pton' ) ? inet_pton( $ip ) : false;
-		if ( false === $packed || 16 !== strlen( $packed ) ) {
-			return $ip; // Not a parseable IPv6 address — use as-is (incl. IPv4).
-		}
-		$prefix = substr( $packed, 0, 8 ) . str_repeat( "\0", 8 );
-		$back   = inet_ntop( $prefix );
-		return false !== $back ? $back . '/64' : $ip;
+	private function login_throttle_key(): string {
+		return (string) Helper::client_key( self::LOGIN_FAIL_PREFIX, 'blocklane_pro_login_client_ip', true );
 	}
 
 	private function is_login_locked() {

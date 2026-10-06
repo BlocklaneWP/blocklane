@@ -49,9 +49,18 @@
 		};
 
 		// Surface a failed save as a dismissible admin notice above the table
-		// (and to screen readers).
-		const showError = function () {
+		// (and to screen readers). A refusal the server explains (the 403
+		// naming the item the user cannot edit) is shown as the server wrote
+		// it, as TEXT; any other failure gets the generic message.
+		const showError = function ( xhr ) {
+			const reason =
+				xhr &&
+				xhr.responseJSON &&
+				'string' === typeof xhr.responseJSON.message
+					? xhr.responseJSON.message
+					: '';
 			const msg =
+				reason ||
 				i18n.saveFailed ||
 				'Couldn’t save the new order. Please refresh and try again.';
 			$( '.blocklane-pro-reorder-notice' ).remove();
@@ -732,10 +741,10 @@
 						onDone();
 					}
 				} )
-				.fail( function () {
+				.fail( function ( xhr ) {
 					failed = true;
 					onFail();
-					showError();
+					showError( xhr );
 				} )
 				.always( function () {
 					spinner.remove();

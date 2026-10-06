@@ -33,6 +33,14 @@
  * from (#507, #515), so each adopter supplies its feature's name and the
  * sentence that says what a stale build costs it; the template frames them.
  *
+ * The container convention (spec 2026-10-06, "shell and slot"): a block whose
+ * built block.json says `"render": "file:./shell.php"` is a CONTAINER. Its
+ * template never sees the rendered inner blocks — it prints its own markup
+ * with the slot comment (Block_Suite::SLOT) where they belong, and
+ * render_shell() splices them in, exactly as core's container blocks return
+ * their inner blocks from a render callback. So no container template echoes
+ * a value it did not escape itself, and none can: $content is not in scope.
+ *
  * @package blocklane_pro
  */
 
@@ -43,6 +51,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class Block_Suite {
+
+	/**
+	 * Where a container's shell wants its rendered inner blocks. Printed by
+	 * the shell as literal inline HTML, exactly once; render_shell() fixes
+	 * its offset BEFORE inserting anything, so content that spells it cannot
+	 * move it.
+	 */
+	public const SLOT = '<!--blocklane:inner-blocks-->';
 
 	/**
 	 * Missing block names per feature, plus the command that rebuilds them,
@@ -86,7 +102,7 @@ final class Block_Suite {
 			}
 			$manifest = rtrim( $build_dir, '/' ) . '/' . $slug . '/block.json';
 			if ( file_exists( $manifest ) ) {
-				register_block_type( $manifest, $args );
+				register_block_type( $manifest, self::shell_args( $manifest, $args ) );
 			} else {
 				$missing[] = $slug;
 			}
@@ -106,6 +122,69 @@ final class Block_Suite {
 		}
 
 		return $missing;
+	}
+
+	/**
+	 * A container's registration args: when the built block.json renders
+	 * `file:./shell.php`, a render_callback that runs the shell through
+	 * render_shell(). register_block_type() merges these args after the
+	 * metadata, so the callback replaces core's file renderer; the `render`
+	 * key stays, so dist-check still fails a zip that lacks the shell.
+	 *
+	 * @param string               $manifest Absolute path to the built block.json.
+	 * @param array<string, mixed> $args     The suite's shared args.
+	 * @return array<string, mixed>
+	 */
+	private static function shell_args( string $manifest, array $args ): array {
+		$meta = wp_json_file_decode( $manifest, array( 'associative' => true ) );
+		if ( ! is_array( $meta ) || 'file:./shell.php' !== ( $meta['render'] ?? null ) ) {
+			return $args;
+		}
+		$shell                 = dirname( $manifest ) . '/shell.php';
+		$args['render_callback'] = static fn( array $attributes, string $content, \WP_Block $block ): string => self::render_shell( $shell, $attributes, $content, $block );
+		return $args;
+	}
+
+	/**
+	 * Render a container: its shell, with the rendered inner blocks spliced
+	 * in at the slot.
+	 *
+	 * The shell runs in a closure that receives only $attributes and $block
+	 * — $content is not defined there, so a shell that tries to echo it is an
+	 * undefined-variable warning and a corpus mismatch, never a silent
+	 * unescaped print. The slot is counted in the shell's OWN output, before
+	 * anything is inserted: 0 → the shell is the whole render (a closed form
+	 * prints its message and no fields); 1 → the inner blocks replace it;
+	 * more → a logged failure, the first is used and the rest are removed.
+	 *
+	 * Provenance (security read F8): $content is the block renderer's output
+	 * for this block's inner blocks, parsed from stored content that passed
+	 * kses when its author saved it; each inner block's dynamic output is that
+	 * block's own responsibility, as it is inside core's container blocks.
+	 *
+	 * @param string               $template   Absolute path to the shell.php.
+	 * @param array<string, mixed> $attributes Block attributes.
+	 * @param string               $content    Rendered inner blocks.
+	 * @param \WP_Block            $block      Block instance.
+	 */
+	public static function render_shell( string $template, array $attributes, string $content, \WP_Block $block ): string {
+		$render = static function ( array $attributes, \WP_Block $block ) use ( $template ): void {
+			require $template;
+		};
+		ob_start();
+		$render( $attributes, $block );
+		$shell = (string) ob_get_clean();
+
+		$count = substr_count( $shell, self::SLOT );
+		if ( 0 === $count ) {
+			return $shell;
+		}
+		$at = (int) strpos( $shell, self::SLOT );
+		if ( $count > 1 ) {
+			blocklane_pro_log_failure( "Blocklane: the {$block->name} shell printed its inner-blocks slot {$count} times; the first holds the inner blocks, the rest were removed ({$template})." );
+			$shell = substr( $shell, 0, $at + strlen( self::SLOT ) ) . str_replace( self::SLOT, '', substr( $shell, $at + strlen( self::SLOT ) ) );
+		}
+		return substr_replace( $shell, $content, $at, strlen( self::SLOT ) );
 	}
 
 	/**

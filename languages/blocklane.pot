@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Blocklane 1.0.0\n"
+"Project-Id-Version: Blocklane 1.0.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stage\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-06T00:02:25+00:00\n"
+"POT-Creation-Date: 2026-10-06T22:50:01+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: blocklane\n"
@@ -42,7 +42,7 @@ msgstr ""
 msgid "You do not have permission to manage these settings."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced-controller.php:209
+#: inc/advanced/class-blocklane-pro-advanced-controller.php:215
 msgid "No file was received."
 msgstr ""
 
@@ -124,123 +124,145 @@ msgstr ""
 msgid "The Sort by Order view shows every item so the full order can be arranged at once. This setting applies to the other views."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:785
+#. translators: %s: the title of the item the move would shift, in quotation marks, or "item #123".
+#: inc/advanced/class-blocklane-pro-advanced.php:774
+#, php-format
+msgid "This move would shift %s, which you are not allowed to edit, so the new order was not saved. An Administrator, or another user who can edit it, has to make any move that shifts it."
+msgstr ""
+
+#. translators: %d: a post ID.
+#: inc/advanced/class-blocklane-pro-advanced.php:811
+#, php-format
+msgid "item #%d"
+msgstr ""
+
+#. translators: %s: a post title.
+#: inc/advanced/class-blocklane-pro-advanced.php:814
+#, php-format
+msgid "“%s”"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:886
 msgid "This content type doesn’t support nesting."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:794
+#: inc/advanced/class-blocklane-pro-advanced.php:895
 msgid "That item can’t be moved."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:805
+#: inc/advanced/class-blocklane-pro-advanced.php:906
 msgid "That item can’t be nested there."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:889
+#: inc/advanced/class-blocklane-pro-advanced.php:933
+msgid "That item couldn’t be moved. Please try again."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:1004
 msgid "Last Login"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:908
+#: inc/advanced/class-blocklane-pro-advanced.php:1023
 msgid "Never"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:909
+#: inc/advanced/class-blocklane-pro-advanced.php:1024
 msgid "Never logged in"
 msgstr ""
 
 #. translators: %s: human-readable time difference, e.g. "2 hours".
-#: inc/advanced/class-blocklane-pro-advanced.php:918
+#: inc/advanced/class-blocklane-pro-advanced.php:1033
 #, php-format
 msgid "%s ago"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:949
+#: inc/advanced/class-blocklane-pro-advanced.php:1064
 msgid "Clone"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:964
+#: inc/advanced/class-blocklane-pro-advanced.php:1079
 msgid "Invalid or expired duplicate request."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:969
+#: inc/advanced/class-blocklane-pro-advanced.php:1084
 msgid "You are not allowed to duplicate this item."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:974
+#: inc/advanced/class-blocklane-pro-advanced.php:1089
 msgid "You are not allowed to create items of this type."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:979
+#: inc/advanced/class-blocklane-pro-advanced.php:1094
 msgid "The item could not be duplicated."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1096
+#: inc/advanced/class-blocklane-pro-advanced.php:1211
 msgid "The SVG sanitizer is unavailable, so this file was not uploaded."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1103
+#: inc/advanced/class-blocklane-pro-advanced.php:1218
 msgid "The SVG file could not be read."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1117
+#: inc/advanced/class-blocklane-pro-advanced.php:1232
 msgid "This SVG could not be sanitized safely, so it was not uploaded."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1125
+#: inc/advanced/class-blocklane-pro-advanced.php:1240
 msgid "The sanitized SVG could not be saved."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1338
+#: inc/advanced/class-blocklane-pro-advanced.php:1453
 msgid "Replace file"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1339
+#: inc/advanced/class-blocklane-pro-advanced.php:1454
 msgid "Replacing…"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1340
+#: inc/advanced/class-blocklane-pro-advanced.php:1455
 msgid "Replaced ✓"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1341
+#: inc/advanced/class-blocklane-pro-advanced.php:1456
 msgid "Replace failed"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1364
+#: inc/advanced/class-blocklane-pro-advanced.php:1479
 msgid "The file could not be uploaded."
 msgstr ""
 
 #. translators: %s: the original file's mime type.
-#: inc/advanced/class-blocklane-pro-advanced.php:1375
+#: inc/advanced/class-blocklane-pro-advanced.php:1490
 #, php-format
 msgid "The replacement must be the same type (%s) so the URL stays valid."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1388
+#: inc/advanced/class-blocklane-pro-advanced.php:1503
 msgid "The file was uploaded but could not replace the original. Please try again."
 msgstr ""
 
 #. translators: %s: file name of the previous copy left in the uploads folder.
-#: inc/advanced/class-blocklane-pro-advanced.php:1401
+#: inc/advanced/class-blocklane-pro-advanced.php:1516
 #, php-format
 msgid "Replaced, but the previous file could not be removed: %s"
 msgstr ""
 
 #. translators: %s: plugin name.
-#: inc/advanced/class-blocklane-pro-blog-features-disabler.php:77
+#: inc/advanced/class-blocklane-pro-blog-features-disabler.php:79
 #, php-format
 msgid "Blog features (Post Formats, Post via Email, and Update Services) are turned off by %s, so those settings are hidden and inactive."
 msgstr ""
 
 #. translators: %s: plugin name.
-#: inc/advanced/class-blocklane-pro-blog-features-disabler.php:85
-#: inc/advanced/class-blocklane-pro-comments-disabler.php:250
+#: inc/advanced/class-blocklane-pro-blog-features-disabler.php:87
+#: inc/advanced/class-blocklane-pro-comments-disabler.php:251
 #, php-format
 msgid "Manage in %s → Advanced"
 msgstr ""
 
 #. translators: %s: plugin name.
-#: inc/advanced/class-blocklane-pro-comments-disabler.php:242
+#: inc/advanced/class-blocklane-pro-comments-disabler.php:243
 #, php-format
 msgid "Comments are turned off site-wide by %s, so the comment settings below are hidden and inactive."
 msgstr ""
@@ -280,17 +302,17 @@ msgid "Dismiss"
 msgstr ""
 
 #. translators: 1: plugin name, 2: link to manage themes
-#: inc/bootstrap.php:530
+#: inc/bootstrap.php:548
 #, php-format
 msgid "%1$s needs a block theme. Activate any block theme to use its editing tools. %2$s"
 msgstr ""
 
-#: inc/bootstrap.php:532
+#: inc/bootstrap.php:550
 msgid "Manage themes"
 msgstr ""
 
 #. translators: 1: plugin name, 2: feature name, 3: comma-separated list of block names, 4: the feature's consequence sentence.
-#: inc/class-blocklane-pro-block-suite.php:138
+#: inc/class-blocklane-pro-block-suite.php:217
 #, php-format
 msgid "%1$s — %2$s: the built assets are out of date, so these blocks did not register: %3$s. %4$s"
 msgstr ""
@@ -427,7 +449,7 @@ msgstr ""
 #: inc/class-blocklane-pro-settings.php:198
 #: inc/forms/runtime.php:235
 #: inc/forms/runtime.php:326
-#: inc/forms/runtime.php:3833
+#: inc/forms/runtime.php:3916
 #: inc/onboarding/src/screens/advanced/rows/forms.js:15
 #: inc/onboarding/src/screens/FormsScreen.js:1240
 #: inc/onboarding/src/screens/meta/forms.js:11
@@ -473,252 +495,252 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: the plural post type or taxonomy label.
-#: inc/content-types/mu-runtime.php:219
-#: inc/content-types/mu-runtime.php:448
+#: inc/content-types/mu-runtime.php:223
+#: inc/content-types/mu-runtime.php:452
 #, php-format
 msgid "All %s"
 msgstr ""
 
-#: inc/content-types/mu-runtime.php:220
+#: inc/content-types/mu-runtime.php:224
 msgid "Add New"
 msgstr ""
 
 #. translators: %s: the singular post type or taxonomy label.
-#: inc/content-types/mu-runtime.php:222
-#: inc/content-types/mu-runtime.php:456
+#: inc/content-types/mu-runtime.php:226
+#: inc/content-types/mu-runtime.php:460
 #, php-format
 msgid "Add New %s"
 msgstr ""
 
 #. translators: %s: what is being edited: a post type or taxonomy label, or an animation preset or type name.
-#: inc/content-types/mu-runtime.php:224
-#: inc/content-types/mu-runtime.php:450
+#: inc/content-types/mu-runtime.php:228
+#: inc/content-types/mu-runtime.php:454
 #, php-format
 msgid "Edit %s"
 msgstr ""
 
 #. translators: %s: Singular post type label.
-#: inc/content-types/mu-runtime.php:226
+#: inc/content-types/mu-runtime.php:230
 #, php-format
 msgid "New %s"
 msgstr ""
 
 #. translators: %s: the post type or taxonomy label, singular or plural as the menu line reads.
-#: inc/content-types/mu-runtime.php:228
-#: inc/content-types/mu-runtime.php:230
-#: inc/content-types/mu-runtime.php:452
+#: inc/content-types/mu-runtime.php:232
+#: inc/content-types/mu-runtime.php:234
+#: inc/content-types/mu-runtime.php:456
 #, php-format
 msgid "View %s"
 msgstr ""
 
 #. translators: %s: the plural post type or taxonomy label.
-#: inc/content-types/mu-runtime.php:232
-#: inc/content-types/mu-runtime.php:460
+#: inc/content-types/mu-runtime.php:236
+#: inc/content-types/mu-runtime.php:464
 #, php-format
 msgid "Search %s"
 msgstr ""
 
 #. translators: %s: the plural post type or taxonomy label, sometimes lowercase.
-#: inc/content-types/mu-runtime.php:234
-#: inc/content-types/mu-runtime.php:462
+#: inc/content-types/mu-runtime.php:238
+#: inc/content-types/mu-runtime.php:466
 #, php-format
 msgid "No %s found."
 msgstr ""
 
 #. translators: %s: Plural post type label, lowercase.
-#: inc/content-types/mu-runtime.php:236
+#: inc/content-types/mu-runtime.php:240
 #, php-format
 msgid "No %s found in Trash."
 msgstr ""
 
 #. translators: %s: the singular post type or taxonomy label, or its lowercase plural.
-#: inc/content-types/mu-runtime.php:238
-#: inc/content-types/mu-runtime.php:472
+#: inc/content-types/mu-runtime.php:242
+#: inc/content-types/mu-runtime.php:476
 #, php-format
 msgid "Parent %s:"
 msgstr ""
 
 #. translators: %s: Singular post type label.
-#: inc/content-types/mu-runtime.php:240
+#: inc/content-types/mu-runtime.php:244
 #, php-format
 msgid "%s Archives"
 msgstr ""
 
 #. translators: %s: Singular post type label.
-#: inc/content-types/mu-runtime.php:242
+#: inc/content-types/mu-runtime.php:246
 #, php-format
 msgid "%s Attributes"
 msgstr ""
 
 #. translators: %s: Singular post type label, lowercase.
-#: inc/content-types/mu-runtime.php:244
+#: inc/content-types/mu-runtime.php:248
 #, php-format
 msgid "Insert into %s"
 msgstr ""
 
 #. translators: %s: Singular post type label, lowercase.
-#: inc/content-types/mu-runtime.php:246
+#: inc/content-types/mu-runtime.php:250
 #, php-format
 msgid "Uploaded to this %s"
 msgstr ""
 
-#: inc/content-types/mu-runtime.php:247
+#: inc/content-types/mu-runtime.php:251
 msgid "Featured image"
 msgstr ""
 
-#: inc/content-types/mu-runtime.php:248
+#: inc/content-types/mu-runtime.php:252
 msgid "Set featured image"
 msgstr ""
 
-#: inc/content-types/mu-runtime.php:249
+#: inc/content-types/mu-runtime.php:253
 msgid "Remove featured image"
 msgstr ""
 
-#: inc/content-types/mu-runtime.php:250
+#: inc/content-types/mu-runtime.php:254
 msgid "Use as featured image"
 msgstr ""
 
 #. translators: %s: Plural post type label, lowercase.
-#: inc/content-types/mu-runtime.php:252
+#: inc/content-types/mu-runtime.php:256
 #, php-format
 msgid "Filter %s list"
 msgstr ""
 
 #. translators: %s: Plural post type label.
-#: inc/content-types/mu-runtime.php:254
+#: inc/content-types/mu-runtime.php:258
 #, php-format
 msgid "%s list navigation"
 msgstr ""
 
 #. translators: %s: Plural post type label.
-#: inc/content-types/mu-runtime.php:256
+#: inc/content-types/mu-runtime.php:260
 #, php-format
 msgid "%s list"
 msgstr ""
 
-#: inc/content-types/mu-runtime.php:400
+#: inc/content-types/mu-runtime.php:404
 msgid "Field Gallery"
 msgstr ""
 
-#: inc/content-types/mu-runtime.php:401
+#: inc/content-types/mu-runtime.php:405
 msgid "The images from a gallery field on the current entry."
-msgstr ""
-
-#. translators: %s: Singular taxonomy label.
-#: inc/content-types/mu-runtime.php:454
-#, php-format
-msgid "Update %s"
 msgstr ""
 
 #. translators: %s: Singular taxonomy label.
 #: inc/content-types/mu-runtime.php:458
 #, php-format
-msgid "New %s Name"
-msgstr ""
-
-#. translators: %s: Plural taxonomy label.
-#: inc/content-types/mu-runtime.php:464
-#, php-format
-msgid "← Back to %s"
+msgid "Update %s"
 msgstr ""
 
 #. translators: %s: Singular taxonomy label.
-#: inc/content-types/mu-runtime.php:466
+#: inc/content-types/mu-runtime.php:462
 #, php-format
-msgid "Parent %s"
+msgid "New %s Name"
 msgstr ""
 
 #. translators: %s: Plural taxonomy label.
 #: inc/content-types/mu-runtime.php:468
 #, php-format
-msgid "Popular %s"
+msgid "← Back to %s"
 msgstr ""
 
-#. translators: %s: Plural taxonomy label, lowercase.
+#. translators: %s: Singular taxonomy label.
 #: inc/content-types/mu-runtime.php:470
 #, php-format
-msgid "Separate %s with commas"
+msgid "Parent %s"
+msgstr ""
+
+#. translators: %s: Plural taxonomy label.
+#: inc/content-types/mu-runtime.php:472
+#, php-format
+msgid "Popular %s"
 msgstr ""
 
 #. translators: %s: Plural taxonomy label, lowercase.
 #: inc/content-types/mu-runtime.php:474
 #, php-format
+msgid "Separate %s with commas"
+msgstr ""
+
+#. translators: %s: Plural taxonomy label, lowercase.
+#: inc/content-types/mu-runtime.php:478
+#, php-format
 msgid "Add or remove %s"
 msgstr ""
 
 #. translators: %s: Plural taxonomy label, lowercase.
-#: inc/content-types/mu-runtime.php:476
+#: inc/content-types/mu-runtime.php:480
 #, php-format
 msgid "Choose from the most used %s"
 msgstr ""
 
 #. translators: %s: content type singular name.
-#: inc/content-types/mu-runtime.php:597
+#: inc/content-types/mu-runtime.php:601
 #, php-format
 msgctxt "template title"
 msgid "%s (Single)"
 msgstr ""
 
 #. translators: %s: content type singular name.
-#: inc/content-types/mu-runtime.php:599
+#: inc/content-types/mu-runtime.php:603
 #, php-format
 msgid "Starter template for a single %s."
 msgstr ""
 
 #. translators: %d: rating value out of 5.
-#: inc/content-types/mu-runtime.php:700
+#: inc/content-types/mu-runtime.php:704
 #, php-format
 msgid "%d out of 5 stars"
 msgstr ""
 
 #. translators: %s: singular type name.
-#: inc/content-types/mu-runtime.php:1250
+#: inc/content-types/mu-runtime.php:1253
 #, php-format
 msgctxt "meta box title"
 msgid "%s fields"
 msgstr ""
 
 #. translators: %d: number of stars.
-#: inc/content-types/mu-runtime.php:1315
+#: inc/content-types/mu-runtime.php:1318
 #, php-format
 msgid "%d star"
 msgid_plural "%d stars"
 msgstr[0] ""
 msgstr[1] ""
 
-#: inc/content-types/mu-runtime.php:1320
-#: inc/content-types/mu-runtime.php:1342
-#: inc/content-types/mu-runtime.php:1370
+#: inc/content-types/mu-runtime.php:1323
+#: inc/content-types/mu-runtime.php:1345
+#: inc/content-types/mu-runtime.php:1373
 #: inc/extensions/src/components/custom-icon-modal.js:176
 msgid "Clear"
 msgstr ""
 
-#: inc/content-types/mu-runtime.php:1337
+#: inc/content-types/mu-runtime.php:1340
 #: inc/extensions/src/controls/transparent-header/blocks.js:425
 msgid "Replace image"
 msgstr ""
 
-#: inc/content-types/mu-runtime.php:1337
+#: inc/content-types/mu-runtime.php:1340
 #: inc/extensions/src/controls/transparent-header/blocks.js:448
 #: inc/onboarding/src/screens/seo/SettingsTab.js:737
 msgid "Select image"
 msgstr ""
 
-#: inc/content-types/mu-runtime.php:1365
-#: inc/content-types/mu-runtime.php:1528
+#: inc/content-types/mu-runtime.php:1368
+#: inc/content-types/mu-runtime.php:1531
 msgid "Edit gallery"
 msgstr ""
 
-#: inc/content-types/mu-runtime.php:1365
-#: inc/content-types/mu-runtime.php:1529
+#: inc/content-types/mu-runtime.php:1368
+#: inc/content-types/mu-runtime.php:1532
 msgid "Add images"
 msgstr ""
 
-#: inc/content-types/mu-runtime.php:1382
+#: inc/content-types/mu-runtime.php:1385
 msgid "— Select —"
 msgstr ""
 
-#: inc/content-types/mu-runtime.php:1527
+#: inc/content-types/mu-runtime.php:1530
 msgid "Select images"
 msgstr ""
 
@@ -1022,7 +1044,7 @@ msgid "Date"
 msgstr ""
 
 #: inc/forms/class-blocklane-pro-forms.php:749
-#: inc/forms/runtime.php:3679
+#: inc/forms/runtime.php:3762
 #: inc/forms/src/form/edit.js:763
 #: inc/onboarding/src/screens/FormsScreen.js:1111
 msgid "Form"
@@ -1047,205 +1069,205 @@ msgstr ""
 msgid "Saved forms render without those blocks, and submissions silently drop the fields they carry, until the assets are rebuilt."
 msgstr ""
 
-#: inc/forms/runtime.php:1217
+#: inc/forms/runtime.php:1214
 #: inc/forms/src/form/edit.js:1331
 msgid "This form is not currently accepting submissions."
 msgstr ""
 
-#: inc/forms/runtime.php:2437
+#: inc/forms/runtime.php:2513
 msgid "This field is required."
 msgstr ""
 
-#: inc/forms/runtime.php:2463
+#: inc/forms/runtime.php:2539
 msgid "This field could not be validated."
 msgstr ""
 
-#: inc/forms/runtime.php:2481
-#: inc/forms/runtime.php:2602
+#: inc/forms/runtime.php:2557
+#: inc/forms/runtime.php:2678
 msgid "Please choose from the available options."
 msgstr ""
 
-#: inc/forms/runtime.php:2525
+#: inc/forms/runtime.php:2601
 msgid "Please enter a valid email address."
 msgstr ""
 
-#: inc/forms/runtime.php:2535
+#: inc/forms/runtime.php:2611
 msgid "Please enter a valid web address."
 msgstr ""
 
-#: inc/forms/runtime.php:2545
+#: inc/forms/runtime.php:2621
 msgid "Please enter a number."
 msgstr ""
 
-#: inc/forms/runtime.php:2552
+#: inc/forms/runtime.php:2628
 msgid "Please enter a number within the allowed range."
 msgstr ""
 
-#: inc/forms/runtime.php:2564
+#: inc/forms/runtime.php:2640
 msgid "Please enter a valid value."
 msgstr ""
 
-#: inc/forms/runtime.php:2575
+#: inc/forms/runtime.php:2651
 msgid "Please enter a valid date."
 msgstr ""
 
-#: inc/forms/runtime.php:2582
+#: inc/forms/runtime.php:2658
 msgid "Please enter a date within the allowed range."
 msgstr ""
 
 #. translators: %d: maximum number of characters.
-#: inc/forms/runtime.php:2613
+#: inc/forms/runtime.php:2689
 #, php-format
 msgid "Please use at most %d characters."
 msgstr ""
 
-#: inc/forms/runtime.php:2761
+#: inc/forms/runtime.php:2837
 msgid "Too many submissions from your connection. Please wait a minute and try again."
 msgstr ""
 
-#: inc/forms/runtime.php:2784
+#: inc/forms/runtime.php:2867
 msgid "Your submission was too large to upload. Please attach smaller or fewer files and try again."
 msgstr ""
 
-#: inc/forms/runtime.php:2914
+#: inc/forms/runtime.php:2997
 msgid "You attached too many files. Please attach fewer files and try again."
 msgstr ""
 
-#: inc/forms/runtime.php:2945
+#: inc/forms/runtime.php:3028
 msgid "We could not confirm you are human. Please complete the verification and try again."
 msgstr ""
 
-#: inc/forms/runtime.php:3018
+#: inc/forms/runtime.php:3101
 msgid "Please correct the highlighted fields."
 msgstr ""
 
-#: inc/forms/runtime.php:3090
+#: inc/forms/runtime.php:3173
 #: inc/forms/src/form/edit.js:1394
 msgid "You have already submitted this form."
 msgstr ""
 
-#: inc/forms/runtime.php:3122
+#: inc/forms/runtime.php:3205
 msgid "We could not save your upload. Please try again."
 msgstr ""
 
 #. translators: 1: form name, 2: site title.
-#: inc/forms/runtime.php:3684
+#: inc/forms/runtime.php:3767
 #, php-format
 msgid "New submission: %1$s — %2$s"
 msgstr ""
 
 #. translators: 1: form name, 2: site title.
-#: inc/forms/runtime.php:3704
+#: inc/forms/runtime.php:3787
 #, php-format
 msgid "Sent by the “%1$s” form on %2$s."
 msgstr ""
 
 #. translators: %s: site title.
-#: inc/forms/runtime.php:3741
+#: inc/forms/runtime.php:3824
 #, php-format
 msgid "We received your message — %s"
 msgstr ""
 
-#: inc/forms/runtime.php:3747
+#: inc/forms/runtime.php:3830
 msgid "Thanks for getting in touch! Here is a copy of what you sent — we will get back to you soon."
 msgstr ""
 
-#: inc/forms/runtime.php:3795
+#: inc/forms/runtime.php:3878
 #: inc/forms/src/form-notification/edit.js:15
 msgid "Thanks! Your message has been sent."
 msgstr ""
 
-#: inc/forms/runtime.php:3798
+#: inc/forms/runtime.php:3881
 #: inc/forms/src/form-notification/edit.js:26
 msgid "Something went wrong and your message was not sent. Please check the highlighted fields and try again."
 msgstr ""
 
-#: inc/forms/runtime.php:3847
+#: inc/forms/runtime.php:3930
 msgid "Contact form"
 msgstr ""
 
-#: inc/forms/runtime.php:3848
+#: inc/forms/runtime.php:3931
 msgid "Name, email, and message with a submit button."
 msgstr ""
 
-#: inc/forms/runtime.php:3849
+#: inc/forms/runtime.php:3932
 msgid "Contact"
 msgstr ""
 
-#: inc/forms/runtime.php:3854
-#: inc/forms/runtime.php:3939
+#: inc/forms/runtime.php:3937
+#: inc/forms/runtime.php:4022
 #: inc/forms/src/form/edit.js:55
 msgid "Name"
 msgstr ""
 
-#: inc/forms/runtime.php:3863
-#: inc/forms/runtime.php:3895
-#: inc/forms/runtime.php:3948
+#: inc/forms/runtime.php:3946
+#: inc/forms/runtime.php:3978
+#: inc/forms/runtime.php:4031
 #: inc/forms/src/form-input/edit.js:305
 #: inc/forms/src/form/edit.js:64
 msgid "Email"
 msgstr ""
 
-#: inc/forms/runtime.php:3872
+#: inc/forms/runtime.php:3955
 #: inc/forms/src/form/edit.js:72
 #: inc/forms/src/form/edit.js:990
 msgid "Message"
 msgstr ""
 
-#: inc/forms/runtime.php:3876
+#: inc/forms/runtime.php:3959
 msgid "Send message"
 msgstr ""
 
-#: inc/forms/runtime.php:3888
+#: inc/forms/runtime.php:3971
 msgid "Newsletter signup"
 msgstr ""
 
-#: inc/forms/runtime.php:3889
+#: inc/forms/runtime.php:3972
 msgid "Email plus a consent checkbox."
 msgstr ""
 
-#: inc/forms/runtime.php:3890
+#: inc/forms/runtime.php:3973
 msgid "Newsletter"
 msgstr ""
 
-#: inc/forms/runtime.php:3905
+#: inc/forms/runtime.php:3988
 msgid "I agree to receive email updates."
 msgstr ""
 
-#: inc/forms/runtime.php:3909
+#: inc/forms/runtime.php:3992
 msgid "Subscribe"
 msgstr ""
 
-#: inc/forms/runtime.php:3919
+#: inc/forms/runtime.php:4002
 msgid "Will you attend?"
 msgstr ""
 
-#: inc/forms/runtime.php:3923
+#: inc/forms/runtime.php:4006
 msgid "Yes, I will be there"
 msgstr ""
 
-#: inc/forms/runtime.php:3924
+#: inc/forms/runtime.php:4007
 msgid "Sorry, I can’t make it"
 msgstr ""
 
-#: inc/forms/runtime.php:3932
-#: inc/forms/runtime.php:3934
+#: inc/forms/runtime.php:4015
+#: inc/forms/runtime.php:4017
 msgid "RSVP"
 msgstr ""
 
-#: inc/forms/runtime.php:3933
+#: inc/forms/runtime.php:4016
 msgid "Attendance, guest count, and a note."
 msgstr ""
 
-#: inc/forms/runtime.php:3959
+#: inc/forms/runtime.php:4042
 msgid "Number of guests"
 msgstr ""
 
-#: inc/forms/runtime.php:3964
+#: inc/forms/runtime.php:4047
 msgid "Anything we should know?"
 msgstr ""
 
-#: inc/forms/runtime.php:3965
+#: inc/forms/runtime.php:4048
 msgid "Send RSVP"
 msgstr ""
 
@@ -1259,26 +1281,26 @@ msgid "Sending…"
 msgstr ""
 
 #. translators: 1: current step number, 2: total number of steps. Both placeholders are literal tokens replaced by script — keep each exactly once.
-#: inc/forms/src/form/render.php:77
+#: inc/forms/src/form/shell.php:81
 #, php-format
 msgid "Step %1$s of %2$s"
 msgstr ""
 
-#: inc/forms/src/form/render.php:81
+#: inc/forms/src/form/shell.php:85
 msgid "Your session expired. Please reload the page and try again."
 msgstr ""
 
-#: inc/forms/src/form/render.php:97
+#: inc/forms/src/form/shell.php:101
 msgid "Leave this field empty"
 msgstr ""
 
-#: inc/forms/src/form/render.php:103
+#: inc/forms/src/form/shell.php:107
 #: inc/forms/src/form/edit.js:803
 msgid "Required fields are marked with an asterisk (*)."
 msgstr ""
 
 #. translators: %d: step number.
-#: inc/forms/src/form/render.php:109
+#: inc/forms/src/form/shell.php:113
 #, php-format
 msgid "Step %d"
 msgstr ""
@@ -1311,80 +1333,80 @@ msgstr ""
 msgid "(no title)"
 msgstr ""
 
-#: inc/popups/runtime.php:239
+#: inc/popups/runtime.php:240
 #: inc/onboarding/src/screens/advanced/rows/popups.js:15
 msgid "Popups"
 msgstr ""
 
-#: inc/popups/runtime.php:240
+#: inc/popups/runtime.php:241
 #: inc/popups/src/index.js:320
 #: inc/popups/src/index.js:323
 msgid "Popup"
 msgstr ""
 
-#: inc/popups/runtime.php:241
+#: inc/popups/runtime.php:242
 msgid "Add New Popup"
 msgstr ""
 
-#: inc/popups/runtime.php:242
+#: inc/popups/runtime.php:243
 msgid "Edit Popup"
 msgstr ""
 
-#: inc/popups/runtime.php:243
+#: inc/popups/runtime.php:244
 msgid "No popups yet."
 msgstr ""
 
 #. translators: 1: a rule condition key, 2: a PHP type name.
-#: inc/popups/runtime.php:472
+#: inc/popups/runtime.php:473
 #, php-format
 msgid "The resolver for \"%1$s\" is a %2$s, not a callable. Every entry must be callable; this one was ignored."
 msgstr ""
 
-#: inc/popups/runtime.php:551
+#: inc/popups/runtime.php:552
 msgid "Time on page"
 msgstr ""
 
-#: inc/popups/runtime.php:552
+#: inc/popups/runtime.php:553
 msgid "Manual only"
 msgstr ""
 
-#: inc/popups/runtime.php:552
+#: inc/popups/runtime.php:553
 msgid "Point a link at #blocklane-popup-{ID}, or add a blocklane-popup-open-{ID} class to any element."
 msgstr ""
 
-#: inc/popups/runtime.php:555
+#: inc/popups/runtime.php:556
 msgid "Everywhere"
 msgstr ""
 
-#: inc/popups/runtime.php:556
+#: inc/popups/runtime.php:557
 msgid "Page"
 msgstr ""
 
-#: inc/popups/runtime.php:557
+#: inc/popups/runtime.php:558
 msgid "Post"
 msgstr ""
 
-#: inc/popups/runtime.php:598
+#: inc/popups/runtime.php:599
 #: inc/forms/src/shared/field-controls.js:151
 msgid "is"
 msgstr ""
 
-#: inc/popups/runtime.php:599
+#: inc/popups/runtime.php:600
 #: inc/forms/src/shared/field-controls.js:152
 msgid "is not"
 msgstr ""
 
-#: inc/popups/runtime.php:600
+#: inc/popups/runtime.php:601
 #: inc/forms/src/shared/field-controls.js:153
 msgid "contains"
 msgstr ""
 
-#: inc/popups/runtime.php:601
+#: inc/popups/runtime.php:602
 msgid "does not contain"
 msgstr ""
 
 #. translators: 1: a trigger label, e.g. "Time on page", 2: a number of seconds.
-#: inc/popups/runtime.php:651
+#: inc/popups/runtime.php:652
 #, php-format
 msgid "%1$s, %2$d second"
 msgid_plural "%1$s, %2$d seconds"
@@ -1392,22 +1414,22 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: a trigger label, e.g. "Scroll percentage", 2: a percentage.
-#: inc/popups/runtime.php:659
+#: inc/popups/runtime.php:660
 #, php-format
 msgid "%1$s, %2$d%%"
 msgstr ""
 
 #. translators: %s: popup title.
-#: inc/popups/runtime.php:832
+#: inc/popups/runtime.php:833
 #, php-format
 msgid "Open popup: %s"
 msgstr ""
 
-#: inc/popups/runtime.php:833
+#: inc/popups/runtime.php:834
 msgid "Open popup"
 msgstr ""
 
-#: inc/popups/runtime.php:1014
+#: inc/popups/runtime.php:1015
 #: inc/onboarding/src/screens/FormsScreen.js:203
 #: inc/onboarding/src/screens/seo/EditSeoPanel.js:111
 msgid "Close"
@@ -1427,7 +1449,7 @@ msgstr ""
 msgid "The \"%s\" setting belongs to a part of Blocklane that is not in this build or did not load."
 msgstr ""
 
-#: inc/security/class-blocklane-pro-security.php:460
+#: inc/security/class-blocklane-pro-security.php:432
 msgid "Too many failed login attempts. Please try again in a few minutes."
 msgstr ""
 
@@ -1459,104 +1481,104 @@ msgstr ""
 msgid "Update Blocklane SEO site settings. Accepts a partial map of: sitemap (bool), html_sitemap (bool), html_sitemap_page (page ID), llms_txt (bool; serves an llms.txt content manifest for AI crawlers), archive_canonicals (bool), noindex_author_archives (bool), noindex_date_archives (bool), default_og_image_id (attachment ID for the fallback share image), indexnow (bool; the key is generated automatically and not writable here), title_format (a token string; the tokens are title, site, tagline and sep, each wrapped in percent signs), title_separator, org_name, org_description, org_logo_id, org_profiles (URL list), and the local-business fields: local_business (bool switches the schema to LocalBusiness), local_address, local_city, local_region, local_postal_code, local_country, local_phone, local_latitude, local_longitude, local_hours (day key monday–sunday to {open, close} in 24h HH:MM)."
 msgstr ""
 
-#: inc/seo/runtime.php:111
+#: inc/seo/runtime.php:113
 #: inc/onboarding/src/screens/seo/EditSeoPanel.js:138
 #: inc/seo/src/index.js:160
 msgid "Search title"
 msgstr ""
 
-#: inc/seo/runtime.php:112
+#: inc/seo/runtime.php:114
 msgid "Replaces the page title in search results and the browser tab."
 msgstr ""
 
-#: inc/seo/runtime.php:126
+#: inc/seo/runtime.php:128
 #: inc/onboarding/src/screens/seo/EditSeoPanel.js:155
 #: inc/seo/src/index.js:180
 msgid "Search description"
 msgstr ""
 
-#: inc/seo/runtime.php:127
+#: inc/seo/runtime.php:129
 msgid "The summary search engines may show under the title."
 msgstr ""
 
-#: inc/seo/runtime.php:143
+#: inc/seo/runtime.php:145
 #: inc/onboarding/src/screens/seo/EditSeoPanel.js:188
 #: inc/seo/src/index.js:214
 msgid "Hide from search engines"
 msgstr ""
 
-#: inc/seo/runtime.php:157
+#: inc/seo/runtime.php:159
 #: inc/onboarding/src/screens/seo/ContentTab.js:75
 #: inc/onboarding/src/screens/seo/EditSeoPanel.js:174
 #: inc/seo/src/index.js:199
 msgid "Schema type"
 msgstr ""
 
-#: inc/seo/runtime.php:456
+#: inc/seo/runtime.php:458
 msgid "Sitemap Page"
 msgstr ""
 
-#: inc/seo/runtime.php:670
+#: inc/seo/runtime.php:672
 msgid "Site map"
 msgstr ""
 
-#: inc/seo/runtime.php:728
+#: inc/seo/runtime.php:744
 msgid "Toggle child pages"
 msgstr ""
 
-#: inc/seo/runtime.php:2229
+#: inc/seo/runtime.php:2244
 #: inc/onboarding/src/screens/seo/ContentTab.js:278
 msgid "SEO title"
 msgstr ""
 
-#: inc/seo/runtime.php:2230
+#: inc/seo/runtime.php:2245
 msgid "SEO description"
 msgstr ""
 
-#: inc/seo/runtime.php:2231
+#: inc/seo/runtime.php:2246
 #: inc/onboarding/src/screens/seo/ContentTab.js:262
 msgid "Schema"
 msgstr ""
 
-#: inc/seo/runtime.php:2232
+#: inc/seo/runtime.php:2247
 #: inc/onboarding/src/screens/seo/ContentTab.js:316
 msgid "Search"
 msgstr ""
 
-#: inc/seo/runtime.php:2277
+#: inc/seo/runtime.php:2292
 #: inc/shared/seo-ui.js:47
 msgid "Article"
 msgstr ""
 
-#: inc/seo/runtime.php:2279
+#: inc/seo/runtime.php:2294
 #: inc/shared/seo-ui.js:48
 msgid "FAQ"
 msgstr ""
 
-#: inc/seo/runtime.php:2288
+#: inc/seo/runtime.php:2303
 #: inc/forms/src/form-input/edit.js:325
 #: inc/onboarding/src/screens/seo/ContentTab.js:321
 msgid "Hidden"
 msgstr ""
 
-#: inc/seo/runtime.php:2290
+#: inc/seo/runtime.php:2305
 #: inc/onboarding/src/screens/seo/ContentTab.js:325
 msgid "Visible"
 msgstr ""
 
-#: inc/seo/runtime.php:2324
+#: inc/seo/runtime.php:2339
 msgid "SEO filter"
 msgstr ""
 
-#: inc/seo/runtime.php:2325
+#: inc/seo/runtime.php:2340
 msgid "Missing SEO title"
 msgstr ""
 
-#: inc/seo/runtime.php:2326
+#: inc/seo/runtime.php:2341
 msgid "Missing description"
 msgstr ""
 
-#: inc/seo/runtime.php:2327
+#: inc/seo/runtime.php:2342
 msgid "Hidden from search"
 msgstr ""
 
@@ -1567,7 +1589,7 @@ msgstr ""
 #: inc/site-lock/class-blocklane-pro-site-lock-gate.php:137
 #: inc/site-lock/class-blocklane-pro-site-lock-gate.php:391
 #: inc/site-lock/class-blocklane-pro-site-lock-theme-switch.php:87
-#: inc/site-lock/lifecycle.php:136
+#: inc/site-lock/lifecycle.php:141
 msgid "Coming Soon"
 msgstr ""
 
@@ -1593,7 +1615,7 @@ msgstr ""
 
 #: inc/site-lock/class-blocklane-pro-site-lock-gate.php:392
 #: inc/site-lock/class-blocklane-pro-site-lock-theme-switch.php:88
-#: inc/site-lock/lifecycle.php:135
+#: inc/site-lock/lifecycle.php:140
 msgid "Maintenance Mode"
 msgstr ""
 
@@ -1606,96 +1628,96 @@ msgid "Your site is in maintenance mode — visitors see the maintenance page."
 msgstr ""
 
 #. translators: %s: site name.
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:729
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:718
 #, php-format
 msgid "%s — Coming soon"
 msgstr ""
 
 #. translators: %s: site name.
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:731
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:720
 #, php-format
 msgid "%s — Under maintenance"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:950
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:899
 #: inc/site-lock/src/site-password/index.js:129
 msgid "Log in"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:970
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:919
 #: inc/site-lock/src/site-password/index.js:104
 msgid "Password"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:980
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:929
 #: inc/onboarding/src/screens/SitePrivacyScreen.js:399
 msgid "Show password"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:988
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:937
 msgid "Too many attempts. Please wait a few minutes and try again."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:990
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:939
 msgid "Your session expired — please refresh and try again."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:992
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:941
 msgid "Sorry, that password is incorrect."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1023
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1096
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:972
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1045
 msgid "We’ll be right back"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1024
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:973
 msgid "The site is briefly down for maintenance. Please check back shortly."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1054
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1003
 msgid "Sales: (555) 123-4567"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1054
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1003
 msgid "Contact sales"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1055
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1004
 msgid "Support: (555) 765-4321"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1055
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1004
 msgid "Get help"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1056
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1005
 msgid "Guides &amp; training"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1056
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1005
 msgid "Learn more"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1057
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1006
 msgid "Office"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1057
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1006
 msgid "123 Example St, Suite 100, City, ST"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1063
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1012
 #: inc/onboarding/src/screens/HomeScreen.js:165
 #: inc/onboarding/src/screens/HomeScreen.js:178
 msgid "Coming soon"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1077
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1026
 msgid "Request website support"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1096
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1045
 msgid "Launching soon"
 msgstr ""
 
@@ -1734,7 +1756,7 @@ msgid "This theme"
 msgstr ""
 
 #. translators: 1: the site visibility mode, e.g. "Coming Soon".
-#: inc/site-lock/lifecycle.php:140
+#: inc/site-lock/lifecycle.php:145
 #, php-format
 msgid "Your site is publicly visible. %1$s is still switched on, but it needs a block theme to be enforced — activate one and it starts working again. Nothing was lost: your settings and password are still saved."
 msgstr ""

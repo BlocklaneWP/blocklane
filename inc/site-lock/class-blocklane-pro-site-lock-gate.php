@@ -114,8 +114,8 @@ class Site_Lock_Gate implements Bootable {
 		// A persistent Coming Soon / Maintenance badge in the toolbar, so an editor
 		// (who bypasses the gate and sees the live site) always knows it's private.
 		add_action( 'admin_bar_menu', array( $this, 'admin_bar_notice' ), 100 );
-		add_action( 'wp_head', array( $this, 'print_admin_bar_styles' ) );
-		add_action( 'admin_head', array( $this, 'print_admin_bar_styles' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_admin_bar_styles' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_bar_styles' ) );
 		// Activating a classic theme takes this whole gate offline. Warn on the
 		// way in, while the plugin is still running to be able to.
 		Site_Lock_Theme_Switch::init();
@@ -417,36 +417,24 @@ class Site_Lock_Gate implements Bootable {
 
 	/**
 	 * Style the badge's status dot (a mode-colored indicator, no background — the
-	 * item stays native to the rest of the toolbar). Printed in both the front-end
-	 * and admin document heads, since the toolbar shows in both. The dot colors
+	 * item stays native to the rest of the toolbar). Queued into both the
+	 * front-end and admin document heads (Inline_Asset), since the toolbar shows
+	 * in both; the ID selectors make queue order irrelevant. The dot colors
 	 * mirror the dashboard's Site Visibility status pill: Coming Soon uses the
 	 * "locked" gold (#f5b301), Maintenance the warning orange (#b45309).
 	 */
-	public function print_admin_bar_styles() {
+	public function enqueue_admin_bar_styles(): void {
 		if ( ! $this->should_show_admin_bar_notice() ) {
 			return;
 		}
-		?>
-<style id="blocklane-pro-site-lock-adminbar">
-	#wpadminbar #wp-admin-bar-blocklane-pro-site-lock > .ab-item {
-		display: flex;
-		align-items: center;
-	}
-	#wpadminbar #wp-admin-bar-blocklane-pro-site-lock .blocklane-pro-site-lock-dot {
-		width: 8px;
-		height: 8px;
-		margin-right: 7px;
-		border-radius: 50%;
-		background: #dba617;
-	}
-	#wpadminbar #wp-admin-bar-blocklane-pro-site-lock .blocklane-pro-site-lock-dot.is-coming-soon {
-		background: #f5b301;
-	}
-	#wpadminbar #wp-admin-bar-blocklane-pro-site-lock .blocklane-pro-site-lock-dot.is-maintenance {
-		background: #b45309;
-	}
-</style>
-		<?php
+		$item = '#wpadminbar #wp-admin-bar-blocklane-pro-site-lock';
+		Inline_Asset::style(
+			'blocklane-pro-site-lock-adminbar',
+			$item . ' > .ab-item{display:flex;align-items:center;}'
+			. $item . ' .blocklane-pro-site-lock-dot{width:8px;height:8px;margin-right:7px;border-radius:50%;background:#dba617;}'
+			. $item . ' .blocklane-pro-site-lock-dot.is-coming-soon{background:#f5b301;}'
+			. $item . ' .blocklane-pro-site-lock-dot.is-maintenance{background:#b45309;}'
+		);
 	}
 
 	/* ---- preview link ------------------------------------------------------ */
@@ -517,13 +505,14 @@ class Site_Lock_Gate implements Bootable {
 	/* ---- brute-force throttle ---------------------------------------------- */
 
 	/**
-	 * Per-client throttle key. Keyed on the remote address (hashed with the auth
-	 * salt so the transient name isn't guessable). X-Forwarded-For is intentionally
-	 * not trusted — it's spoofable.
+	 * Per-client throttle key, through the one derivation every public
+	 * throttle shares (Helper::client_key(): the remote address, IPv6
+	 * collapsed to its /64, HMAC with the auth salt). X-Forwarded-For is
+	 * intentionally not trusted — it's spoofable. A request with no address
+	 * shares one bucket, so the throttle still counts (F3).
 	 */
-	private function throttle_key() {
-		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
-		return self::THROTTLE_PREFIX . md5( $ip . '|' . wp_salt( 'auth' ) );
+	private function throttle_key(): string {
+		return (string) Helper::client_key( self::THROTTLE_PREFIX, null, true );
 	}
 
 	private function is_throttled() {
@@ -709,7 +698,7 @@ class Site_Lock_Gate implements Bootable {
 		// removed the password block, append the form so the site can't be locked
 		// beyond reach.
 		if ( $coming_soon && false === strpos( $content, 'blocklane-pro-site-lock__form' ) ) {
-			$content .= self::render_password_form();
+			$content .= self::render_password_form( false );
 		}
 
 		// Don't leak the hidden page's identity through wp_head(): strip canonical,
@@ -746,86 +735,32 @@ class Site_Lock_Gate implements Bootable {
 	<?php if ( ! current_theme_supports( 'title-tag' ) ) : ?>
 	<title><?php echo esc_html( $neutral_title ); ?></title>
 	<?php endif; ?>
-	<?php wp_head(); ?>
-	<style>
-		body.blocklane-pro-site-lock { margin: 0; }
-		.blocklane-pro-site-lock__layout {
-			min-height: 100vh;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			gap: 1rem;
-			text-align: center;
-			box-sizing: border-box;
-		}
-		.blocklane-pro-site-lock__form {
-			display: flex;
-			flex-direction: column;
-			gap: 12px;
-			width: 100%;
-			text-align: left;
-		}
-		.blocklane-pro-site-lock__label {
-			margin: 0;
-			font-size: 0.75em;
-			font-weight: 700;
-			letter-spacing: 0.05em;
-			text-transform: uppercase;
-			color: inherit;
-		}
-		.blocklane-pro-site-lock__inputwrap {
-			position: relative;
-			display: block;
-		}
-		.blocklane-pro-site-lock__input {
-			width: 100%;
-			box-sizing: border-box;
-			padding: 12px 44px 12px 14px;
-			border: 1px solid var( --wp--preset--color--outline, rgba( 0, 0, 0, 0.15 ) );
-			border-radius: 4px;
-			background: #fff;
-			color: #1e1e1e;
-			font-size: 16px;
-			font-family: inherit;
-		}
-		.blocklane-pro-site-lock__reveal {
-			position: absolute;
-			top: 50%;
-			right: 6px;
-			transform: translateY( -50% );
-			display: inline-flex;
-			padding: 4px;
-			border: 0;
-			background: none;
-			color: #1e1e1e;
-			opacity: 0.55;
-			cursor: pointer;
-		}
-		.blocklane-pro-site-lock__reveal:hover { opacity: 1; }
-		/* Submit reuses the theme's button element styles (wp-element-button); we
-		   only force full width so color/radius/typography track Global Styles. */
-		.blocklane-pro-site-lock__submit { width: 100%; }
-		.blocklane-pro-site-lock__error {
-			margin: 0;
-			font-size: 0.875em;
-			color: #cc1818;
-		}
-		.blocklane-pro-site-lock__hint { display: none; }
-	</style>
+	<?php
+	wp_head();
+	// The splash's own CSS, printed in place right after everything
+	// wp_head() printed (Inline_Asset): this document is standalone, so the
+	// position, after the theme's styles, is the contract.
+	Inline_Asset::print_style( 'blocklane-pro-site-lock-splash', self::splash_css() );
+	?>
 </head>
 <body <?php body_class( 'blocklane-pro-site-lock' ); ?>>
 	<main class="blocklane-pro-site-lock__main">
 	<?php
-	echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- block + form output is already escaped at the source.
+	// Provenance (spec 2026-10-06 D3, F8): $content is do_blocks() output of
+	// the splash template the site owner saved (stored content that passed
+	// kses at save; each dynamic block escapes its own output), or the
+	// plugin's own fallback markup — printed the way core prints a template
+	// part. kses here would strip the owner's embeds and the unlock form's
+	// inputs. Listed in edition/free/escape-allow.json with this reason.
+	echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- rendered block markup of the owner's saved template, as core prints a template part.
 	?>
 	</main>
 	<?php
 	wp_footer();
 	// The password field's show/hide toggle — the splash is a standalone
 	// document (no theme template), so it prints its one script itself,
-	// through core's inline-script printer.
-	wp_print_inline_script_tag(
+	// through the inline-asset door (core's inline-script printer).
+	Inline_Asset::print_script(
 		'( function () {
 		document.addEventListener( "click", function ( e ) {
 			var btn = e.target.closest( ".blocklane-pro-site-lock__reveal" );
@@ -845,13 +780,34 @@ class Site_Lock_Gate implements Bootable {
 				icon.classList.toggle( "dashicons-hidden", show );
 			}
 		} );
-	} )();'
+	} )();',
+		array( 'id' => 'blocklane-pro-site-lock-reveal-js' )
 	);
 	?>
 </body>
 </html>
 		<?php
 		exit;
+	}
+
+	/**
+	 * The splash document's CSS: the centered layout and the unlock form.
+	 */
+	private static function splash_css(): string {
+		return 'body.blocklane-pro-site-lock{margin:0;}'
+			. '.blocklane-pro-site-lock__layout{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;text-align:center;box-sizing:border-box;}'
+			. '.blocklane-pro-site-lock__form{display:flex;flex-direction:column;gap:12px;width:100%;text-align:left;}'
+			. '.blocklane-pro-site-lock__label{margin:0;font-size:0.75em;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:inherit;}'
+			. '.blocklane-pro-site-lock__inputwrap{position:relative;display:block;}'
+			. '.blocklane-pro-site-lock__input{width:100%;box-sizing:border-box;padding:12px 44px 12px 14px;border:1px solid var(--wp--preset--color--outline, rgba(0, 0, 0, 0.15));border-radius:4px;background:#fff;color:#1e1e1e;font-size:16px;font-family:inherit;}'
+			. '.blocklane-pro-site-lock__reveal{position:absolute;top:50%;right:6px;transform:translateY(-50%);display:inline-flex;padding:4px;border:0;background:none;color:#1e1e1e;opacity:0.55;cursor:pointer;}'
+			. '.blocklane-pro-site-lock__reveal:hover{opacity:1;}'
+			// Submit reuses the theme's button element styles
+			// (wp-element-button); only full width is forced, so
+			// color/radius/typography track Global Styles.
+			. '.blocklane-pro-site-lock__submit{width:100%;}'
+			. '.blocklane-pro-site-lock__error{margin:0;font-size:0.875em;color:#cc1818;}'
+			. '.blocklane-pro-site-lock__hint{display:none;}';
 	}
 
 	/* ---- the password form (used by the block + the safety-net append) ----- */
@@ -867,13 +823,6 @@ class Site_Lock_Gate implements Bootable {
 			return '';
 		}
 
-		// Carry the block's container design controls (color, spacing, border,
-		// typography) onto the form so author styling from the editor reaches the
-		// front end.
-		$wrapper = function_exists( 'get_block_wrapper_attributes' )
-			? get_block_wrapper_attributes( array( 'class' => 'blocklane-pro-site-lock__form' ) )
-			: 'class="blocklane-pro-site-lock__form"';
-
 		// Optional per-instance submit-button styling. Empty values fall through to
 		// the theme button (wp-element-button).
 		$button = array(
@@ -883,7 +832,9 @@ class Site_Lock_Gate implements Bootable {
 			'radius'     => isset( $attributes['buttonBorderRadius'] ) ? $attributes['buttonBorderRadius'] : '',
 		);
 
-		return self::render_password_form( $wrapper, $button );
+		// In a block: the block's container design controls (color, spacing,
+		// border, typography) ride onto the form, built at the sink.
+		return self::render_password_form( true, $button );
 	}
 
 	/**
@@ -929,20 +880,18 @@ class Site_Lock_Gate implements Bootable {
 	}
 
 	/**
-	 * The unlock form markup — a self-contained, theme-styled form (modelled on
-	 * wp-login.php's structure) so it drops into any design.
+	 * The unlock form markup — a self-contained, theme-styled form (modeled on
+	 * wp-login.php's structure) so it drops into any design. Every attribute is
+	 * escaped where it prints (spec 2026-10-06 §4.2): inside a block the form's
+	 * attributes come from get_block_wrapper_attributes(), called here, inside
+	 * the block's render; outside one (the splash's safety-net append and the
+	 * bare fallback) the form carries its class alone.
 	 *
-	 * @param string $wrapper_attributes Pre-built attributes for the <form> (from
-	 *                                   block supports). Defaults to the bare class
-	 *                                   when called outside a block (safety-net append).
-	 * @param array  $button             Optional submit overrides: text, background,
-	 *                                   color, radius. Empty → the theme button.
-	 * @return string
+	 * @param bool                 $in_block Whether a password block is rendering this form.
+	 * @param array<string, mixed> $button   Optional submit overrides: text, background,
+	 *                                       color, radius. Empty → the theme button.
 	 */
-	public static function render_password_form( $wrapper_attributes = '', $button = array() ) {
-		if ( '' === $wrapper_attributes ) {
-			$wrapper_attributes = 'class="blocklane-pro-site-lock__form"';
-		}
+	public static function render_password_form( bool $in_block, array $button = array() ): string {
 		$error = self::get_instance()->unlock_error;
 
 		$button_label = ( isset( $button['text'] ) && '' !== trim( (string) $button['text'] ) )
@@ -965,7 +914,7 @@ class Site_Lock_Gate implements Bootable {
 
 		ob_start();
 		?>
-		<form <?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_block_wrapper_attributes() escapes; bare-class fallback is static. ?> method="post" action="<?php echo esc_url( self::get_instance()->current_url() ); ?>">
+		<form <?php if ( $in_block ) : ?><?php echo get_block_wrapper_attributes( array( 'class' => 'blocklane-pro-site-lock__form' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core-escaped. ?><?php else : ?>class="blocklane-pro-site-lock__form"<?php endif; ?> method="post" action="<?php echo esc_url( self::get_instance()->current_url() ); ?>">
 			<?php wp_nonce_field( self::NONCE_ACTION, self::NONCE_ACTION . '_nonce' ); ?>
 			<label class="blocklane-pro-site-lock__label" for="blocklane-pro-site-lock-input"><?php esc_html_e( 'Password', 'blocklane' ); ?></label>
 			<span class="blocklane-pro-site-lock__inputwrap">
@@ -995,12 +944,12 @@ class Site_Lock_Gate implements Bootable {
 					?>
 				</p>
 			<?php endif; ?>
-			<button type="submit" class="blocklane-pro-site-lock__submit wp-block-button__link wp-element-button"<?php echo '' !== $button_style ? ' style="' . esc_attr( $button_style ) . '"' : ''; ?>>
+			<button type="submit" class="blocklane-pro-site-lock__submit wp-block-button__link wp-element-button"<?php if ( '' !== $button_style ) : ?> style="<?php echo esc_attr( $button_style ); ?>"<?php endif; ?>>
 				<?php echo wp_kses( $button_label, array() ); // RichText-sourced label: strip any tags, keep entities (esc_html would double-encode). ?>
 			</button>
 		</form>
 		<?php
-		return ob_get_clean();
+		return (string) ob_get_clean();
 	}
 
 	/* ---- default template content + bare fallback -------------------------- */
@@ -1095,7 +1044,7 @@ class Site_Lock_Gate implements Bootable {
 		$html  = '<main class="blocklane-pro-site-lock__layout" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:2rem;text-align:center">';
 		$html .= '<h1>' . ( $coming_soon ? esc_html__( 'Launching soon', 'blocklane' ) : esc_html__( 'We’ll be right back', 'blocklane' ) ) . '</h1>';
 		if ( $coming_soon ) {
-			$html .= self::render_password_form();
+			$html .= self::render_password_form( false );
 		}
 		$html .= '</main>';
 

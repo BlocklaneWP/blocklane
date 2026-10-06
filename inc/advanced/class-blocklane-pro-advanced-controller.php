@@ -143,10 +143,12 @@ class Advanced_Controller implements Rest_Registrable {
 
 	/**
 	 * Permission for the reorder endpoint: the post type must be enabled for
-	 * manual ordering and the user must be able to edit others' items of it.
+	 * manual ordering, the user must be able to edit others' items of it, and
+	 * — the write is per item — able to edit EVERY item the request would
+	 * write (Advanced::reorder_refusal(), all-or-nothing).
 	 *
 	 * @param \WP_REST_Request $request
-	 * @return bool
+	 * @return bool|\WP_Error
 	 */
 	public function reorder_permission( \WP_REST_Request $request ) {
 		$post_type = sanitize_key( (string) $request->get_param( 'post_type' ) );
@@ -159,7 +161,11 @@ class Advanced_Controller implements Rest_Registrable {
 		}
 		// Re-parenting edits one specific post — require that cap too.
 		$moved = absint( $request->get_param( 'moved' ) );
-		return ! $moved || current_user_can( 'edit_post', $moved );
+		if ( $moved && ! current_user_can( 'edit_post', $moved ) ) {
+			return false;
+		}
+		$refusal = Advanced::reorder_refusal( $post_type, array_map( 'absint', (array) $request->get_param( 'order' ) ), $moved );
+		return null === $refusal ? true : $refusal;
 	}
 
 	public function reorder( \WP_REST_Request $request ) {

@@ -3,9 +3,10 @@
  * Popups — runtime (canonical source).
  *
  * SELF-CONTAINED by construction: it assumes no module has booted, and the
- * one plugin class it references — the side-effect-free toggle reader,
- * Content_Toggle — is resolved by the classmap autoloader registered at
- * plugin-file scope before any runtime loads, so no load order can trip it.
+ * two plugin classes it references — both side-effect free: the toggle
+ * reader, Content_Toggle, and the inline-asset door, Inline_Asset — are
+ * resolved by the classmap autoloader registered at plugin-file scope before
+ * any runtime loads, so no load order can trip it.
  * (The old "core WordPress only" letter of the rule outlived its reason —
  * this file used to be copied into a generated must-use plugin and run
  * outside the plugin; the spirit, no dependence on a booted module, still
@@ -1373,25 +1374,30 @@ if ( ! function_exists( 'blocklane_pro_popups_register' ) ) {
 	 * in classic themes (already passed for the late drain) — the callbacks
 	 * it queues during a popup's footer-time render are dead code, and the
 	 * block-level preset variables they print simply never appear. Snapshot
-	 * the hook table before the render, then invoke, capture, and REMOVE
-	 * whatever appeared in a dead slot. A dead-slot callback would never
+	 * the hook table before the render, then invoke and REMOVE whatever
+	 * appeared in a dead slot. A dead-slot callback would never
 	 * have run anyway, so invoking it here can only surface output that was
 	 * otherwise lost; slots that will still run naturally are left alone so
 	 * nothing prints twice.
+	 *
+	 * Invoked IN PLACE — the caller calls this exactly where the captured
+	 * output used to be echoed, right before the popup markup — so each
+	 * callback prints through core's own printer (WP_HTML_Tag_Processor in
+	 * wp_enqueue_block_support_styles()) and nothing here echoes. A callback
+	 * that throws is skipped; whatever it printed before throwing stands, as
+	 * it would have in its own slot.
 	 *
 	 * @param string $hook_name         'wp_head' or 'wp_footer'.
 	 * @param array<int|string,array<string,array{function:callable,accepted_args:int}>> $before Pre-render WP_Hook->callbacks snapshot.
 	 * @param int    $max_dead_priority Highest priority that can no longer
 	 *                                  run (PHP_INT_MAX when the whole hook
 	 *                                  already fired).
-	 * @return string Captured markup.
 	 */
-	function blocklane_pro_popups_flush_dead_support_styles( $hook_name, $before, $max_dead_priority ) {
+	function blocklane_pro_popups_flush_dead_support_styles( string $hook_name, array $before, int $max_dead_priority ): void {
 		if ( ! isset( $GLOBALS['wp_filter'][ $hook_name ] ) ) {
-			return '';
+			return;
 		}
 		$hook = $GLOBALS['wp_filter'][ $hook_name ];
-		$out  = '';
 		foreach ( $hook->callbacks as $priority => $callbacks ) {
 			if ( $priority > $max_dead_priority ) {
 				continue; // Will still run naturally — never double-print.
@@ -1400,21 +1406,17 @@ if ( ! function_exists( 'blocklane_pro_popups_register' ) ) {
 				if ( isset( $before[ $priority ][ $id ] ) ) {
 					continue; // Pre-existing (already ran when its slot fired).
 				}
-				ob_start();
 				try {
 					call_user_func( $callback['function'] );
-				} catch ( \Throwable $e ) {
-					// A foreign late-added callback must not break the footer;
-					// its output (if any) is discarded with the buffer intact.
+				} catch ( \Throwable ) {
+					// A foreign late-added callback must not break the footer.
 				}
-				$out .= ob_get_clean();
 				unset( $hook->callbacks[ $priority ][ $id ] );
 				if ( empty( $hook->callbacks[ $priority ] ) ) {
 					unset( $hook->callbacks[ $priority ] );
 				}
 			}
 		}
-		return $out;
 	}
 
 	/**
@@ -1582,17 +1584,26 @@ if ( ! function_exists( 'blocklane_pro_popups_register' ) ) {
 			$processor   = new WP_Style_Engine_Processor();
 			$support_css = $processor->add_rules( $new_rules )->get_css( array( 'prettify' => false ) );
 			if ( '' !== $support_css ) {
-				echo '<style id="blocklane-pro-popups-block-supports">' . $support_css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core style-engine output, same trust as core's own stored-styles print.
+				\blocklane_pro\Inline_Asset::print_style( 'blocklane-pro-popups-block-supports', $support_css );
 			}
 		}
 
+		// In place, in this order: delta support CSS, animations, dead-slot
+		// output, then the markup (docs/specs/popups.md). Inline_Asset prints
+		// each through core's style printer.
 		if ( '' !== $css ) {
-			echo '<style id="blocklane-pro-popups-animations">' . $css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from allowlisted keyframe names and absint ids above.
+			\blocklane_pro\Inline_Asset::print_style( 'blocklane-pro-popups-animations', $css );
 		}
 		if ( '' !== $support_hook ) {
-			echo blocklane_pro_popups_flush_dead_support_styles( $support_hook, $support_before, PHP_INT_MAX ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core block-support style output captured verbatim (#42).
+			blocklane_pro_popups_flush_dead_support_styles( $support_hook, $support_before, PHP_INT_MAX );
 		}
-		echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped piecewise above; content is rendered block markup.
+		// Provenance (spec 2026-10-06 D3, F8): each popup's wrapper is escaped
+		// piecewise in render_single(); its content is do_blocks() output of
+		// the popup post an editor saved (stored content that passed kses at
+		// save; each dynamic block escapes its own output) — printed the way
+		// core prints a template part. kses here would strip embeds and the
+		// forms inside popups. Listed in edition/free/escape-allow.json.
+		echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- rendered block markup of saved popup content, as core prints a template part.
 	}
 	// Priority 9, deliberately ahead of core's wp_footer:10 tenants: the
 	// popup content must have RENDERED before WP_Duotone::output_footer_assets
@@ -1672,14 +1683,15 @@ if ( ! function_exists( 'blocklane_pro_popups_register' ) ) {
 			$processor   = new WP_Style_Engine_Processor();
 			$support_css = $processor->add_rules( $new_rules )->get_css( array( 'prettify' => false ) );
 			if ( '' !== $support_css ) {
-				echo '<style id="blocklane-pro-popups-block-supports-late">' . $support_css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core style-engine output, same trust as core's own stored-styles print.
+				\blocklane_pro\Inline_Asset::print_style( 'blocklane-pro-popups-block-supports-late', $support_css );
 			}
 		}
 		if ( '' !== $css ) {
-			echo '<style id="blocklane-pro-popups-animations-late">' . $css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from allowlisted keyframe names and absint ids above.
+			\blocklane_pro\Inline_Asset::print_style( 'blocklane-pro-popups-animations-late', $css );
 		}
-		echo blocklane_pro_popups_flush_dead_support_styles( $support_hook, $support_before, $support_dead ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core block-support style output captured verbatim (#42).
-		echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped piecewise in render_single; content is rendered block markup.
+		blocklane_pro_popups_flush_dead_support_styles( $support_hook, $support_before, $support_dead );
+		// Provenance: as the main render's print above (D3, F8).
+		echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- rendered block markup of saved popup content, as core prints a template part.
 	}
 	add_action( 'wp_footer', 'blocklane_pro_popups_late_drain', 19 );
 

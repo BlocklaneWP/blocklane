@@ -367,7 +367,7 @@ final class Advanced implements Bootable {
 			add_filter( 'wp_generate_attachment_metadata', array( $this, 'svg_attachment_metadata' ), 10, 2 );
 			add_filter( 'wp_get_attachment_metadata', array( $this, 'svg_attachment_metadata' ), 10, 2 );
 			add_filter( 'wp_insert_attachment_data', array( $this, 'fix_svg_attachment_mime' ), 10, 2 );
-			add_action( 'admin_head', array( $this, 'svg_admin_styles' ) );
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_svg_admin_styles' ) );
 		}
 
 		if ( self::is_on( 'media-replacement' ) ) {
@@ -701,18 +701,17 @@ final class Advanced implements Bootable {
 	}
 
 	/**
-	 * Persist a new manual order. Re-sequences menu_order across the given IDs
-	 * (validated to the post type), skipping revisions for the bulk change.
-	 * Caller has already verified the capability + that the type is enabled.
+	 * The write set of a reorder: what save_order() will write, computed
+	 * before anything is written. Only IDs that exist and are of $post_type
+	 * take a position; of those, only the ones whose menu_order differs from
+	 * their new position are written (a drag shifts a window of rows).
 	 *
-	 * @param string $post_type
-	 * @param int[]  $ordered_ids
-	 * @return int Number of items reordered.
+	 * @param string    $post_type The type being reordered.
+	 * @param list<int> $ids       The order the request asks for.
+	 * @return array<int, int> Post ID => the menu_order it will be given.
 	 */
-	public static function save_order( $post_type, $ordered_ids ) {
-		global $wpdb;
-
-		$ids = array_filter( array_map( 'absint', (array) $ordered_ids ) );
+	public static function order_changes( string $post_type, array $ids ): array {
+		$ids = array_values( array_filter( array_map( 'absint', $ids ) ) );
 		_prime_post_caches( $ids, false, false );
 
 		$position = 1;
@@ -722,12 +721,114 @@ final class Advanced implements Bootable {
 			if ( ! $post || $post->post_type !== $post_type ) {
 				continue;
 			}
-			// A drag only shifts a window of rows; collect just the real moves.
 			if ( (int) $post->menu_order !== $position ) {
 				$changes[ $id ] = $position;
 			}
-			$position++;
+			++$position;
 		}
+		return $changes;
+	}
+
+	/**
+	 * The reorder door's per-item authorization (spec 2026-10-06 §4.4: review
+	 * item 6 — the route checked the TYPE's edit_others_posts while the write
+	 * is per item, so a role lacking edit_post on one listed item, a private
+	 * post it cannot read for instance, still had its menu_order rewritten).
+	 * Context-free: the caller passes what the request asks to write.
+	 *
+	 * It judges exactly what the request WRITES: the order_changes() set and
+	 * the re-parented item. A listed row whose position does not change is
+	 * not written, so it is not judged (review F34: judging the whole table
+	 * refused every Editor on a default install, whose Privacy Policy page
+	 * only manage_privacy_options may edit). Every written item must pass
+	 * current_user_can( 'edit_post' ). The refusal is all-or-nothing
+	 * (decision D6): skipping the items the user cannot edit would still
+	 * renumber the rest around them and leave colliding menu_order values.
+	 *
+	 * @param string    $post_type The type being reordered.
+	 * @param list<int> $ids       The order the request asks to write.
+	 * @param int       $moved     The re-parented item, 0 for none.
+	 * The refusal names that item by title so the user knows which row
+	 * blocks the move and who can make it (review 2026-10-06 F01): any move
+	 * that shifts a row the user cannot edit is refused, at any time — on a
+	 * default install an Editor cannot make a move that shifts the Privacy
+	 * Policy page. That residual is kept on purpose for 1.0.1 (spec §17).
+	 *
+	 * @return \WP_Error|null A 403 naming the first item the user cannot edit, or null.
+	 */
+	public static function reorder_refusal( string $post_type, array $ids, int $moved ): ?\WP_Error {
+		$ids = array_keys( self::order_changes( $post_type, $ids ) );
+		if ( $moved > 0 ) {
+			$ids[] = $moved;
+		}
+		foreach ( $ids as $id ) {
+			$post = get_post( $id );
+			if ( ! $post || $post->post_type !== $post_type ) {
+				continue;
+			}
+			if ( ! current_user_can( 'edit_post', $id ) ) {
+				return new \WP_Error(
+					'rest_forbidden',
+					sprintf(
+						/* translators: %s: the title of the item the move would shift, in quotation marks, or "item #123". */
+						__( 'This move would shift %s, which you are not allowed to edit, so the new order was not saved. An Administrator, or another user who can edit it, has to make any move that shifts it.', 'blocklane' ),
+						self::refusal_name( $post )
+					),
+					array( 'status' => rest_authorization_required_code() )
+				);
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * How a refusal names an item: its title in quotation marks, else
+	 * "item #ID". The title is disclosed only where the list table already
+	 * shows it: a row of a non-private status (core's admin list shows
+	 * drafts and pending rows, such as the default draft Privacy Policy
+	 * page, to every user who can reach it), or one the user may read_post.
+	 * A crafted request naming a private item the user cannot read gets the
+	 * ID only. The title is plain text (tags stripped, entities decoded):
+	 * the reorder script prints the message with .text(), never as HTML.
+	 *
+	 * @param \WP_Post $post The item the move would shift.
+	 * @return string
+	 */
+	private static function refusal_name( \WP_Post $post ): string {
+		$status = get_post_status_object( (string) get_post_status( $post ) );
+		$title  = '';
+		if ( ( $status && ! $status->private ) || current_user_can( 'read_post', $post->ID ) ) {
+			$title = trim(
+				html_entity_decode(
+					wp_strip_all_tags( get_the_title( $post ) ),
+					ENT_QUOTES,
+					get_bloginfo( 'charset' )
+				)
+			);
+		}
+		if ( '' === $title ) {
+			/* translators: %d: a post ID. */
+			return sprintf( __( 'item #%d', 'blocklane' ), $post->ID );
+		}
+		/* translators: %s: a post title. */
+		return sprintf( __( '“%s”', 'blocklane' ), $title );
+	}
+
+	/**
+	 * Persist a new manual order: writes the order_changes() set, skipping
+	 * revisions for the bulk change. Caller has already verified the type
+	 * capability, that the type is enabled, AND edit_post on every item of
+	 * that same set through reorder_refusal() — the route's permission
+	 * callback runs it, all-or-nothing.
+	 *
+	 * @param string    $post_type
+	 * @param list<int> $ordered_ids
+	 * @return int Number of items whose menu_order was written.
+	 */
+	public static function save_order( string $post_type, array $ordered_ids ): int {
+		global $wpdb;
+
+		$changes = self::order_changes( $post_type, $ordered_ids );
 
 		if ( $changes ) {
 			// One UPDATE for the whole re-sequence. A move-to-top renumbers
@@ -765,7 +866,7 @@ final class Advanced implements Bootable {
 			}
 		}
 
-		return $position - 1;
+		return count( $changes );
 	}
 
 	/**
@@ -778,7 +879,7 @@ final class Advanced implements Bootable {
 	 * @param int    $parent_id New parent, 0 for top level.
 	 * @return true|\WP_Error
 	 */
-	public static function save_parent( $post_type, $moved_id, $parent_id ) {
+	public static function save_parent( string $post_type, int $moved_id, int $parent_id ): bool|\WP_Error {
 		if ( ! is_post_type_hierarchical( $post_type ) ) {
 			return new \WP_Error(
 				'blocklane_pro_not_hierarchical',
@@ -812,6 +913,13 @@ final class Advanced implements Bootable {
 			return true; // Already there.
 		}
 
+		// Through wp_update_post(), core's own path for a parent change (Quick
+		// Edit's Parent dropdown takes the same one): wp_insert_post() runs
+		// wp_unique_post_slug() against the NEW siblings, so two published
+		// pages never share a path (review F37 — a raw UPDATE of post_parent
+		// skipped that). It re-runs the save pipeline under the mover's
+		// capabilities, as Quick Edit does; that trade-off (security read F6)
+		// is accepted in spec 2026-10-06 §17.
 		$result = wp_update_post(
 			array(
 				'ID'          => $moved_id,
@@ -819,8 +927,15 @@ final class Advanced implements Bootable {
 			),
 			true
 		);
+		if ( is_wp_error( $result ) ) {
+			return new \WP_Error(
+				'blocklane_pro_reparent_failed',
+				__( 'That item couldn’t be moved. Please try again.', 'blocklane' ),
+				array( 'status' => 500 )
+			);
+		}
 
-		return is_wp_error( $result ) ? $result : true;
+		return true;
 	}
 
 	/* ---- limit revisions --------------------------------------------------- */
@@ -1314,8 +1429,8 @@ final class Advanced implements Bootable {
 	 * Make SVGs render at a sensible size in the media library / attachment UI
 	 * (they have no intrinsic raster dimensions, so they otherwise overflow).
 	 */
-	public function svg_admin_styles() {
-		echo '<style>.media-icon img[src$=".svg"],.attachment .thumbnail img[src$=".svg"],.attachment-info .thumbnail img[src$=".svg"]{width:100%;height:auto}td.media-icon img[src$=".svg"]{width:48px;height:auto}</style>';
+	public function enqueue_svg_admin_styles(): void {
+		Inline_Asset::style( 'blocklane-pro-svg-admin', '.media-icon img[src$=".svg"],.attachment .thumbnail img[src$=".svg"],.attachment-info .thumbnail img[src$=".svg"]{width:100%;height:auto}td.media-icon img[src$=".svg"]{width:48px;height:auto}' );
 	}
 
 	/* ---- media replacement (in-modal) -------------------------------------- */

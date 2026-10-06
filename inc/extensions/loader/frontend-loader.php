@@ -299,9 +299,11 @@ if ( ! function_exists( 'blocklane_pro_ext_any_enabled' ) ) {
 	 * enqueue state is final, that converts that failure into "visible without
 	 * animation". Pages that DO load the script (initial blocks present, or
 	 * the blocklane_pro_ext_force_enqueue opt-in) are untouched — the script's
-	 * own reveal keeps full behavior, including for injected content.
+	 * own reveal keeps full behavior, including for injected content. Printed
+	 * in place through the inline-asset door, so the position (after the
+	 * footer scripts) is exactly the old one.
 	 */
-	function blocklane_pro_ext_animation_reveal_failsafe() {
+	function blocklane_pro_ext_animation_reveal_failsafe(): void {
 		if ( is_admin()
 			|| wp_script_is( 'blocklane-pro-extensions-animation', 'enqueued' )
 			|| ! wp_style_is( 'blocklane-pro-extensions-frontend', 'enqueued' ) ) {
@@ -311,7 +313,7 @@ if ( ! function_exists( 'blocklane_pro_ext_any_enabled' ) ) {
 		// rules the Animation Designer generates (none are !important). Without
 		// the script nothing can ever add .blocklane-pro-animated, so forcing
 		// these elements visible is strictly correct here.
-		echo '<style id="blocklane-pro-animate-reveal-failsafe">.blocklane-pro-animate-on-scroll:not(.blocklane-pro-animated){opacity:1 !important}</style>' . "\n";
+		\blocklane_pro\Inline_Asset::print_style( 'blocklane-pro-animate-reveal-failsafe', '.blocklane-pro-animate-on-scroll:not(.blocklane-pro-animated){opacity:1 !important}' );
 	}
 
 	add_action( 'enqueue_block_assets', 'blocklane_pro_ext_enqueue_frontend_style' );

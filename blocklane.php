@@ -3,7 +3,7 @@
  * Plugin Name:       Blocklane
  * Plugin URI:        https://blocklanewp.com/
  * Description:       Everything a WordPress site should have out of the box: SEO, a contact form, popups, a coming soon page, and security hardening. In one plugin.
- * Version:           1.0.0
+ * Version:           1.0.1
  * Requires at least: 7.1
  * Requires PHP:      8.1
  * Author:            Blocklane
@@ -94,7 +94,7 @@ define( 'BLOCKLANE_PRO_RANK', (int) ( $blocklane_pro_boot_me['rank'] ?? 0 ) );
 unset( $blocklane_pro_boot_me );
 define( 'BLOCKLANE_PRO_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
 define( 'BLOCKLANE_PRO_URL', untrailingslashit( plugin_dir_url( __FILE__ ) ) );
-define( 'BLOCKLANE_PRO_VERSION', '1.0.0' );
+define( 'BLOCKLANE_PRO_VERSION', '1.0.1' );
 define( 'BLOCKLANE_PRO_BASENAME', plugin_basename( __FILE__ ) );
 
 

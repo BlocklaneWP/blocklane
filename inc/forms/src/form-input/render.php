@@ -34,12 +34,21 @@ if ( 'hidden' === $blocklane_field_type ) {
 	// The rule rides on the input itself — there is no wrapper here, and
 	// without it view.js could not see the rule at all while the server still
 	// enforced it. view.js disables a control that carries its own rule.
-	printf(
-		'<input type="hidden" name="%s" value="%s"%s />',
-		esc_attr( $blocklane_field['name'] ),
-		esc_attr( $blocklane_field_value ),
-		$blocklane_field['cond_attr'] // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built with esc_attr() in the base.
-	);
+	if ( '' !== $blocklane_field['cond_json'] ) {
+		printf(
+			'<input type="hidden" name="%s" value="%s" data-bl-cond="%s" data-bl-name="%s" />',
+			esc_attr( $blocklane_field['name'] ),
+			esc_attr( $blocklane_field_value ),
+			esc_attr( $blocklane_field['cond_json'] ),
+			esc_attr( $blocklane_field['name'] )
+		);
+	} else {
+		printf(
+			'<input type="hidden" name="%s" value="%s" />',
+			esc_attr( $blocklane_field['name'] ),
+			esc_attr( $blocklane_field_value )
+		);
+	}
 
 	return;
 }
@@ -47,7 +56,7 @@ if ( 'hidden' === $blocklane_field_type ) {
 // Consent checkbox: input first, label text after, one wrapping <label>.
 if ( 'checkbox' === $blocklane_field_type ) {
 	?>
-	<div <?php echo $blocklane_field['wrapper']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core-escaped. ?>>
+	<div <?php echo get_block_wrapper_attributes( $blocklane_field['wrapper_args'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core-escaped. ?>>
 		<label class="blocklane-form__checkbox-label" for="<?php echo esc_attr( $blocklane_field['id'] ); ?>">
 			<input
 				type="checkbox"
@@ -57,7 +66,7 @@ if ( 'checkbox' === $blocklane_field_type ) {
 				<?php echo $blocklane_field['required'] ? 'required ' : ''; ?>
 			/>
 			<span class="blocklane-form__label-text"><?php echo wp_kses_post( $blocklane_field['label'] ); ?></span>
-			<?php echo $blocklane_field['required_mark']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static markup. ?>
+			<?php if ( $blocklane_field['required'] ) : ?><span class="blocklane-form__required" aria-hidden="true">*</span><?php endif; ?>
 		</label>
 	</div>
 	<?php
@@ -69,36 +78,23 @@ if ( 'checkbox' === $blocklane_field_type ) {
 //
 // A LOCAL, never $attributes. That array is core's, injected into this
 // template by the block renderer; writing back into it makes this file a
-// second author of a value every other consumer reads, and it is what the
-// prefix sniff is objecting to. Emitted before the loop below so the rendered
-// attribute order is unchanged.
+// second author of a value every other consumer reads.
 $blocklane_field_placeholder = isset( $attributes['placeholder'] ) ? (string) $attributes['placeholder'] : '';
 if ( '' === $blocklane_field_placeholder && ! empty( $attributes['hideLabel'] ) ) {
 	$blocklane_field_placeholder = wp_strip_all_tags( $blocklane_field['label'] );
 }
 
-$blocklane_field_extra = '';
-if ( '' !== $blocklane_field_placeholder ) {
-	$blocklane_field_extra .= sprintf( ' placeholder="%s"', esc_attr( $blocklane_field_placeholder ) );
-}
-foreach ( array(
-	'autocomplete' => 'autocomplete',
-	'min'          => 'min',
-	'max'          => 'max',
-	'step'         => 'step',
-) as $blocklane_attr_key => $blocklane_html_attr ) {
-	if ( isset( $attributes[ $blocklane_attr_key ] ) && '' !== $attributes[ $blocklane_attr_key ] ) {
-		$blocklane_field_extra .= sprintf( ' %s="%s"', $blocklane_html_attr, esc_attr( (string) $attributes[ $blocklane_attr_key ] ) );
-	}
-}
-if ( ! empty( $attributes['maxlength'] ) ) {
-	$blocklane_field_extra .= sprintf( ' maxlength="%d"', absint( $attributes['maxlength'] ) );
-}
+// The optional constraints, each printed at its own sink below with a
+// literal attribute name and esc_attr() — never a name taken from a map.
+$blocklane_field_autocomplete = isset( $attributes['autocomplete'] ) ? (string) $attributes['autocomplete'] : '';
+$blocklane_field_min          = isset( $attributes['min'] ) ? (string) $attributes['min'] : '';
+$blocklane_field_max          = isset( $attributes['max'] ) ? (string) $attributes['max'] : '';
+$blocklane_field_step         = isset( $attributes['step'] ) ? (string) $attributes['step'] : '';
 ?>
-<div <?php echo $blocklane_field['wrapper']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core-escaped. ?>>
+<div <?php echo get_block_wrapper_attributes( $blocklane_field['wrapper_args'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core-escaped. ?>>
 	<label class="<?php echo esc_attr( $blocklane_field['label_class'] ); ?>" for="<?php echo esc_attr( $blocklane_field['id'] ); ?>">
 		<span class="blocklane-form__label-text"><?php echo wp_kses_post( $blocklane_field['label'] ); ?></span>
-		<?php echo $blocklane_field['required_mark']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static markup. ?>
+		<?php if ( $blocklane_field['required'] ) : ?><span class="blocklane-form__required" aria-hidden="true">*</span><?php endif; ?>
 	</label>
 	<input
 		class="blocklane-form__control"
@@ -107,7 +103,12 @@ if ( ! empty( $attributes['maxlength'] ) ) {
 		name="<?php echo esc_attr( $blocklane_field['name'] ); ?>"
 		value="<?php echo esc_attr( $blocklane_field_value ); ?>"
 		<?php echo $blocklane_field['required'] ? 'required ' : ''; ?>
-		<?php echo $blocklane_field_extra; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- attribute-escaped above. ?>
-		<?php echo $blocklane_field['style_attr']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- attribute-escaped in the helper. ?>
+		<?php if ( '' !== $blocklane_field_placeholder ) : ?> placeholder="<?php echo esc_attr( $blocklane_field_placeholder ); ?>"<?php endif; ?>
+<?php if ( '' !== $blocklane_field_autocomplete ) : ?> autocomplete="<?php echo esc_attr( $blocklane_field_autocomplete ); ?>"<?php endif; ?>
+<?php if ( '' !== $blocklane_field_min ) : ?> min="<?php echo esc_attr( $blocklane_field_min ); ?>"<?php endif; ?>
+<?php if ( '' !== $blocklane_field_max ) : ?> max="<?php echo esc_attr( $blocklane_field_max ); ?>"<?php endif; ?>
+<?php if ( '' !== $blocklane_field_step ) : ?> step="<?php echo esc_attr( $blocklane_field_step ); ?>"<?php endif; ?>
+<?php if ( ! empty( $attributes['maxlength'] ) ) : ?> maxlength="<?php echo absint( $attributes['maxlength'] ); ?>"<?php endif; ?>
+		<?php if ( '' !== $blocklane_field['control_css'] ) : ?> style="<?php echo esc_attr( $blocklane_field['control_css'] ); ?>"<?php endif; ?>
 	/>
 </div>

@@ -518,13 +518,31 @@ function blocklane_pro_boot_content() {
 }
 
 /**
+ * Whether an admin notice may show here (spec 2026-10-06 §4.6, decision D7;
+ * guideline 11): only to a user holding the capability that can act on it,
+ * and only on the Dashboard, Plugins and Themes screens (their network-admin
+ * twins on multisite) — never on every admin screen.
+ */
+function blocklane_pro_notice_where_actionable( string $capability ): bool {
+	if ( ! current_user_can( $capability ) || ! function_exists( 'get_current_screen' ) ) {
+		return false;
+	}
+	$screen = get_current_screen();
+	return null !== $screen && in_array( $screen->id, array( 'dashboard', 'plugins', 'themes', 'dashboard-network', 'plugins-network', 'themes-network' ), true );
+}
+
+/**
  * The one theme notice: a block theme is required, any block theme.
  *
  * Replaces the pair that demanded the companion theme by slug and version.
  * Anything the user has already built keeps rendering while this shows —
- * blocklane_pro_boot_content() runs before the check.
+ * blocklane_pro_boot_content() runs before the check. Shown to a user who
+ * can switch themes, on the Dashboard, Plugins and Themes screens (D7).
  */
-function blocklane_pro_admin_notice_requires_block_theme() {
+function blocklane_pro_admin_notice_requires_block_theme(): void {
+	if ( ! blocklane_pro_notice_where_actionable( 'switch_themes' ) ) {
+		return;
+	}
 	$message = sprintf(
 		/* translators: 1: plugin name, 2: link to manage themes */
 		__( '%1$s needs a block theme. Activate any block theme to use its editing tools. %2$s', 'blocklane' ),

@@ -22,7 +22,7 @@
  * what THIS edition registers is blocklane_pro_forms_known_blocks(), and
  * every door reads it — the registrar, the collector (a suite block the
  * edition does not register is a layout wrapper whose posted name is
- * dropped, never trapped), has_required(), form/render.php's stepped test
+ * dropped, never trapped), has_required(), form/shell.php's stepped test
  * and the editor bridge. The file field's write side lives with its unit
  * (inc/forms/file-upload/runtime.php) and registers through the field-type
  * seam below; the step's editor stand-in is inc/form-step-standin/.
@@ -154,7 +154,7 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	 * own notice promises the block "will not render" (#1023).
 	 *
 	 * Readers: the registrar, has_required() and field_blocks(), the field
-	 * collector, the field-type seam's guard, form/render.php's stepped test,
+	 * collector, the field-type seam's guard, form/shell.php's stepped test,
 	 * and the editor bridge. A fetch of the constant or a call of
 	 * Edition::contributor() anywhere else is a PHPStan error,
 	 * blocklane.chokepointMember — a door that reads the shipped table
@@ -652,67 +652,64 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	}
 
 	/**
-	 * The common render preamble every labeled field control needs: the
-	 * resolved name/id, the label, required state + asterisk, the wrapper
-	 * attributes, and the skip-serialized control style. Extracted so the
-	 * input/textarea/select renders stop hand-copying it.
+	 * The common render preamble every labeled field control needs, as VALUES
+	 * the template escapes at its sink (spec 2026-10-06 §4.2): the resolved
+	 * name/id, the label, the required flag, the label class, the control's
+	 * CSS declarations, the wrapper's attribute ARGS (the template calls
+	 * get_block_wrapper_attributes() with them, inside the render) and the
+	 * visibility rule's JSON. It returns no pre-built HTML: a template that
+	 * echoed a fragment built here proved its safety by a comment, which is
+	 * the class the wordpress.org review rejected. Callers: input, textarea,
+	 * select, group, and Pro's file field.
 	 *
-	 * @param array    $attributes       Block attributes.
-	 * @param WP_Block $block            Block instance (for formId context).
-	 * @param string   $type_class       The is-type-* modifier for the wrapper.
-	 * @param bool     $style_on_wrapper Merge the control style into the wrapper
-	 *                                   instead (fields with no styleable control
-	 *                                   — the consent checkbox styles its row).
-	 *                                   The edit views mirror the same split.
-	 * @return array
+	 * @param array<string, mixed> $attributes       Block attributes.
+	 * @param \WP_Block            $block            Block instance (for formId context).
+	 * @param string               $type_class       The is-type-* modifier for the wrapper.
+	 * @param bool                 $style_on_wrapper Merge the control style into the wrapper
+	 *                                               instead (fields with no styleable control
+	 *                                               — the consent checkbox styles its row).
+	 *                                               The edit views mirror the same split.
+	 * @return array{form_id: string, name: string, id: string, label: string, required: bool, label_class: string, control_css: string, wrapper_args: array<string, string>, cond_json: string}
 	 */
-	function blocklane_pro_forms_field_render_base( $attributes, $block, $type_class, $style_on_wrapper = false ) {
+	function blocklane_pro_forms_field_render_base( array $attributes, \WP_Block $block, string $type_class, bool $style_on_wrapper = false ): array {
 		$form_id  = isset( $block->context['blocklane/formId'] ) ? (string) $block->context['blocklane/formId'] : '';
 		$name     = blocklane_pro_forms_field_name( $attributes );
 		$required = ! empty( $attributes['required'] );
 		$style    = blocklane_pro_forms_control_style( $attributes );
 
-		$wrapper_extra = array(
+		$wrapper_args = array(
 			'class' => 'blocklane-form__field ' . $type_class . ( $required ? ' is-required' : '' ),
 		);
 		// Conditional visibility (v3): the wrapper carries its own rule +
 		// name so view.js can evaluate live with ZERO markup knowledge of
 		// individual field types — one attribute from the one base builder,
 		// mirroring the server resolver's rule exactly (the render↔schema
-		// discipline applied to visibility).
-		$blocklane_field_cond = blocklane_pro_forms_field_condition( $attributes );
-		$blocklane_cond_attr  = '';
-		if ( null !== $blocklane_field_cond ) {
-			$wrapper_extra['data-bl-cond'] = wp_json_encode( $blocklane_field_cond );
-			$wrapper_extra['data-bl-name'] = $name;
-
-			// Also returned standalone, for the one render path that emits no
-			// wrapper at all: a hidden input. Without it that field's rule was
-			// server-enforced and invisible to view.js.
-			$blocklane_cond_attr = sprintf(
-				' data-bl-cond="%s" data-bl-name="%s"',
-				esc_attr( (string) wp_json_encode( $blocklane_field_cond ) ),
-				esc_attr( $name )
-			);
+		// discipline applied to visibility). The JSON is also returned on its
+		// own, for the one render path that emits no wrapper at all: a hidden
+		// input, whose template prints it on the input itself.
+		$condition = blocklane_pro_forms_field_condition( $attributes );
+		$cond_json = null === $condition ? '' : (string) wp_json_encode( $condition );
+		if ( '' !== $cond_json ) {
+			$wrapper_args['data-bl-cond'] = $cond_json;
+			$wrapper_args['data-bl-name'] = $name;
 		}
 		if ( $style_on_wrapper && '' !== $style ) {
-			$wrapper_extra['style'] = $style;
-			$style                  = '';
+			$wrapper_args['style'] = $style;
+			$style                 = '';
 		}
 
 		return array(
-			'form_id'       => $form_id,
-			'name'          => $name,
-			'id'            => blocklane_pro_forms_field_id( $form_id, $name ),
-			'label'         => isset( $attributes['label'] ) ? (string) $attributes['label'] : '',
-			'required'      => $required,
-			'required_mark' => $required ? '<span class="blocklane-form__required" aria-hidden="true">*</span>' : '',
+			'form_id'      => $form_id,
+			'name'         => $name,
+			'id'           => blocklane_pro_forms_field_id( $form_id, $name ),
+			'label'        => isset( $attributes['label'] ) ? (string) $attributes['label'] : '',
+			'required'     => $required,
 			// Hidden labels stay in the DOM for assistive tech — the class
 			// clips them visually (style.scss); render + canvas mirror it.
-			'label_class'   => 'blocklane-form__label' . ( ! empty( $attributes['hideLabel'] ) ? ' is-visually-hidden' : '' ),
-			'style_attr'    => '' !== $style ? ' style="' . esc_attr( $style ) . '"' : '',
-			'wrapper'       => get_block_wrapper_attributes( $wrapper_extra ),
-			'cond_attr'     => $blocklane_cond_attr,
+			'label_class'  => 'blocklane-form__label' . ( ! empty( $attributes['hideLabel'] ) ? ' is-visually-hidden' : '' ),
+			'control_css'  => $style,
+			'wrapper_args' => $wrapper_args,
+			'cond_json'    => $cond_json,
 		);
 	}
 
@@ -1754,14 +1751,26 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	}
 
 	/**
-	 * Sliding-window rate limit per hashed IP. Returns true while within the
-	 * limit and counts the attempt.
+	 * The submission rate limiter's key for this client, through the one
+	 * derivation every public throttle shares (Helper::client_key(): the
+	 * `blocklane_pro_forms_client_ip` filter, IPv6 collapsed to its /64, HMAC
+	 * with the auth salt); null when the request carries no address.
+	 */
+	function blocklane_pro_forms_rate_key(): ?string {
+		return \blocklane_pro\Helper::client_key( 'blocklane_pro_forms_rl_', 'blocklane_pro_forms_client_ip' );
+	}
+
+	/**
+	 * Sliding-window rate limit per client key. Returns true while within the
+	 * limit and counts the attempt. A request with no address cannot be
+	 * counted and is allowed (the limiter's get-then-set window is filed as
+	 * its own issue, spec 2026-10-06 §8).
 	 *
 	 * @return bool
 	 */
 	function blocklane_pro_forms_within_rate_limit() {
-		$ip = blocklane_pro_forms_client_ip();
-		if ( '' === $ip ) {
+		$key = blocklane_pro_forms_rate_key();
+		if ( null === $key ) {
 			return true;
 		}
 		/**
@@ -1777,7 +1786,6 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 		 */
 		$window = max( 10, (int) apply_filters( 'blocklane_pro_forms_rate_window', 60 ) );
 
-		$key   = 'blocklane_pro_forms_rl_' . md5( wp_salt( 'nonce' ) . $ip );
 		$count = (int) get_transient( $key );
 		if ( $count >= $limit ) {
 			return false;
@@ -1789,19 +1797,41 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 
 	/**
 	 * Locate the source document that literally CONTAINS a form and return its
-	 * parsed form block. Resolution is deterministic by content — the formId is
-	 * searched across published posts and the lowest-ID match (its true home)
-	 * wins — and the viewing page (`_bl_source`) is deliberately NOT trusted:
-	 * it is public and attacker-controllable, so honoring it would let anyone
-	 * who can publish a post carrying the same formId + their own recipients
-	 * hijack the form's submissions (and poison the shared location cache for
-	 * every visitor). For a form living in a synced pattern or template part,
+	 * parsed form block. The viewing page (`_bl_source`) is deliberately NOT
+	 * trusted: it is public and chosen by whoever submits, so honoring it
+	 * would let a visitor pick which copy's recipients receive the
+	 * submission. For a form living in a synced pattern or template part,
 	 * only the wp_block/wp_template_part row contains the formId literal, so
-	 * the deterministic search lands on it, not on any page embedding it.
+	 * the search lands on it, not on any page embedding it.
+	 *
+	 * Resolution, in order:
+	 * 1. A miss remembered in the object cache answers null (see below).
+	 * 2. A cached location (the `blocklane_pro_forms_loc_<formId>` transient,
+	 *    kept for a day) wins while its post is still published or private
+	 *    and still holds a real form block with this formId. A save of any
+	 *    post carrying the formId deletes it (blocklane_pro_forms_saved()),
+	 *    so publishing or editing another copy re-searches on the next
+	 *    submission.
+	 * 3. A fresh search reads the five lowest-ID published or private posts
+	 *    whose content contains the formId literal (LIMIT 5), and the
+	 *    lowest-ID one holding a real form block wins and is cached. Should
+	 *    five lower-ID posts carry the literal without a real form block, a
+	 *    sixth is not found.
 	 *
 	 * A form placed in a theme TEMPLATE FILE that was never customized has no
 	 * database row and cannot be located — place forms in content or synced
 	 * patterns.
+	 *
+	 * The public route calls this with a formId the CALLER chose, so the miss
+	 * path may write nothing durable (spec 2026-10-06 §4.3: a public door
+	 * writes only to keys the site bounds, never to keys the caller can
+	 * mint). A miss is remembered in the object cache for a minute, the rate
+	 * limiter's window — on a site without a persistent cache that is this
+	 * request's memory, and no options row is ever written; save_post forgets
+	 * the miss for every formId a saved post carries (F4). The positive cache
+	 * is a transient written only after a real form block is found in a
+	 * published or private post, so its keys are bounded by forms authors
+	 * published, never by the caller.
 	 *
 	 * @param string $form_id Form id.
 	 * @return array|null array( 'form' => parsed block, 'source_id' => int ) or null.
@@ -1811,11 +1841,11 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 		$cache_key = 'blocklane_pro_forms_loc_' . $form_id;
 
 		// Negative cache: an unknown formId (spam against the public route)
-		// must not run a full-table scan on every hit.
-		$cached = get_transient( $cache_key );
-		if ( 'none' === $cached ) {
+		// must not run a full-table scan on every hit — and must not write.
+		if ( false !== wp_cache_get( $form_id, 'blocklane_pro_forms_loc_miss' ) ) {
 			return null;
 		}
+		$cached = get_transient( $cache_key );
 
 		// Positive fast path: the cached post still hosts the form → return
 		// without touching wp_posts. Revalidated so an edited/deleted source
@@ -1835,7 +1865,7 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 		}
 
 		global $wpdb;
-		$found = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- locate-by-content; transient caches both hits and misses.
+		$found = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- locate-by-content; a hit is cached in a transient, a miss in the object cache only.
 			$wpdb->prepare(
 				"SELECT ID FROM {$wpdb->posts}
 				WHERE post_status IN ( 'publish', 'private' )
@@ -1863,12 +1893,58 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 			}
 		}
 
-		// Cache the miss briefly so a formId that matches nothing can't be used
-		// to amplify full-table scans.
-		set_transient( $cache_key, 'none', 5 * MINUTE_IN_SECONDS );
+		// Remember the miss briefly so a formId that matches nothing can't be
+		// used to amplify full-table scans — in the object cache only.
+		wp_cache_set( $form_id, 1, 'blocklane_pro_forms_loc_miss', MINUTE_IN_SECONDS );
 
 		return null;
 	}
+
+	/**
+	 * Every formId a parsed block tree carries, sanitized the way the
+	 * submission handler sanitizes a posted one (sanitize_title), in tree
+	 * order, each once.
+	 *
+	 * @param array<int, mixed> $blocks Parsed blocks.
+	 * @return list<string>
+	 */
+	function blocklane_pro_forms_form_ids( array $blocks ): array {
+		$ids = array();
+		foreach ( $blocks as $block ) {
+			if ( ! is_array( $block ) ) {
+				continue;
+			}
+			if ( 'blocklane/form' === ( $block['blockName'] ?? '' ) && isset( $block['attrs']['formId'] ) && is_string( $block['attrs']['formId'] ) && '' !== $block['attrs']['formId'] ) {
+				$ids[] = sanitize_title( $block['attrs']['formId'] );
+			}
+			if ( ! empty( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) {
+				$ids = array_merge( $ids, blocklane_pro_forms_form_ids( $block['innerBlocks'] ) );
+			}
+		}
+		return array_values( array_unique( $ids ) );
+	}
+
+	/**
+	 * save_post: forget a remembered miss AND a cached location for every
+	 * formId the saved post carries, so a form published a moment after a
+	 * spam submission named its id is located on the very next submission
+	 * (security read F4), and a copy published or edited since the location
+	 * was cached is weighed by a fresh search (review 2026-10-06 F05).
+	 *
+	 * @param int      $post_id Post ID.
+	 * @param \WP_Post $post    Post.
+	 */
+	function blocklane_pro_forms_saved( int $post_id, \WP_Post $post ): void {
+		unset( $post_id );
+		if ( ! str_contains( (string) $post->post_content, 'wp:blocklane/form ' ) ) {
+			return;
+		}
+		foreach ( blocklane_pro_forms_form_ids( parse_blocks( (string) $post->post_content ) ) as $form_id ) {
+			wp_cache_delete( $form_id, 'blocklane_pro_forms_loc_miss' );
+			delete_transient( 'blocklane_pro_forms_loc_' . $form_id );
+		}
+	}
+	add_action( 'save_post', 'blocklane_pro_forms_saved', 10, 2 );
 
 	/**
 	 * Find a form block with a matching formId in a parsed block tree.
@@ -2764,8 +2840,15 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 			);
 		}
 
-		$params  = $request->get_body_params();
-		$form_id = isset( $params['_bl_form_id'] ) ? sanitize_title( (string) $params['_bl_form_id'] ) : '';
+		$params      = $request->get_body_params();
+		$raw_form_id = isset( $params['_bl_form_id'] ) ? (string) $params['_bl_form_id'] : '';
+		// A formId is generated nine characters long; one over 100 bytes is
+		// no form. Refused on the RAW length, before sanitize_title() or any
+		// lookup reads it (F5): fake success, no scan, nothing remembered.
+		if ( strlen( $raw_form_id ) > 100 ) {
+			return blocklane_pro_forms_success_response( blocklane_pro_forms_resolve_config( array() ) );
+		}
+		$form_id = '' !== $raw_form_id ? sanitize_title( $raw_form_id ) : '';
 
 		// A multipart upload whose TOTAL size exceeds post_max_size is discarded
 		// by PHP before the handler runs — $_POST and $_FILES arrive empty, so

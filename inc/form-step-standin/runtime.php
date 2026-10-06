@@ -18,7 +18,7 @@
  * returns.
  *
  * WHAT IT IS NOT. A capability. It hands a never-paid user no feature: the
- * front end renders the fields flat (form/render.php asks the same view
+ * front end renders the fields flat (form/shell.php asks the same view
  * before it treats a child as a step), the inserter never offers the block,
  * and the canvas shows no step chrome — no label, no Steps panel, no lock
  * pass (the form's edit.js reads STEPS_KNOWN from the same view). It is the

@@ -65,7 +65,7 @@ class Comments_Disabler {
 		add_action( 'admin_bar_menu', array( $this, 'remove_admin_bar_node' ), 999 );
 
 		// Discussion settings page: hide the now-inert comment settings + explain.
-		add_action( 'admin_head-options-discussion.php', array( $this, 'hide_discussion_comment_settings' ) );
+		add_action( 'admin_print_styles-options-discussion.php', array( $this, 'hide_discussion_comment_settings' ) );
 		add_action( 'admin_notices', array( $this, 'discussion_comment_notice' ) );
 	}
 
@@ -218,10 +218,11 @@ class Comments_Disabler {
 	 * pagination, notifications, moderation, disallowed keys) is inert. Core keeps
 	 * them all in one form-table, keyed by the default_comment_status control, so
 	 * one rule covers the lot; the Avatars table (its own use) stays. Prints only
-	 * on this screen. `:has()` degrades gracefully where unsupported.
+	 * on this screen, queued into its head's style print. `:has()` degrades
+	 * gracefully where unsupported.
 	 */
-	public function hide_discussion_comment_settings() {
-		echo '<style>table.form-table:has(#default_comment_status){display:none}</style>' . "\n";
+	public function hide_discussion_comment_settings(): void {
+		Inline_Asset::style( 'blocklane-pro-discussion-hide', 'table.form-table:has(#default_comment_status){display:none}' );
 	}
 
 	/**
