@@ -6,8 +6,13 @@
  * SVGs (test()), so flows that insist on editing an image — the Site Icon
  * cropper, custom header crops — succeed for SVGs instead of dying with
  * "There has been an error cropping your image." Vectors scale losslessly, so
- * crop/resize/rotate/flip are no-ops and save() copies the (already sanitized
- * on upload) file as-is.
+ * crop/resize/rotate/flip are no-ops, and save() writes the source's bytes
+ * to the new file through the one sanitizer (Advanced::clean_svg()): a new
+ * file is a door like an upload, and a source stored before the upload
+ * doors existed (a raw file the 1.0.1 wp_upload_bits hole stored) is not
+ * copied as it is. stream() sends the source unchanged (spec D7): it answers
+ * only the editing user's own nonce-gated preview, shown in an <img>, which
+ * runs no script.
  *
  * @package blocklane_pro
  */
@@ -24,7 +29,10 @@ class Svg_Image_Editor extends \WP_Image_Editor {
 	 * Claim SVGs only; every other type falls through to GD/Imagick.
 	 *
 	 * Core's mime map has no svg entry, so for .svg paths $args['mime_type']
-	 * arrives unset — match on the path extension in that case.
+	 * arrives unset — match on the path's name in that case, by the one SVG
+	 * name test (Advanced::is_svg_name()). An .svgz is claimed too, and
+	 * load() answers that its gzip bytes are not an SVG image, rather than a
+	 * raster editor failing on them.
 	 *
 	 * @param array $args Editor selection args (path, mime_type, methods).
 	 * @return bool
@@ -34,7 +42,7 @@ class Svg_Image_Editor extends \WP_Image_Editor {
 			return 'image/svg+xml' === $args['mime_type'];
 		}
 
-		return isset( $args['path'] ) && (bool) preg_match( '/\.svg$/i', (string) $args['path'] );
+		return isset( $args['path'] ) && Advanced::is_svg_name( wp_basename( (string) $args['path'] ) );
 	}
 
 	public static function supports_mime_type( $mime_type ) {
@@ -69,18 +77,31 @@ class Svg_Image_Editor extends \WP_Image_Editor {
 	}
 
 	/**
-	 * "Save" by copying the file: the source was sanitized on upload and no
-	 * edit operation changes a vector, so the original bytes are the output.
+	 * "Save" a new file: no edit operation changes a vector, so the output is
+	 * the source's bytes, written through Advanced::clean_svg() — the same
+	 * bytes an upload of them would store. A source the sanitizer refuses is
+	 * an image_save_error carrying the sanitizer's own message, and nothing
+	 * is written. Saving over the source itself writes nothing.
+	 *
+	 * Its signature is WP_Image_Editor::save()'s, so it stays untyped.
 	 */
 	public function save( $destfilename = null, $mime_type = null ) {
 		unset( $mime_type ); // Output is always image/svg+xml.
 
 		$filename = $destfilename ? $destfilename : $this->generate_filename( null, null, 'svg' );
 
-		wp_mkdir_p( dirname( $filename ) );
-
-		if ( $filename !== $this->file && ! copy( $this->file, $filename ) ) {
-			return new \WP_Error( 'image_save_error', __( 'The image could not be saved.', 'blocklane' ), $filename );
+		if ( $filename !== $this->file ) {
+			$source = is_readable( $this->file ) ? file_get_contents( $this->file ) : false; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file, not remote.
+			if ( false === $source ) {
+				return new \WP_Error( 'image_save_error', __( 'That file no longer exists.', 'blocklane' ), $filename );
+			}
+			$clean = Advanced::clean_svg( $source );
+			if ( is_wp_error( $clean ) ) {
+				return new \WP_Error( 'image_save_error', $clean->get_error_message(), $filename );
+			}
+			if ( ! Advanced::write_svg_file( $filename, $clean ) ) {
+				return new \WP_Error( 'image_save_error', __( 'The image could not be saved.', 'blocklane' ), $filename );
+			}
 		}
 
 		$size = $this->get_size();

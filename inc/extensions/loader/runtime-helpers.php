@@ -17,6 +17,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// The one CSS verdict the SVG sanitizer below reads (a core path, a runtime
+// file like this one). Path-independent: inc/ from here, whichever copy of
+// the plugin this is.
+require_once dirname( __DIR__, 2 ) . '/svg-css-policy.php';
+
 if ( ! function_exists( 'blocklane_pro_ext_base_path' ) ) {
 
 	/** Absolute base path of the extensions runtime. */
@@ -216,181 +221,126 @@ if ( ! function_exists( 'blocklane_pro_ext_autoload_ok' ) ) {
 }
 
 if ( ! function_exists( 'blocklane_pro_ext_sanitize_svg' ) ) {
-
 	/**
-	 * A custom SVG reduced to the sanitizer's policy (shared by button-icons and the icon library's uploads).
+	 * Sanitizes SVG markup down to the small part of SVG an icon may keep.
 	 *
-	 * This is the security boundary: both callers store or render the result
-	 * with no further filtering. The steps:
+	 * This is the security boundary: what it returns is stored and later
+	 * printed into pages with no further filtering. The markup is refused
+	 * outright when it is not a non-empty string, holds no `<svg`, or is
+	 * outside the markup bound. Otherwise it is parsed as XML with network
+	 * access off, no entity substitution and no DTD loaded or applied; the
+	 * first element whose local name is `svg` becomes the root; every element
+	 * under it that is not in the allowed set is removed with its subtree;
+	 * text survives while comments, CDATA sections, processing instructions
+	 * and entity references are removed; and every attribute left, the
+	 * root's included, is judged by blocklane_pro_ext_sanitize_svg_keeps().
+	 * The result is the root alone, serialized. Any failure anywhere is ''.
 	 *
-	 * 1. Refuse anything that is not a non-empty string mentioning `<svg`.
-	 * 2. Parse it as XML behind a prolog this function supplies, with no
-	 *    network, no entity substitution, no DTD loading and no recovery —
-	 *    an entity reference stays an unexpanded node that step 4 drops.
-	 * 3. Take the first element whose local name is `svg` as the root.
-	 * 4. Walk the root's subtree: text stays, allowed elements stay (their
-	 *    attributes judged by blocklane_pro_ext_svg_attribute_kept()), every
-	 *    other node goes with its subtree.
-	 * 5. Serialize the root alone.
-	 *
-	 * Never throws, prints or warns, and puts libxml's error mode back the way
-	 * it found it.
-	 *
-	 * @param mixed $svg Raw SVG markup.
-	 * @return string The scrubbed SVG, or '' when the input is not SVG markup or does not parse.
+	 * @param mixed $svg The markup to sanitize.
+	 * @return string The sanitized svg element, or '' when refused or when any step fails.
 	 */
 	function blocklane_pro_ext_sanitize_svg( mixed $svg ): string {
 		if ( ! is_string( $svg ) || '' === $svg || false === stripos( $svg, '<svg' ) ) {
 			return '';
 		}
-
-		$dom          = new DOMDocument();
-		$quiet_before = libxml_use_internal_errors( true );
-		// NONET and NOBLANKS only. Leaving out NOENT, DTDLOAD, DTDATTR,
-		// DTDVALID, RECOVER and PARSEHUGE is the point: see step 2 above.
-		$parsed = $dom->loadXML( '<?xml version="1.0" encoding="UTF-8"?>' . $svg, LIBXML_NONET | LIBXML_NOBLANKS );
-		libxml_clear_errors();
-		libxml_use_internal_errors( $quiet_before );
-
-		if ( ! $parsed ) {
+		// Both policy functions must exist; without either, nothing is kept.
+		if ( ! function_exists( 'blocklane_pro_svg_markup_bound' ) || ! function_exists( 'blocklane_pro_svg_css_verdict' ) ) {
+			return '';
+		}
+		// The bound is judged on the input exactly as given, before parsing.
+		if ( true !== blocklane_pro_svg_markup_bound( $svg ) ) {
 			return '';
 		}
 
-		$root = blocklane_pro_ext_svg_find_root( $dom );
-		if ( null === $root ) {
-			return '';
-		}
-
-		// The root is judged as an svg element whatever its prefix.
-		blocklane_pro_ext_svg_judge_attributes( $root, 'svg' );
-		blocklane_pro_ext_svg_scrub_children( $root );
-
-		$markup = $dom->saveXML( $root );
-
-		return is_string( $markup ) ? $markup : '';
-	}
-
-	/**
-	 * The policy: each allowed element name (lowercased) mapped to the
-	 * attribute names (lowercased) it may keep. An element absent from this
-	 * map is removed with its subtree.
-	 *
-	 * @return array<string, list<string>>
-	 */
-	function blocklane_pro_ext_svg_allowed(): array {
-		static $policy = null;
-		if ( null !== $policy ) {
-			return $policy;
-		}
-
-		$shape = array(
-			// Geometry.
-			'd',
-			'points',
-			'x',
-			'y',
-			'x1',
-			'y1',
-			'x2',
-			'y2',
-			'cx',
-			'cy',
-			'r',
-			'rx',
-			'ry',
-			'width',
-			'height',
-			// Paint.
-			'fill',
-			'fill-opacity',
-			'fill-rule',
-			'clip-rule',
-			'opacity',
-			'stroke',
-			'stroke-width',
-			'stroke-opacity',
-			'stroke-linecap',
-			'stroke-linejoin',
-			'stroke-miterlimit',
-			'stroke-dasharray',
-			'stroke-dashoffset',
-			// Placement.
-			'transform',
-			'class',
-		);
-
-		$policy = array(
-			'svg'      => array( 'xmlns', 'xmlns:xlink', 'viewbox', 'width', 'height', 'fill', 'class' ),
-			'g'        => array( 'id', 'class', 'transform', 'clip-path', 'fill', 'stroke', 'stroke-width', 'opacity' ),
-			'defs'     => array( 'id' ),
-			'clippath' => array( 'id', 'clippathunits' ),
-			'use'      => array( 'href', 'xlink:href', 'x', 'y', 'width', 'height' ),
-			'title'    => array(),
-			'desc'     => array(),
-		);
-		foreach ( array( 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon' ) as $drawing ) {
-			$policy[ $drawing ] = $shape;
-		}
-
-		return $policy;
-	}
-
-	/**
-	 * The first element in document order whose local name is exactly `svg`
-	 * (any prefix, lowercase only), or null when there is none.
-	 *
-	 * @param DOMDocument $dom The parsed document.
-	 */
-	function blocklane_pro_ext_svg_find_root( DOMDocument $dom ): ?DOMElement {
-		$pending = array();
-		if ( $dom->documentElement instanceof DOMElement ) {
-			$pending[] = $dom->documentElement;
-		}
-		// Depth-first, children pushed in reverse so they pop in document order.
-		while ( $pending ) {
-			$node = array_pop( $pending );
-			if ( 'svg' === $node->localName ) {
-				return $node;
+		$doc  = new DOMDocument();
+		$mode = libxml_use_internal_errors( true );
+		try {
+			// A fixed declaration goes first, so an input that brings its own fails to parse.
+			if ( true !== $doc->loadXML( '<?xml version="1.0" encoding="UTF-8"?>' . $svg, LIBXML_NONET | LIBXML_NOBLANKS ) ) {
+				return '';
 			}
-			$children = array();
-			foreach ( $node->childNodes as $child ) {
-				if ( $child instanceof DOMElement ) {
-					$children[] = $child;
+
+			$root = null;
+			foreach ( $doc->getElementsByTagName( '*' ) as $element ) {
+				if ( $element instanceof DOMElement && 'svg' === $element->localName ) {
+					$root = $element;
+					break;
 				}
 			}
-			foreach ( array_reverse( $children ) as $child ) {
-				$pending[] = $child;
+			if ( ! $root instanceof DOMElement ) {
+				return '';
 			}
-		}
 
-		return null;
+			$rows = blocklane_pro_ext_sanitize_svg_rows();
+			blocklane_pro_ext_sanitize_svg_judge( $root, $rows['svg'] );
+			blocklane_pro_ext_sanitize_svg_walk( $root, $rows );
+
+			$out = $doc->saveXML( $root );
+			return is_string( $out ) ? $out : '';
+		} catch ( \Throwable ) {
+			return '';
+		} finally {
+			// Drop what the parser queued and put the caller's error mode back.
+			libxml_clear_errors();
+			libxml_use_internal_errors( $mode );
+		}
 	}
 
 	/**
-	 * Remove every child of $parent the policy does not allow, recursing into
-	 * the elements it keeps.
+	 * The elements that may survive, each with the attribute names it may
+	 * keep. Element names are lowercase and in alphabetical order, and so are
+	 * the attribute names in each row.
 	 *
-	 * @param DOMElement $parent A kept element.
+	 * @return array<string, list<string>> Lowercase element name to its lowercase attribute names.
 	 */
-	function blocklane_pro_ext_svg_scrub_children( DOMElement $parent ): void {
-		$policy = blocklane_pro_ext_svg_allowed();
+	function blocklane_pro_ext_sanitize_svg_rows(): array {
+		// Geometry, paint and placement for the drawing elements.
+		$shape = array( 'class', 'clip-rule', 'cx', 'cy', 'd', 'fill', 'fill-opacity', 'fill-rule', 'height', 'opacity', 'points', 'r', 'rx', 'ry', 'stroke', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'transform', 'width', 'x', 'x1', 'x2', 'y', 'y1', 'y2' );
+		return array(
+			'circle'   => $shape,
+			'clippath' => array( 'clippathunits', 'id' ),
+			'defs'     => array( 'id' ),
+			'desc'     => array(),
+			'ellipse'  => $shape,
+			'g'        => array( 'class', 'clip-path', 'fill', 'id', 'opacity', 'stroke', 'stroke-width', 'transform' ),
+			'line'     => $shape,
+			'path'     => $shape,
+			'polygon'  => $shape,
+			'polyline' => $shape,
+			'rect'     => $shape,
+			'svg'      => array( 'class', 'fill', 'height', 'viewbox', 'width', 'xmlns', 'xmlns:xlink' ),
+			'title'    => array(),
+			'use'      => array( 'height', 'href', 'width', 'x', 'xlink:href', 'y' ),
+		);
+	}
 
-		// Snapshot first: removing a node while iterating a live list skips its sibling.
+	/**
+	 * Walks an element's children: text nodes stay, an element in the set
+	 * stays with its attributes judged and its own children walked, and
+	 * every other node (an element outside the set with its whole subtree,
+	 * a CDATA section, a comment, a processing instruction, an entity
+	 * reference) is removed.
+	 *
+	 * @param DOMElement                  $parent The element whose children are walked.
+	 * @param array<string, list<string>> $rows   The allowed set, from blocklane_pro_ext_sanitize_svg_rows().
+	 */
+	function blocklane_pro_ext_sanitize_svg_walk( DOMElement $parent, array $rows ): void {
+		// Copy the children first, so removing one does not disturb the loop.
 		$children = array();
 		foreach ( $parent->childNodes as $child ) {
 			$children[] = $child;
 		}
-
 		foreach ( $children as $child ) {
-			// nodeType, not instanceof DOMText: a CDATA section is a DOMText subclass.
+			// A CDATA section has its own node type, so it is not kept here.
 			if ( XML_TEXT_NODE === $child->nodeType ) {
 				continue;
 			}
 			if ( $child instanceof DOMElement ) {
+				// The qualified name, so a prefixed name is never in the set.
 				$name = strtolower( $child->nodeName );
-				if ( isset( $policy[ $name ] ) ) {
-					blocklane_pro_ext_svg_judge_attributes( $child, $name );
-					blocklane_pro_ext_svg_scrub_children( $child );
+				if ( isset( $rows[ $name ] ) ) {
+					blocklane_pro_ext_sanitize_svg_judge( $child, $rows[ $name ] );
+					blocklane_pro_ext_sanitize_svg_walk( $child, $rows );
 					continue;
 				}
 			}
@@ -399,77 +349,115 @@ if ( ! function_exists( 'blocklane_pro_ext_sanitize_svg' ) ) {
 	}
 
 	/**
-	 * Strip from $element every attribute the policy row $row does not keep.
+	 * Removes every attribute of an element that fails
+	 * blocklane_pro_ext_sanitize_svg_keeps(). The failures are collected
+	 * first and then removed as nodes, so of two attributes sharing a local
+	 * name only the one that failed goes.
 	 *
-	 * @param DOMElement $element The element whose attributes are judged.
-	 * @param string     $row     Its row in blocklane_pro_ext_svg_allowed().
+	 * @param DOMElement   $element The element whose attributes are judged.
+	 * @param list<string> $allowed The lowercase attribute names its row allows.
 	 */
-	function blocklane_pro_ext_svg_judge_attributes( DOMElement $element, string $row ): void {
-		$allowed = blocklane_pro_ext_svg_allowed()[ $row ] ?? array();
-
-		// Gather the attribute nodes before removing any, and remove the
-		// nodes themselves: two attributes may share a local name (x:d, d).
-		$doomed = array();
-		foreach ( $element->attributes as $attribute ) {
-			if ( ! blocklane_pro_ext_svg_attribute_kept( strtolower( $attribute->nodeName ), $attribute->value, $allowed ) ) {
-				$doomed[] = $attribute;
+	function blocklane_pro_ext_sanitize_svg_judge( DOMElement $element, array $allowed ): void {
+		$failed = array();
+		foreach ( $element->attributes as $attr ) {
+			if ( $attr instanceof DOMAttr && ! blocklane_pro_ext_sanitize_svg_keeps( strtolower( $attr->nodeName ), $attr->value, $allowed ) ) {
+				$failed[] = $attr;
 			}
 		}
-		foreach ( $doomed as $attribute ) {
-			$element->removeAttributeNode( $attribute );
+		foreach ( $failed as $attr ) {
+			$element->removeAttributeNode( $attr );
 		}
 	}
 
 	/**
-	 * Whether one attribute survives. Removed when its name is not allowed on
-	 * the element, names an event handler, its value opens with a
-	 * script-capable scheme, or it is a reference that is not a same-document
-	 * fragment: an href/xlink:href that does not start with `#`, or a CSS
-	 * `url()` ANYWHERE in ANY attribute's value (fill, stroke, clip-path,
-	 * mask, filter, or whatever a widened list admits) whose target does not
-	 * start with `#`. A remote or data: target there is a request the
-	 * visitor's browser makes on every page view (#1847). The url() test
-	 * reads the value as CSS does: CSS escapes decoded first (`\75 rl(` is
-	 * `url(` to a browser), any case, blanks before `(`, inside it and around
-	 * an optional quote; every url() in the value must name a fragment.
+	 * Whether one attribute may stay. All of these must hold: its name is in
+	 * the element's row; its name does not start with `on`; its value does
+	 * not start with a javascript, data or vbscript scheme (blanks allowed
+	 * around the scheme's name, ASCII case-insensitive); an href or
+	 * xlink:href value starts with `#` after its leading blanks; and the CSS
+	 * verdict answers exactly true for the value. Nothing is decoded: the
+	 * value is judged as the parser handed it over. Blanks are space, tab,
+	 * LF, CR, FF and VT.
 	 *
-	 * The `on` test is redundant with today's allow-list and kept on purpose:
-	 * it still holds the day someone widens the list.
-	 *
-	 * @param string       $name    Qualified attribute name, lowercased.
-	 * @param string       $value   Attribute value as the parser decoded it.
-	 * @param list<string> $allowed Names the element may keep.
+	 * @param string       $name    The attribute's qualified name, lowercased.
+	 * @param string       $value   The attribute's value, as parsed.
+	 * @param list<string> $allowed The lowercase attribute names the element's row allows.
+	 * @return bool Whether the attribute stays.
 	 */
-	function blocklane_pro_ext_svg_attribute_kept( string $name, string $value, array $allowed ): bool {
+	function blocklane_pro_ext_sanitize_svg_keeps( string $name, string $value, array $allowed ): bool {
 		if ( ! in_array( $name, $allowed, true ) || str_starts_with( $name, 'on' ) ) {
 			return false;
 		}
-
-		// Whitespace here means space, tab, LF, CR, FF and VT — spelled out
-		// rather than \s, whose meaning shifts with PCRE version and locale.
-		if ( preg_match( '/^[\x20\t\n\r\f\x0B]*(?:javascript|data|vbscript)[\x20\t\n\r\f\x0B]*:/i', $value ) ) {
+		if ( 1 === preg_match( '/^[\x20\t\n\r\f\x0B]*(?:javascript|data|vbscript)[\x20\t\n\r\f\x0B]*:/i', $value ) ) {
 			return false;
 		}
-
-		if ( 'href' === $name || 'xlink:href' === $name ) {
-			return str_starts_with( ltrim( $value, " \t\n\r\f\v" ), '#' );
+		if ( ( 'href' === $name || 'xlink:href' === $name ) && ! str_starts_with( ltrim( $value, "\x20\t\n\r\x0C\x0B" ), '#' ) ) {
+			return false;
 		}
+		return true === blocklane_pro_svg_css_verdict( $value );
+	}
+}
 
-		// Only ASCII decides whether a url() is there and where it points, so
-		// an escape of anything wider becomes '?', which is never `#`.
-		$css = (string) preg_replace_callback(
-			'/\\\\(?:([0-9a-f]{1,6})[\x20\t\n\r\f]?|(.))/is',
-			static fn( array $m ): string => '' !== $m[1] ? ( hexdec( $m[1] ) <= 0x7F ? chr( (int) hexdec( $m[1] ) ) : '?' ) : $m[2],
-			$value
-		);
-		preg_match_all( '/url[\x20\t\n\r\f\x0B]*\([\x20\t\n\r\f\x0B]*["\']?[\x20\t\n\r\f\x0B]*(.?)/is', $css, $targets );
-		foreach ( $targets[1] as $first ) {
-			if ( '#' !== $first ) {
-				return false;
+if ( ! function_exists( 'blocklane_pro_ext_svg_policy_token' ) ) {
+
+	/**
+	 * Eight hex characters that change whenever the code of the SVG policy
+	 * changes: md5() over md5_file() of each file, in order. The files ARE
+	 * the policy (the verdict, and the sanitizer's element and attribute
+	 * rules), so nothing else is hashed. '' when a file cannot be read, so a
+	 * caller that names mirrors by it names none (fail closed).
+	 *
+	 * A parameter rather than two fixed paths so the review battery can hand
+	 * it byte copies (WI14); blocklane_pro_ext_svg_policy_token() is its one
+	 * production caller.
+	 *
+	 * @param list<string> $files The files that hold the verdict's code.
+	 */
+	function blocklane_pro_ext_svg_policy_fingerprint( array $files ): string {
+		$hashes = '';
+		foreach ( $files as $file ) {
+			$hash = is_file( $file ) ? md5_file( $file ) : false;
+			if ( false === $hash ) {
+				return '';
 			}
+			$hashes .= $hash . "\n";
 		}
+		return substr( md5( $hashes ), 0, 8 );
+	}
 
-		return true;
+	/**
+	 * The SVG policy's token: the CSS policy id, a dot, and the fingerprint
+	 * of the two files that decide what the clean-room sanitizer keeps
+	 * (inc/svg-css-policy.php, the verdict, and this file, its element and
+	 * attribute rules), computed once per request. The stored-icon reader
+	 * names a saved icon's uploads mirror by it (spec 2026-10-07-free-
+	 * security-followup §18, S18-F1): a change to either file is a new
+	 * token, and every mirror judged under the old code stops being read at
+	 * once, with nobody having to remember to bump an id.
+	 *
+	 * The cost is accepted: a plugin update that touches either file sends
+	 * every saved icon to the in-memory path (judged on each request) until
+	 * the Pro mirror filler's first run, on an Author+ admin page.
+	 *
+	 * Outside the guarantee: the token reads the files' bytes on disk, while
+	 * the code that judges is whatever PHP has compiled. With
+	 * opcache.validate_timestamps=0 and a deploy that skips
+	 * wp_opcache_invalidate() (a WordPress update calls it; a file copied
+	 * into place by hand or by a host's sync does not), the old compiled
+	 * sanitizer can run under the new token and mint a mirror the new code
+	 * never judged. A deploy on such a host resets opcache.
+	 *
+	 * @return string '<css id>.<8 hex>', or '' when a file cannot be read.
+	 */
+	function blocklane_pro_ext_svg_policy_token(): string {
+		static $token = null;
+		if ( null === $token ) {
+			$fingerprint = function_exists( 'blocklane_pro_svg_css_policy_id' )
+				? blocklane_pro_ext_svg_policy_fingerprint( array( dirname( __DIR__, 2 ) . '/svg-css-policy.php', __FILE__ ) )
+				: '';
+			$token       = '' === $fingerprint ? '' : blocklane_pro_svg_css_policy_id() . '.' . $fingerprint;
+		}
+		return $token;
 	}
 }
 

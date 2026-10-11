@@ -30,7 +30,21 @@
  *                                  message's hash, written before the line,
  *                                  so a torn deploy on a busy site writes
  *                                  one line a day per missing file, not one
- *                                  per page view (#1835). Uninstall is the
+ *                                  per page view (#1835). The forms
+ *                                  submission route is the one caller on a
+ *                                  PUBLIC route, where any visitor can
+ *                                  trigger it: a submission it could not tie
+ *                                  to the copy its page showed, delivered to
+ *                                  the site defaults, or refused by one
+ *                                  copy's gate while another copy is open
+ *                                  (spec 2026-10-06-forms-form-ownership D5,
+ *                                  S-R6, §19). Each message names a formId
+ *                                  with live copies and the number of copies
+ *                                  examined, a number only the site's
+ *                                  content changes, so the rows it can write
+ *                                  are bounded by that content: at most two
+ *                                  a day per form for each copy count.
+ *                                  Uninstall is the
  *                                  exception: it runs once, from an admin's
  *                                  delete, and must leave no row behind
  *                                  (it sweeps this transient family), so

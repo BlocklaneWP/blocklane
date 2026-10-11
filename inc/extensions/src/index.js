@@ -1,5 +1,5 @@
 /**
- * Main entry point for BlocklanePro UI Helpers.
+ * Main entry point for the block-editor extensions.
  *
  * @package
  */

@@ -54,7 +54,7 @@ class Version_Migration {
 	/** Last plugin version the once-per-version listeners ran against. */
 	const VERSION_OPTION = 'blocklane_pro_migrated_version';
 
-	/** Held for the duration of one pass; see claim_lock(). */
+	/** Held for the duration of one version pass; see claim_lock(). */
 	const LOCK_OPTION = 'blocklane_pro_migration_lock';
 
 	/** Seconds after which a lock is considered abandoned. */
@@ -134,7 +134,7 @@ class Version_Migration {
 		// request arriving inside that window would otherwise run the whole
 		// pass again, in ordinary visitors' page loads. One request does the
 		// work; the rest skip and serve the page.
-		if ( ! self::claim_lock() ) {
+		if ( ! self::claim_lock( self::LOCK_OPTION, self::LOCK_TIMEOUT ) ) {
 			return;
 		}
 
@@ -152,12 +152,17 @@ class Version_Migration {
 			// have run, so the pass re-runs once when their files are back.
 			update_option( self::VERSION_OPTION, self::stamp_with_pending( Edition::stamp(), $misses ) );
 		} finally {
-			delete_option( self::LOCK_OPTION );
+			self::release_lock( self::LOCK_OPTION );
 		}
 	}
 
 	/**
-	 * Take the lock, or report that another request holds it.
+	 * Take the lock named $name, or report that another request holds it.
+	 * The plugin's one option-row mutex: the version pass above holds
+	 * LOCK_OPTION, and Svg_Cleanup's consented Clean holds its own name
+	 * through this same door, so there is one implementation and no copy
+	 * (the content-types controller's and the forms runtime's INSERT
+	 * IGNORE sites create rows first-writer-wins; they are not locks).
 	 *
 	 * add_option() LOOKS like a mutex (option_name is UNIQUE) but is not one:
 	 * core implements it as INSERT ... ON DUPLICATE KEY UPDATE, so a
@@ -169,13 +174,17 @@ class Version_Migration {
 	 * uses; the SQLite integration translates it to INSERT OR IGNORE), and
 	 * going through $wpdb also sidesteps the options caches, which can answer
 	 * "absent" from a stale snapshot mid-race. A lock left behind by a fatal
-	 * is stolen once it ages past the timeout, so a crash during the pass
-	 * costs one window, not a permanently skipped migration.
+	 * is stolen once it ages past $timeout, so a crash costs one window, not
+	 * a lock held forever. That is the whole guarantee: a holder that runs
+	 * longer than $timeout loses it, so a caller's $timeout must exceed the
+	 * longest it can hold the lock.
 	 *
-	 * @return bool Whether this request owns the pass.
+	 * @param string $name    The option row that is the lock.
+	 * @param int    $timeout Seconds after which a held lock counts as abandoned.
+	 * @return bool Whether this request now holds the lock.
 	 */
-	private static function claim_lock() {
-		if ( self::insert_lock_row() ) {
+	public static function claim_lock( string $name, int $timeout ): bool {
+		if ( self::insert_lock_row( $name ) ) {
 			return true;
 		}
 
@@ -183,8 +192,8 @@ class Version_Migration {
 		// row we just lost the INSERT to, not what the options cache holds.
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- reading the live lock row; any cache defeats the point.
-		$held = (int) $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", self::LOCK_OPTION ) );
-		if ( $held && ( time() - $held ) < self::LOCK_TIMEOUT ) {
+		$held = (int) $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $name ) );
+		if ( $held && ( time() - $held ) < $timeout ) {
 			return false;
 		}
 
@@ -192,23 +201,33 @@ class Version_Migration {
 		// steps hold up under concurrency — deletes are idempotent, and the
 		// INSERT IGNORE picks exactly one winner among simultaneous
 		// reclaimers. (The old read-then-update reclaim admitted all of them.)
-		delete_option( self::LOCK_OPTION );
-		return self::insert_lock_row();
+		delete_option( $name );
+		return self::insert_lock_row( $name );
 	}
 
 	/**
-	 * Atomically create the lock row; false when it already exists.
+	 * Give up the lock named $name (the holder's `finally`).
 	 *
+	 * @param string $name The option row claim_lock() created.
+	 */
+	public static function release_lock( string $name ): void {
+		delete_option( $name );
+	}
+
+	/**
+	 * Atomically create the lock row $name; false when it already exists.
+	 *
+	 * @param string $name The option row that is the lock.
 	 * @return bool Whether the row was created by this call.
 	 */
-	private static function insert_lock_row() {
+	private static function insert_lock_row( string $name ): bool {
 		global $wpdb;
-		// Never autoloaded: it exists for seconds, on one request in a deploy.
+		// Never autoloaded: it exists for seconds, on one request.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the row IS the mutex; see claim_lock().
 		return (bool) $wpdb->query(
 			$wpdb->prepare(
 				"INSERT IGNORE INTO `{$wpdb->options}` ( `option_name`, `option_value`, `autoload` ) VALUES (%s, %s, 'off')",
-				self::LOCK_OPTION,
+				$name,
 				(string) time()
 			)
 		);

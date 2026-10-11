@@ -36,6 +36,7 @@ import {
 	SCHEMA_OPTIONS,
 	schemaLabel,
 } from './shared';
+import { seoCopy } from '../../../../shared/seo-copy';
 
 // Core's patterns page shape: per-layout config spread into the default
 // view, and passed to DataViews so a layout reset restores the same values.
@@ -60,6 +61,8 @@ const DEFAULT_VIEW = {
 // The "Set schema type" bulk action's modal: one radio choice applied to
 // every selected row through the shared bulk-save loop.
 const SchemaModal = ( { items, closeModal, onApply } ) => {
+	// The strings shared/seo-copy.js owns (a clean-room rewrite).
+	const copy = seoCopy();
 	const [ schemaType, setSchemaType ] = useState( '' );
 	const [ isBusy, setIsBusy ] = useState( false );
 
@@ -72,7 +75,7 @@ const SchemaModal = ( { items, closeModal, onApply } ) => {
 	return (
 		<>
 			<RadioControl
-				label={ __( 'Schema type', 'blocklane' ) }
+				label={ copy.fieldSchemaLabel }
 				hideLabelFromVision
 				selected={ schemaType }
 				options={ SCHEMA_OPTIONS }
@@ -100,6 +103,9 @@ const SchemaModal = ( { items, closeModal, onApply } ) => {
 };
 
 export const ContentTab = ( { onEdit } ) => {
+	// The strings shared/seo-copy.js owns (a clean-room rewrite), made once
+	// so the memoized fields and actions below can depend on them.
+	const copy = useMemo( seoCopy, [] );
 	const [ view, setView ] = useState( DEFAULT_VIEW );
 	const [ items, setItems ] = useState( [] );
 	const [ types, setTypes ] = useState( [] );
@@ -237,7 +243,7 @@ export const ContentTab = ( { onEdit } ) => {
 			// gap-hunting is the audit filter's job, not the sort's.
 			{
 				id: 'title',
-				label: __( 'Title', 'blocklane' ),
+				label: copy.columnTitle,
 				enableSorting: true,
 				enableGlobalSearch: true,
 				getValue: ( { item } ) => item.title,
@@ -245,7 +251,7 @@ export const ContentTab = ( { onEdit } ) => {
 			},
 			{
 				id: 'type',
-				label: __( 'Type', 'blocklane' ),
+				label: copy.columnType,
 				enableSorting: true,
 				getValue: ( { item } ) => item.type,
 				elements: types.map( ( t ) => ( {
@@ -259,12 +265,13 @@ export const ContentTab = ( { onEdit } ) => {
 			},
 			{
 				id: 'schema',
-				label: __( 'Schema', 'blocklane' ),
+				label: copy.columnSchema,
 				enableSorting: false,
 				getValue: ( { item } ) => item.schema_type || 'none',
-				// Filterable but not primary — reachable through "Add filter",
-				// the Jetpack SEO dashboard's exact arrangement. The filter
-				// wire value for "no schema" is 'none' (the REST enum), not ''.
+				// Filterable but not primary: DataViews lists it under its
+				// "Add filter" menu instead of as an always-visible chip. The
+				// filter wire value for "no schema" is 'none' (the REST enum),
+				// not ''.
 				elements: SCHEMA_OPTIONS.map( ( option ) => ( {
 					value: option.value || 'none',
 					label: option.label,
@@ -275,7 +282,7 @@ export const ContentTab = ( { onEdit } ) => {
 			},
 			{
 				id: 'seo_title',
-				label: __( 'SEO title', 'blocklane' ),
+				label: copy.columnSearchTitle,
 				enableSorting: false,
 				// The actual value, ellipsized — scannable for quality, not
 				// just coverage. The chip only marks the gaps.
@@ -288,14 +295,12 @@ export const ContentTab = ( { onEdit } ) => {
 							{ item.seo_title }
 						</span>
 					) : (
-						<StatusChip>
-							{ __( 'Not set', 'blocklane' ) }
-						</StatusChip>
+						<StatusChip>{ copy.cellEmpty }</StatusChip>
 					),
 			},
 			{
 				id: 'seo_description',
-				label: __( 'Meta description', 'blocklane' ),
+				label: copy.columnSearchDescription,
 				enableSorting: false,
 				render: ( { item } ) =>
 					item.seo_description ? (
@@ -306,28 +311,26 @@ export const ContentTab = ( { onEdit } ) => {
 							{ item.seo_description }
 						</span>
 					) : (
-						<StatusChip>
-							{ __( 'Not set', 'blocklane' ) }
-						</StatusChip>
+						<StatusChip>{ copy.cellEmpty }</StatusChip>
 					),
 			},
 			{
 				id: 'visibility',
-				label: __( 'Search', 'blocklane' ),
+				label: copy.columnIndexing,
 				enableSorting: false,
 				render: ( { item } ) =>
 					item.noindex ? (
 						<StatusChip tone="warning">
-							{ __( 'Hidden', 'blocklane' ) }
+							{ copy.indexingHidden }
 						</StatusChip>
 					) : (
 						<StatusChip tone="positive">
-							{ __( 'Visible', 'blocklane' ) }
+							{ copy.indexingShown }
 						</StatusChip>
 					),
 			},
 		],
-		[ types ]
+		[ types, copy ]
 	);
 
 	// The patterns page's action anatomy: one isPrimary action surfaced on
@@ -338,14 +341,14 @@ export const ContentTab = ( { onEdit } ) => {
 		() => [
 			{
 				id: 'edit-seo',
-				label: __( 'Edit SEO', 'blocklane' ),
+				label: copy.editSeo,
 				icon: editIcon,
 				isPrimary: true,
 				callback: ( [ item ] ) => editItem( item ),
 			},
 			{
 				id: 'hide-from-search',
-				label: __( 'Hide from search', 'blocklane' ),
+				label: copy.actionHide,
 				icon: unseen,
 				supportsBulk: true,
 				isEligible: ( item ) => ! item.noindex,
@@ -359,7 +362,7 @@ export const ContentTab = ( { onEdit } ) => {
 			},
 			{
 				id: 'show-in-search',
-				label: __( 'Show in search', 'blocklane' ),
+				label: copy.actionShow,
 				icon: seen,
 				supportsBulk: true,
 				isEligible: ( item ) => !! item.noindex,
@@ -371,9 +374,9 @@ export const ContentTab = ( { onEdit } ) => {
 			},
 			{
 				id: 'set-schema',
-				label: __( 'Set schema type', 'blocklane' ),
+				label: copy.actionSetSchema,
 				supportsBulk: true,
-				modalHeader: __( 'Set schema type', 'blocklane' ),
+				modalHeader: copy.actionSetSchema,
 				RenderModal: ( { items: selected, closeModal } ) => (
 					<SchemaModal
 						items={ selected }
@@ -399,7 +402,7 @@ export const ContentTab = ( { onEdit } ) => {
 				},
 			},
 		],
-		[ editItem, bulkSave ]
+		[ editItem, bulkSave, copy ]
 	);
 
 	// An error never takes the whole tab down while there are rows to show —

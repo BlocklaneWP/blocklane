@@ -20,6 +20,42 @@ const defaultConfig = require( '@wordpress/scripts/config/eslint.config.cjs' );
 const jestPlugin = require( 'eslint-plugin-jest' );
 const globals = require( 'globals' );
 
+// No editor or front-end source may make the browser fetch from another host
+// on render (#1745: the video-modal inspector loaded img.youtube.com the
+// moment a block was selected, with no consent and no disclosure). A remote
+// URL as a literal or the head of a template in the src, srcSet, poster,
+// href, xlinkHref or data of an element that fetches it — img, iframe,
+// video, audio, source, image, use, link, script — and a remote url( … )
+// in any JSX string. A link (<a href>) fetches nothing until clicked and
+// stays allowed. Spread into EVERY scoped `no-restricted-syntax` list below:
+// a scoped list REPLACES the options of an earlier match for the same file
+// (see the onboarding objects' comment), so a list that left it out would
+// switch it off for its files.
+// esquery reads a regex up to its first `/`, escaped or not: the slashes of
+// a URL are written \x2F.
+const REMOTE_HEAD = '/^\\s*(?:https?:)?\\x2F\\x2F/i';
+const REMOTE_URL = '/url\\(\\s*[\'"]?\\s*(?:https?:)?\\x2F\\x2F/i';
+const FETCHING = 'JSXOpeningElement[name.name=/^(img|iframe|video|audio|source|image|use|link|script)$/] > JSXAttribute[name.name=/^(src|srcSet|poster|href|xlinkHref|data)$/]';
+const REMOTE_MEDIA = [
+	{
+		selector: [
+			`${ FETCHING } > Literal[value=${ REMOTE_HEAD }]`,
+			`${ FETCHING } > JSXExpressionContainer > Literal[value=${ REMOTE_HEAD }]`,
+			`${ FETCHING } > JSXExpressionContainer > TemplateLiteral[quasis.0.value.raw=${ REMOTE_HEAD }]`,
+		].join( ', ' ),
+		message:
+			'A remote URL in a media element makes every editor or visitor request another host on render, before any click (#1745). Load it behind an explicit action, or ship the asset.',
+	},
+	{
+		selector: [
+			`JSXAttribute Literal[value=${ REMOTE_URL }]`,
+			`JSXAttribute TemplateElement[value.raw=${ REMOTE_URL }]`,
+		].join( ', ' ),
+		message:
+			'A remote url( … ) in a JSX style makes the browser request another host on render (#1745).',
+	},
+];
+
 const TEST_FILES = [
 	'**/@(test|__tests__)/**/*.{js,jsx,ts,tsx,mjs,cjs}',
 	'**/*.@(test|spec).{js,jsx,ts,tsx,mjs,cjs}',
@@ -147,6 +183,15 @@ module.exports = [
 			],
 		},
 	},
+	{
+		// Every editor and front-end source outside the onboarding app (whose
+		// three objects below carry the same list beside their own).
+		files: [ 'inc/**/src/**/*.js', 'inc/**/src/**/*.jsx' ],
+		ignores: [ 'inc/onboarding/src/**' ],
+		rules: {
+			'no-restricted-syntax': [ 'error', ...REMOTE_MEDIA ],
+		},
+	},
 	// The edition payload's two keys have ONE reader each (#1043). `absent` is
 	// the catalog — COPY, an entry only for a LABELED absent unit — and its
 	// reader is screens/pro-row.js; `units` is PRESENCE and its reader is
@@ -173,6 +218,7 @@ module.exports = [
 		rules: {
 			'no-restricted-syntax': [
 				'error',
+				...REMOTE_MEDIA,
 				{
 					selector:
 						'MemberExpression[property.name="absent"], MemberExpression[property.value="absent"], ObjectPattern > Property[key.name="absent"]',
@@ -194,6 +240,7 @@ module.exports = [
 		rules: {
 			'no-restricted-syntax': [
 				'error',
+				...REMOTE_MEDIA,
 				{
 					selector:
 						'MemberExpression[property.name="units"], MemberExpression[property.value="units"], ObjectPattern > Property[key.name="units"]',
@@ -209,6 +256,7 @@ module.exports = [
 		rules: {
 			'no-restricted-syntax': [
 				'error',
+				...REMOTE_MEDIA,
 				{
 					selector:
 						'MemberExpression[property.name="absent"], MemberExpression[property.value="absent"], ObjectPattern > Property[key.name="absent"]',

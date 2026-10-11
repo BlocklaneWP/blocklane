@@ -1,248 +1,214 @@
+import cssVerdict from './svg-css-verdict';
+
 /**
- * Custom-SVG sanitizer for the editor: the browser-side twin of
- * blocklane_pro_ext_sanitize_svg() (inc/extensions/loader/runtime-helpers.php).
- *
- * Both implement one policy. The server copy is the security boundary (it
- * runs on save and on render); this copy keeps the editor's previews honest
- * and keeps markup the server would strip out of the canvas.
- *
- * The steps:
- *
- * 1. Refuse anything that is not a non-empty string mentioning `<svg`.
- * 2. Parse it as XML behind a prolog supplied here (so an input that brings
- *    its own XML declaration does not parse), and refuse a parse error.
- * 3. Take the first element whose local name is `svg` as the root.
- * 4. Walk the root's subtree: text stays (whitespace-only text goes, as the
- *    server's parser drops it), allowed elements stay with their attributes
- *    judged, every other node goes with its subtree.
- * 5. Serialize the root alone.
- *
- * Where the browser's parser differs from libxml (DTD entities, namespace
- * re-declaration on serialization), it may answer '' or add a namespace
- * declaration where the server keeps a node; the jest test beside this file
- * names each such fixture case.
+ * The editor half of the SVG sanitizer: it keeps the same small part of SVG
+ * the server keeps, so a preview in the block editor shows what will be
+ * stored. The server half is the security boundary; this one applies the
+ * same policy with the browser's XML parser.
  */
 
-const SHAPE_ATTRIBUTES = [
-	// Geometry.
-	'd',
-	'points',
-	'x',
-	'y',
-	'x1',
-	'y1',
-	'x2',
-	'y2',
+/* A fixed XML declaration, put in front of the input before parsing. */
+const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8"?>';
+
+/* Namespace declarations are listed as attributes in this namespace. */
+const XMLNS_NAMESPACE = 'http://www.w3.org/2000/xmlns/';
+
+/* Node types the walk tells apart. */
+const ELEMENT_NODE = 1;
+const TEXT_NODE = 3;
+
+/* Blanks are space, tab, LF, CR, FF and VT, spelled out. */
+const LEADING_BLANKS = /^[\x20\t\n\r\f\v]+/;
+const ONLY_BLANKS = /^[\x20\t\n\r\f\v]*$/;
+
+/* A javascript, data or vbscript scheme at the start of a value, blanks allowed around its name. */
+const SCHEME =
+	/^[\x20\t\n\r\f\v]*(?:javascript|data|vbscript)[\x20\t\n\r\f\v]*:/i;
+
+/* Geometry, paint and placement for the drawing elements. */
+const SHAPE = new Set( [
+	'class',
+	'clip-rule',
 	'cx',
 	'cy',
-	'r',
-	'rx',
-	'ry',
-	'width',
-	'height',
-	// Paint.
+	'd',
 	'fill',
 	'fill-opacity',
 	'fill-rule',
-	'clip-rule',
+	'height',
 	'opacity',
+	'points',
+	'r',
+	'rx',
+	'ry',
 	'stroke',
-	'stroke-width',
-	'stroke-opacity',
+	'stroke-dasharray',
+	'stroke-dashoffset',
 	'stroke-linecap',
 	'stroke-linejoin',
 	'stroke-miterlimit',
-	'stroke-dasharray',
-	'stroke-dashoffset',
-	// Placement.
+	'stroke-opacity',
+	'stroke-width',
 	'transform',
-	'class',
-];
+	'width',
+	'x',
+	'x1',
+	'x2',
+	'y',
+	'y1',
+	'y2',
+] );
 
-/**
- * Allowed element name (lowercased) → the attribute names (lowercased) it
- * may keep. An element absent here is removed with its subtree.
- *
- * @type {Map<string, Set<string>>}
+/*
+ * The elements that may survive, each with the attribute names it may keep.
+ * Element names are lowercase and in alphabetical order, and so are the
+ * attribute names in each row.
  */
-const POLICY = new Map( [
-	[
-		'svg',
-		new Set( [
-			'xmlns',
-			'xmlns:xlink',
-			'viewbox',
-			'width',
-			'height',
-			'fill',
-			'class',
-		] ),
-	],
+const ROWS = new Map( [
+	[ 'circle', SHAPE ],
+	[ 'clippath', new Set( [ 'clippathunits', 'id' ] ) ],
+	[ 'defs', new Set( [ 'id' ] ) ],
+	[ 'desc', new Set() ],
+	[ 'ellipse', SHAPE ],
 	[
 		'g',
 		new Set( [
-			'id',
 			'class',
-			'transform',
 			'clip-path',
 			'fill',
+			'id',
+			'opacity',
 			'stroke',
 			'stroke-width',
-			'opacity',
+			'transform',
 		] ),
 	],
-	[ 'defs', new Set( [ 'id' ] ) ],
-	[ 'clippath', new Set( [ 'id', 'clippathunits' ] ) ],
-	[ 'use', new Set( [ 'href', 'xlink:href', 'x', 'y', 'width', 'height' ] ) ],
+	[ 'line', SHAPE ],
+	[ 'path', SHAPE ],
+	[ 'polygon', SHAPE ],
+	[ 'polyline', SHAPE ],
+	[ 'rect', SHAPE ],
+	[
+		'svg',
+		new Set( [
+			'class',
+			'fill',
+			'height',
+			'viewbox',
+			'width',
+			'xmlns',
+			'xmlns:xlink',
+		] ),
+	],
 	[ 'title', new Set() ],
-	[ 'desc', new Set() ],
-	...[
-		'path',
-		'rect',
-		'circle',
-		'ellipse',
-		'line',
-		'polyline',
-		'polygon',
-	].map( ( drawing ) => [ drawing, new Set( SHAPE_ATTRIBUTES ) ] ),
+	[ 'use', new Set( [ 'height', 'href', 'width', 'x', 'xlink:href', 'y' ] ) ],
 ] );
 
-const XMLNS_NAMESPACE = 'http://www.w3.org/2000/xmlns/';
-
-// Space, tab, LF, CR, FF, VT — spelled out, as the server copy does.
-const SCRIPT_SCHEME =
-	/^[\x20\t\n\r\f\v]*(?:javascript|data|vbscript)[\x20\t\n\r\f\v]*:/i;
-const LEADING_BLANKS = /^[\x20\t\n\r\f\v]+/;
-const ONLY_BLANKS = /^[\x20\t\n\r\f\v]*$/;
-// A CSS escape: up to six hex digits and one optional blank, or any one
-// character. And a url( opening, through an optional quote, capturing the
-// first character of its target.
-const CSS_ESCAPE = /\\(?:([0-9a-f]{1,6})[\x20\t\n\r\f]?|([\s\S]))/gi;
-const URL_TARGET =
-	/url[\x20\t\n\r\f\v]*\([\x20\t\n\r\f\v]*["']?[\x20\t\n\r\f\v]*([\s\S]?)/gi;
-
 /**
- * Whether every CSS url() in a value names a same-document fragment. The
- * value is read as CSS reads it: escapes decoded first (only ASCII decides,
- * so an escape of anything wider becomes '?', never `#`), any case, blanks
- * before `(`, inside it and around an optional quote.
+ * Lowercases the ASCII letters of a name and leaves every other character
+ * as it is, as the server does.
  *
- * @param {string} value Attribute value as parsed.
- * @return {boolean} Whether no url() points anywhere but `#…`.
+ * @param {string} name A qualified name.
+ * @return {string} The name with A to Z lowercased.
  */
-function urlsAreFragments( value ) {
-	const css = value.replace( CSS_ESCAPE, ( match, hex, char ) => {
-		if ( hex === undefined ) {
-			return char;
-		}
-		const code = parseInt( hex, 16 );
-		return code <= 0x7f ? String.fromCharCode( code ) : '?';
-	} );
-	return Array.from( css.matchAll( URL_TARGET ) ).every(
-		( match ) => match[ 1 ] === '#'
-	);
+function asciiLower( name ) {
+	return name.replace( /[A-Z]+/g, ( run ) => run.toLowerCase() );
 }
 
 /**
- * Whether one attribute survives. Removed when its name is not allowed on
- * the element, names an event handler (redundant with today's list, kept so
- * a widened list cannot admit one), its value opens with a script-capable
- * scheme, or it is a reference that is not a same-document fragment: an
- * href/xlink:href that does not start with `#`, or a CSS url() anywhere in
- * any attribute's value whose target does not (a remote or data: paint,
- * clip, mask or filter is a request on every page view).
+ * Whether one attribute may stay. All of these must hold: its name is in the
+ * element's row; its name does not start with `on`; its value does not start
+ * with a javascript, data or vbscript scheme; an href or xlink:href value
+ * starts with `#` after its leading blanks; and the CSS verdict answers
+ * exactly true for the value. Nothing is decoded: the value is judged as the
+ * parser handed it over.
  *
- * @param {string}      name    Qualified attribute name, lowercased.
- * @param {string}      value   Attribute value as parsed.
- * @param {Set<string>} allowed Names the element may keep.
- * @return {boolean} Whether to keep it.
+ * @param {string}      name    The attribute's qualified name, lowercased.
+ * @param {string}      value   The attribute's value, as parsed.
+ * @param {Set<string>} allowed The attribute names the element's row allows.
+ * @return {boolean} Whether the attribute stays.
  */
-function keepsAttribute( name, value, allowed ) {
+function keeps( name, value, allowed ) {
 	if ( ! allowed.has( name ) || name.startsWith( 'on' ) ) {
 		return false;
 	}
-	if ( SCRIPT_SCHEME.test( value ) ) {
+	if ( SCHEME.test( value ) ) {
 		return false;
 	}
-	if ( name === 'href' || name === 'xlink:href' ) {
-		return value.replace( LEADING_BLANKS, '' ).startsWith( '#' );
+	if (
+		( name === 'href' || name === 'xlink:href' ) &&
+		! value.replace( LEADING_BLANKS, '' ).startsWith( '#' )
+	) {
+		return false;
 	}
-	return urlsAreFragments( value );
+	return cssVerdict( value ) === true;
 }
 
 /**
- * Strip from an element every attribute its policy row does not keep.
- * Namespace declarations are not judged: the DOM lists them as attributes,
- * the policy does not.
+ * Removes every attribute of an element that fails keeps(). Namespace
+ * declarations are skipped. The failures are collected first and then
+ * removed as nodes, so of two attributes sharing a local name only the one
+ * that failed goes.
  *
- * @param {Element} element The element.
- * @param {string}  row     Its row in POLICY.
+ * @param {Element}     element The element whose attributes are judged.
+ * @param {Set<string>} allowed The attribute names its row allows.
  */
-function judgeAttributes( element, row ) {
-	const allowed = POLICY.get( row ) || new Set();
-	const doomed = Array.from( element.attributes ).filter(
-		( attribute ) =>
-			attribute.namespaceURI !== XMLNS_NAMESPACE &&
-			! keepsAttribute(
-				attribute.name.toLowerCase(),
-				attribute.value,
-				allowed
-			)
-	);
-	// Remove the nodes, not names: two attributes may share a local name.
-	doomed.forEach( ( attribute ) => element.removeAttributeNode( attribute ) );
+function judge( element, allowed ) {
+	const failed = [];
+	for ( const attr of Array.from( element.attributes ) ) {
+		if ( attr.namespaceURI === XMLNS_NAMESPACE ) {
+			continue;
+		}
+		if ( ! keeps( asciiLower( attr.name ), attr.value, allowed ) ) {
+			failed.push( attr );
+		}
+	}
+	for ( const attr of failed ) {
+		element.removeAttributeNode( attr );
+	}
 }
 
 /**
- * Remove every child the policy does not allow, recursing into kept elements.
+ * Walks an element's children: a text node with more than blanks stays, an
+ * element in the set stays with its attributes judged and its own children
+ * walked, and every other node (a blank text node, an element outside the
+ * set with its whole subtree, a CDATA section, a comment, a processing
+ * instruction) is removed.
  *
- * @param {Element} parent A kept element.
+ * @param {Element} parent The element whose children are walked.
  */
-function scrubChildren( parent ) {
-	Array.from( parent.childNodes ).forEach( ( child ) => {
-		if ( child.nodeType === child.TEXT_NODE ) {
+function walk( parent ) {
+	// Copy the children first, so removing one does not disturb the loop.
+	for ( const child of Array.from( parent.childNodes ) ) {
+		if ( child.nodeType === TEXT_NODE ) {
 			if ( ONLY_BLANKS.test( child.data ) ) {
 				parent.removeChild( child );
 			}
-			return;
+			continue;
 		}
-		if ( child.nodeType === child.ELEMENT_NODE ) {
-			const name = child.nodeName.toLowerCase();
-			if ( POLICY.has( name ) ) {
-				judgeAttributes( child, name );
-				scrubChildren( child );
-				return;
+		if ( child.nodeType === ELEMENT_NODE ) {
+			// The qualified name, so a prefixed name is never in the set.
+			const allowed = ROWS.get( asciiLower( child.nodeName ) );
+			if ( allowed ) {
+				judge( child, allowed );
+				walk( child );
+				continue;
 			}
 		}
 		parent.removeChild( child );
-	} );
+	}
 }
 
 /**
- * Whether a parsed document is the parser's error report. Browsers do not
- * throw on malformed XML; they hand back (or insert) a `parsererror`
- * element in a namespace of their own, which an input cannot place there
- * without also failing this test (a false refusal, never a false pass).
+ * Sanitizes SVG markup down to the small part of SVG an icon may keep, the
+ * same part the server keeps. The input is parsed as XML; the first element
+ * whose local name is `svg` becomes the root; every element under it that is
+ * not in the set is removed with its subtree; every attribute left, the
+ * root's included, is judged by keeps(); and the root alone is serialized.
+ * Any failure is ''.
  *
- * @param {Document} doc The parsed document.
- * @return {boolean} Whether parsing failed.
- */
-function isParseError( doc ) {
-	return Array.from( doc.getElementsByTagName( '*' ) ).some(
-		( element ) =>
-			element.localName === 'parsererror' &&
-			( element.namespaceURI ===
-				'http://www.mozilla.org/newlayout/xml/parsererror.xml' ||
-				element.namespaceURI === 'http://www.w3.org/1999/xhtml' )
-	);
-}
-
-/**
- * A custom SVG reduced to the sanitizer's policy.
- *
- * @param {unknown} svg Raw SVG markup (any value; non-strings are refused).
- * @return {string} The scrubbed SVG, or '' when the input is not SVG markup
- *                  or does not parse.
+ * @param {unknown} svg The markup to sanitize.
+ * @return {string} The sanitized svg element, or '' when refused or when any step fails.
  */
 export default function sanitizeSvgString( svg ) {
 	if ( typeof svg !== 'string' || svg === '' || ! /<svg/i.test( svg ) ) {
@@ -250,38 +216,33 @@ export default function sanitizeSvgString( svg ) {
 	}
 	if (
 		typeof window === 'undefined' ||
-		typeof window.DOMParser === 'undefined' ||
-		typeof window.XMLSerializer === 'undefined'
+		typeof window.DOMParser !== 'function' ||
+		typeof window.XMLSerializer !== 'function'
 	) {
 		return '';
 	}
-
-	let doc;
 	try {
-		doc = new window.DOMParser().parseFromString(
-			'<?xml version="1.0" encoding="UTF-8"?>' + svg,
+		const doc = new window.DOMParser().parseFromString(
+			XML_DECLARATION + svg,
 			'application/xml'
 		);
-	} catch {
-		return '';
-	}
-	if ( ! doc || isParseError( doc ) ) {
-		return '';
-	}
-
-	const root = Array.from( doc.getElementsByTagName( '*' ) ).find(
-		( element ) => element.localName === 'svg'
-	);
-	if ( ! root ) {
-		return '';
-	}
-
-	// The root is judged as an svg element whatever its prefix.
-	judgeAttributes( root, 'svg' );
-	scrubChildren( root );
-
-	try {
-		return new window.XMLSerializer().serializeToString( root ) || '';
+		const elements = Array.from( doc.getElementsByTagName( '*' ) );
+		// The parser reports malformed XML with a parsererror element.
+		if (
+			elements.some( ( element ) => element.localName === 'parsererror' )
+		) {
+			return '';
+		}
+		const root = elements.find(
+			( element ) => element.localName === 'svg'
+		);
+		if ( ! root ) {
+			return '';
+		}
+		judge( root, ROWS.get( 'svg' ) );
+		walk( root );
+		const out = new window.XMLSerializer().serializeToString( root );
+		return typeof out === 'string' ? out : '';
 	} catch {
 		return '';
 	}

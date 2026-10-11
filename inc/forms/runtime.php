@@ -233,7 +233,7 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 			blocklane_pro_forms_known_blocks(), // the view, never the shipped table (rule 6)
 			'npm run build:forms',
 			__( 'Forms', 'blocklane' ),
-			__( 'Saved forms render without those blocks, and submissions silently drop the fields they carry, until the assets are rebuilt.', 'blocklane' )
+			__( 'Saved forms render without those blocks, and their submissions are refused, until the assets are rebuilt.', 'blocklane' )
 		);
 	}
 	add_action( 'init', 'blocklane_pro_forms_register_blocks' );
@@ -1559,7 +1559,7 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 				'body'    => array(
 					'secret'   => $secret,
 					'response' => $token,
-					'remoteip' => blocklane_pro_forms_client_ip(),
+					'remoteip' => \blocklane_pro\Helper::client_address( 'forms' ),
 				),
 			)
 		);
@@ -1734,30 +1734,14 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	}
 
 	/**
-	 * The client IP for rate limiting. Hashed before use, never stored.
-	 *
-	 * @return string
-	 */
-	function blocklane_pro_forms_client_ip() {
-		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
-
-		/**
-		 * Filter the client IP used for submission rate limiting (e.g. to
-		 * read a trusted proxy header instead).
-		 *
-		 * @param string $ip Client IP.
-		 */
-		return apply_filters( 'blocklane_pro_forms_client_ip', $ip );
-	}
-
-	/**
 	 * The submission rate limiter's key for this client, through the one
 	 * derivation every public throttle shares (Helper::client_key(): the
-	 * `blocklane_pro_forms_client_ip` filter, IPv6 collapsed to its /64, HMAC
-	 * with the auth salt); null when the request carries no address.
+	 * `blocklane_pro_client_ip` filter for the 'forms' door, IPv6 collapsed to
+	 * its /64, HMAC with the auth salt); null when the request carries no
+	 * address.
 	 */
 	function blocklane_pro_forms_rate_key(): ?string {
-		return \blocklane_pro\Helper::client_key( 'blocklane_pro_forms_rl_', 'blocklane_pro_forms_client_ip' );
+		return \blocklane_pro\Helper::client_key( 'blocklane_pro_forms_rl_', 'forms' );
 	}
 
 	/**
@@ -1795,109 +1779,1107 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 		return true;
 	}
 
-	/**
-	 * Locate the source document that literally CONTAINS a form and return its
-	 * parsed form block. The viewing page (`_bl_source`) is deliberately NOT
-	 * trusted: it is public and chosen by whoever submits, so honoring it
-	 * would let a visitor pick which copy's recipients receive the
-	 * submission. For a form living in a synced pattern or template part,
-	 * only the wp_block/wp_template_part row contains the formId literal, so
-	 * the search lands on it, not on any page embedding it.
-	 *
-	 * Resolution, in order:
-	 * 1. A miss remembered in the object cache answers null (see below).
-	 * 2. A cached location (the `blocklane_pro_forms_loc_<formId>` transient,
-	 *    kept for a day) wins while its post is still published or private
-	 *    and still holds a real form block with this formId. A save of any
-	 *    post carrying the formId deletes it (blocklane_pro_forms_saved()),
-	 *    so publishing or editing another copy re-searches on the next
-	 *    submission.
-	 * 3. A fresh search reads the five lowest-ID published or private posts
-	 *    whose content contains the formId literal (LIMIT 5), and the
-	 *    lowest-ID one holding a real form block wins and is cached. Should
-	 *    five lower-ID posts carry the literal without a real form block, a
-	 *    sixth is not found.
-	 *
-	 * A form placed in a theme TEMPLATE FILE that was never customized has no
-	 * database row and cannot be located — place forms in content or synced
-	 * patterns.
-	 *
-	 * The public route calls this with a formId the CALLER chose, so the miss
-	 * path may write nothing durable (spec 2026-10-06 §4.3: a public door
-	 * writes only to keys the site bounds, never to keys the caller can
-	 * mint). A miss is remembered in the object cache for a minute, the rate
-	 * limiter's window — on a site without a persistent cache that is this
-	 * request's memory, and no options row is ever written; save_post forgets
-	 * the miss for every formId a saved post carries (F4). The positive cache
-	 * is a transient written only after a real form block is found in a
-	 * published or private post, so its keys are bounded by forms authors
-	 * published, never by the caller.
-	 *
-	 * @param string $form_id Form id.
-	 * @return array|null array( 'form' => parsed block, 'source_id' => int ) or null.
+	/*
+	 * ------------------------------------------------------------------
+	 * A form's DEFINITION and its BINDING (spec 2026-10-06-forms-form-
+	 * ownership §4.3). The definition is what the submission pipeline reads
+	 * from a form: its form-level attributes and its derived field schema.
+	 * The binding is a token the form shell mints over it on every render
+	 * (`<nonce>.<HMAC>`, v2) and prints as `_bl_bind`, so the public route can
+	 * tell which live definition the server rendered for the visitor's page
+	 * instead of looking the formId up.
+	 * ------------------------------------------------------------------
 	 */
-	function blocklane_pro_forms_locate_form( $form_id ) {
-		$needle    = '"formId":"' . $form_id . '"';
-		$cache_key = 'blocklane_pro_forms_loc_' . $form_id;
 
-		// Negative cache: an unknown formId (spam against the public route)
-		// must not run a full-table scan on every hit — and must not write.
-		if ( false !== wp_cache_get( $form_id, 'blocklane_pro_forms_loc_miss' ) ) {
+	/**
+	 * The form attributes the submission pipeline reads: routing, storage,
+	 * mail, the success action, the gates and the unique-entry rule. Every one
+	 * is signed by the binding. Read only by blocklane_pro_forms_definition();
+	 * a fetch anywhere else is a PHPStan error, blocklane.chokepointMember.
+	 */
+	define(
+		'BLOCKLANE_PRO_FORMS_BOUND_ATTRS',
+		array( 'formId', 'formName', 'recipients', 'subject', 'successAction', 'redirectUrl', 'storeSubmissions', 'notifyAdmin', 'autoResponder', 'replaceOnSuccess', 'scheduleEnabled', 'scheduleStart', 'scheduleEnd', 'requireLogin', 'closedMessage', 'uniqueField', 'uniqueMessage' )
+	);
+
+	/**
+	 * The form attributes only the render reads. Not signed: a presentational
+	 * edit keeps every cached page's binding valid. With the bound set it is
+	 * exactly the block's own attributes in block.json, and the review
+	 * battery's WB14 fails a block.json attribute that is in neither, so a new
+	 * attribute cannot arrive without this decision. Nothing in the shipped
+	 * code reads it (PHPStan blocklane.chokepointMember fails any fetch): it
+	 * is the classification, not a door.
+	 */
+	define(
+		'BLOCKLANE_PRO_FORMS_PRESENTATION_ATTRS',
+		array( 'inputStyles', 'showProgress', 'showRequiredNotice' )
+	);
+
+	/**
+	 * How each bound attribute is decided — the MEET (spec 2026-10-06-forms-
+	 * form-ownership §16.4.5, decisions D-R3/D-R5, security reads S-R1 and
+	 * S-R9). Every bound attribute is classified exactly once (WB14 fails a
+	 * BOUND key with no rule or a rule outside the vocabulary). For a
+	 * submission whose binding verified one copy (attested) every rule takes
+	 * that copy's own value; for one decided by EVERY live copy (unattested):
+	 * - identity: never a setting (the formId itself);
+	 * - unanimous: the value when every copy agrees, else none;
+	 * - default: none — the site default fills it (routing never travels
+	 *   from a copy the server could not attest, decision D1);
+	 * - opt_out: false when every copy resolves to false (explicitly, or by
+	 *   inheriting a false site default), else true (D3);
+	 * - narrow: false when every copy says false, else the site default — a
+	 *   copy can narrow storage, never widen it past the site's own opt-out
+	 *   (S-R9);
+	 * - off: off (the auto-responder mails a caller-named address with text
+	 *   no page attested, D-R5);
+	 * - gate: every copy's gate applies, each tuple once (D-R3);
+	 * - agree: the value when every copy names the same one, else the
+	 *   submission is refused (S-R1: a planted copy can never arm the
+	 *   duplicate probe on its own).
+	 * Read only by blocklane_pro_forms_verdict(); a fetch anywhere else is a
+	 * PHPStan error, blocklane.chokepointMember.
+	 */
+	define(
+		'BLOCKLANE_PRO_FORMS_MEET',
+		array(
+			'formId'           => 'identity',
+			'formName'         => 'unanimous',
+			'recipients'       => 'default',
+			'subject'          => 'default',
+			'successAction'    => 'default',
+			'redirectUrl'      => 'default',
+			'replaceOnSuccess' => 'default',
+			'closedMessage'    => 'default',
+			'uniqueMessage'    => 'default',
+			'storeSubmissions' => 'narrow',
+			'notifyAdmin'      => 'opt_out',
+			'autoResponder'    => 'off',
+			'requireLogin'     => 'gate',
+			'scheduleEnabled'  => 'gate',
+			'scheduleStart'    => 'gate',
+			'scheduleEnd'      => 'gate',
+			'uniqueField'      => 'agree',
+		)
+	);
+
+	/**
+	 * A value in a canonical shape: every associative array ksorted (by key,
+	 * as strings), recursively; a list keeps its order. Two definitions that
+	 * differ only in key order canonicalize to the same bytes.
+	 *
+	 * @param mixed $value Any value.
+	 * @return mixed
+	 */
+	function blocklane_pro_forms_canonical( mixed $value ): mixed {
+		if ( ! is_array( $value ) ) {
+			return $value;
+		}
+		foreach ( $value as $key => $item ) {
+			$value[ $key ] = blocklane_pro_forms_canonical( $item );
+		}
+		if ( ! array_is_list( $value ) ) {
+			ksort( $value, SORT_STRING );
+		}
+		return $value;
+	}
+
+	/**
+	 * A form's definition: what the submission pipeline reads from it.
+	 *
+	 * `attrs` holds the bound attributes, in constant order, as core's own
+	 * validator prepares them for the render (the registered type's
+	 * prepare_attributes_for_render() over the block's RAW parsed attributes:
+	 * an invalid value is dropped, a default filled), an absent one as null.
+	 * `schema` and `ignored` are blocklane_pro_forms_derive_schema()'s, in
+	 * the order the handler validates and stores them.
+	 *
+	 * A PURE FUNCTION OF STORED CONTENT: the block's own attributes, its
+	 * inner blocks and the synced patterns they reference. Nothing the
+	 * environment decides (an upload cap, a filter's answer) may reach it —
+	 * the field-type seam's `collect` rule — or the binding would change
+	 * under every cached page whenever the environment did (sweep-1003).
+	 *
+	 * The render (the form shell, through blocklane_pro_forms_render_binding())
+	 * and the resolver (blocklane_pro_forms_resolve()) both feed it a parsed
+	 * block, so the two sides compute the same definition from the same
+	 * stored bytes. A filter that rewrites the form's parsed block at render
+	 * (render_block_data on the form or an ancestor, a hooked block inside
+	 * it) makes the render's binding one no stored copy verifies: every
+	 * submission of that form then arrives unsigned, for good (spec
+	 * 2026-10-06-forms-form-ownership NP16).
+	 *
+	 * @param array<string, mixed> $form_block A parsed blocklane/form block.
+	 * @param int|null             $pool       Synced-pattern descents left to the caller's examination, spent by this
+	 *                                         walk (resolve()'s pool); null lends the walk BLOCKLANE_PRO_FORMS_REF_CEILING.
+	 * @return array{attrs: array<string, mixed>, schema: array<string, array<string, mixed>>, ignored: list<string>}|\WP_Error
+	 *         blocklane_forms_unregistered when the form block type is not registered;
+	 *         blocklane_forms_ref_ceiling when the walk needs more synced patterns than it may read.
+	 */
+	function blocklane_pro_forms_definition( array $form_block, ?int &$pool = null ): array|\WP_Error {
+		$type = \WP_Block_Type_Registry::get_instance()->get_registered( 'blocklane/form' );
+		if ( ! $type instanceof \WP_Block_Type ) {
+			return new \WP_Error( 'blocklane_forms_unregistered', 'The blocklane/form block type is not registered.' );
+		}
+		$raw      = isset( $form_block['attrs'] ) && is_array( $form_block['attrs'] ) ? $form_block['attrs'] : array();
+		$prepared = $type->prepare_attributes_for_render( $raw );
+		$attrs    = array();
+		foreach ( BLOCKLANE_PRO_FORMS_BOUND_ATTRS as $key ) {
+			$attrs[ $key ] = blocklane_pro_forms_canonical( $prepared[ $key ] ?? null );
+		}
+		$ignored = array();
+		$schema  = blocklane_pro_forms_derive_schema( $form_block, $ignored, $pool );
+		if ( is_wp_error( $schema ) ) {
+			return $schema;
+		}
+
+		return array(
+			'attrs'   => $attrs,
+			'schema'  => $schema,
+			'ignored' => array_values( array_unique( array_map( 'strval', $ignored ) ) ),
+		);
+	}
+
+	/**
+	 * The binding's MAC for one definition and one nonce: 64 lowercase hex
+	 * characters, an HMAC-SHA256 keyed by a key derived from wp_salt( 'auth' )
+	 * for this purpose alone, over the version (2), the blog, the sanitized
+	 * formId, the nonce, the bound attributes and the canonical field schema
+	 * (each row ksorted, labels and authored values included: a copy that
+	 * differs in anything that reaches storage or mail is a different
+	 * definition). Keyed, so nothing printed says anything about the
+	 * recipients or any other bound value to someone without the salt.
+	 *
+	 * Called only in this file (PHPStan blocklane.chokepointCall): the shell
+	 * mints through blocklane_pro_forms_render_binding() and the resolver
+	 * checks through blocklane_pro_forms_binding_verifies().
+	 *
+	 * @param string                                                                       $form_id    The sanitize_title()d formId.
+	 * @param string                                                                       $nonce      The token's nonce, 32 lowercase hex characters.
+	 * @param array{attrs: array<string, mixed>, schema: array<string, array<string, mixed>>} $definition A definition.
+	 * @return string|\WP_Error blocklane_forms_binding_json when the message cannot be encoded.
+	 */
+	function blocklane_pro_forms_binding_mac( string $form_id, string $nonce, array $definition ): string|\WP_Error {
+		$key     = hash_hmac( 'sha256', 'blocklane-forms-binding/2', wp_salt( 'auth' ), true );
+		$message = wp_json_encode( array( 2, get_current_blog_id(), $form_id, $nonce, $definition['attrs'], blocklane_pro_forms_canonical( $definition['schema'] ) ) );
+		if ( false === $message ) {
+			return new \WP_Error( 'blocklane_forms_binding_json', 'The form definition cannot be encoded.' );
+		}
+		return hash_hmac( 'sha256', $message, $key );
+	}
+
+	/**
+	 * The binding the form shell prints for the form it is rendering, minted
+	 * fresh for this render: `<nonce>.<mac>`, 16 random bytes as 32 lowercase
+	 * hex characters and blocklane_pro_forms_binding_mac() over them. The
+	 * shell's only door to the binding.
+	 *
+	 * WHY A NONCE (#1986). Without one the binding was a pure function of the
+	 * definition, printed in public HTML: anyone able to render a form of
+	 * their own (a Contributor's draft preview) could reproduce a victim's
+	 * schema, set one bound attribute to a guess, and compare the printed
+	 * value with the victim page's to confirm the guess (recipients, the
+	 * auto-responder). With a nonce no two renders print the same value, so
+	 * there is nothing to compare; only timing remains (spec §7, ND7). It is
+	 * still NOT a nonce in the WordPress sense and NOT authentication: no
+	 * time or user part, so a cached page keeps a valid one, and identical
+	 * copies still tie (each verifies the other's token). A token selects
+	 * among the LIVE definitions the server would render; it grants nothing.
+	 *
+	 * WHY random_bytes() (#2090). wp_generate_password() is pluggable and
+	 * passes the public `random_password` filter, so a password-policy plugin
+	 * (symbols appended, a longer length) made every printed nonce one the
+	 * verifier refuses, and every bound form fell silently to the unsigned
+	 * MEET. The nonce's grammar is now this function's own: random_bytes(),
+	 * which no plugin can filter, as lowercase hex, the exact shape
+	 * blocklane_pro_forms_binding_verifies() reads. random_bytes() throws when
+	 * the system has no source of randomness (an \Exception on PHP 8.1, a
+	 * \Random\RandomException, its subclass, from 8.2); that is a typed
+	 * refusal here, blocklane_forms_binding_nonce, which the shell already
+	 * handles by printing no binding, the same as any definition error.
+	 *
+	 * @param string               $form_id      The sanitize_title()d formId.
+	 * @param array<string, mixed> $parsed_block The form's parsed block, as the renderer holds it.
+	 * @return string|\WP_Error blocklane_forms_binding_nonce when no randomness is available; a definition or MAC error.
+	 */
+	function blocklane_pro_forms_render_binding( string $form_id, array $parsed_block ): string|\WP_Error {
+		$definition = blocklane_pro_forms_definition( $parsed_block );
+		if ( is_wp_error( $definition ) ) {
+			return $definition;
+		}
+		try {
+			$nonce = bin2hex( random_bytes( 16 ) );
+		} catch ( \Exception $e ) {
+			return new \WP_Error( 'blocklane_forms_binding_nonce', 'No source of randomness for the form binding: ' . $e->getMessage() );
+		}
+		$mac = blocklane_pro_forms_binding_mac( $form_id, $nonce, $definition );
+		return is_wp_error( $mac ) ? $mac : $nonce . '.' . $mac;
+	}
+
+	/**
+	 * Whether a posted token is a binding of this definition: the one
+	 * verifier. A token is exactly `<32 lowercase hex>.<64 lowercase hex>`,
+	 * the shape blocklane_pro_forms_render_binding() mints; anything else — the unsigned v1 value 1.0.2's development builds
+	 * printed (no release carried it; decision D11), uppercase, a missing dot,
+	 * a wrong length — verifies nothing and reads as no binding. The MAC is
+	 * compared with hash_equals().
+	 *
+	 * @param string                                                                       $form_id    The sanitize_title()d formId.
+	 * @param array{attrs: array<string, mixed>, schema: array<string, array<string, mixed>>} $definition A definition.
+	 * @param string                                                                       $token      The posted _bl_bind.
+	 */
+	function blocklane_pro_forms_binding_verifies( string $form_id, array $definition, string $token ): bool {
+		if ( 1 !== preg_match( '/\A([0-9a-f]{32})\.([0-9a-f]{64})\z/', $token, $parts ) ) {
+			return false;
+		}
+		$mac = blocklane_pro_forms_binding_mac( $form_id, $parts[1], $definition );
+		return ! is_wp_error( $mac ) && hash_equals( $mac, $parts[2] );
+	}
+
+	/**
+	 * The post statuses a copy of a form can be served from: the SQL
+	 * prefilter of both holder queries (blocklane_pro_forms_candidate_rows()
+	 * and blocklane_pro_forms_source_rows()) and the re-check in
+	 * blocklane_pro_forms_audience() read this one list (a memoized candidate
+	 * can have left it since), so one change reaches all three. Read only by
+	 * those three; a fetch anywhere else is a PHPStan error,
+	 * blocklane.chokepointMember.
+	 */
+	define( 'BLOCKLANE_PRO_FORMS_LIVE_STATUSES', array( 'publish', 'private' ) );
+
+	/**
+	 * Candidate rows fetched per formId: more than the examination cap on
+	 * purpose. Only the ORDER uses the extra rows — the SQL sorts site chrome
+	 * and trusted authors first, so a flood of untrusted posts is what the
+	 * limit trims — while completeness needs every fetched row examined, so a
+	 * formId with more candidates than the cap is never complete (there is no
+	 * separate overflow flag).
+	 */
+	define( 'BLOCKLANE_PRO_FORMS_CANDIDATE_LIMIT', 500 );
+
+	/** Posts examined per request (spec §16.4.4): the bound on parse work. */
+	define( 'BLOCKLANE_PRO_FORMS_EXAMINE_CAP', 50 );
+
+	/**
+	 * Copies of one formId taken from one post (security read S-R2): a post
+	 * holding more is examined only this far, and the examination is then
+	 * incomplete.
+	 */
+	define( 'BLOCKLANE_PRO_FORMS_COPIES_CAP', 10 );
+
+	/**
+	 * Distinct synced patterns one definition may reference (security read
+	 * S-R2; spec §19, F06). blocklane_pro_forms_collect_fields() descends
+	 * each `wp_block` ref once per walk, and a walk that needs one more than
+	 * this is REFUSED: the definition is a `blocklane_forms_ref_ceiling`
+	 * error, never a schema with fields missing. The shell then prints no
+	 * binding and resolve() cannot examine that copy, so its submissions get
+	 * an honest 409, never a fake success.
+	 *
+	 * Core sets no such limit to mirror: blocks/block.php renders every
+	 * published, password-less pattern and halts only a cycle (an ancestor
+	 * repeat), at any depth. The number is this plugin's cost bound. One
+	 * resolve() lends its walks a pool of BLOCKLANE_PRO_FORMS_EXAMINE_CAP ×
+	 * this many descents (5,000), the request bound the security read
+	 * accepted (50 posts × 10 forms × 10 refs), so the ceiling could rise
+	 * tenfold without raising it. A real form is far below it: one pattern
+	 * per field would be a hundred-field form, and every shipped pattern
+	 * references none. Every distinct id looked up counts, a draft or a
+	 * pattern holding no field included.
+	 */
+	define( 'BLOCKLANE_PRO_FORMS_REF_CEILING', 100 );
+
+	/**
+	 * Whether a post's copies of a form are rendered, and to whom:
+	 * `public` (anyone can be shown it), `restricted` (only a reader the
+	 * post admits: private, password-protected, or a type that is not
+	 * publicly viewable) or `none` (nothing renders it). The one definition
+	 * of "live"; a `bound` verdict may match a public or a restricted copy,
+	 * and an unsigned delivery needs a public one (decision D-R2).
+	 *
+	 * MIRROR CONTRACT — each row is the rule the renderer applies:
+	 * - wp_block: core blocks/block.php:42 renders a synced pattern only
+	 *   when it is published and has no password;
+	 * - wp_template, wp_template_part: core blocks/template-part.php:25-36
+	 *   renders a published part of the ACTIVE theme (the wp_theme term),
+	 *   and a template is resolved the same way;
+	 * - BLOCKLANE_PRO_POPUPS_CPT: the popups runtime renders a published
+	 *   popup only (inc/popups/runtime.php, the footer render and the
+	 *   bound-opener pass);
+	 * - any other type: what a visitor can be shown — publicly viewable and
+	 *   without a password is public; private, password-protected, or a type
+	 *   that is not publicly viewable is restricted (a type no longer
+	 *   registered included: is_post_publicly_viewable() answers false).
+	 * A status outside BLOCKLANE_PRO_FORMS_LIVE_STATUSES is never served.
+	 *
+	 * @param \WP_Post $post A post.
+	 * @return string 'public', 'restricted' or 'none'.
+	 */
+	function blocklane_pro_forms_audience( \WP_Post $post ): string {
+		if ( ! in_array( $post->post_status, BLOCKLANE_PRO_FORMS_LIVE_STATUSES, true ) ) {
+			return 'none';
+		}
+		$published = 'publish' === $post->post_status;
+		switch ( $post->post_type ) {
+			case 'wp_block':
+				return $published && '' === (string) $post->post_password ? 'public' : 'none';
+			case 'wp_template':
+			case 'wp_template_part':
+				return $published && has_term( get_stylesheet(), 'wp_theme', $post ) ? 'public' : 'none';
+		}
+		if ( defined( 'BLOCKLANE_PRO_POPUPS_CPT' ) && BLOCKLANE_PRO_POPUPS_CPT === $post->post_type ) {
+			return $published ? 'public' : 'none';
+		}
+		return is_post_publicly_viewable( $post ) && '' === (string) $post->post_password ? 'public' : 'restricted';
+	}
+
+	/**
+	 * The site-chrome post types: those whose edit capability is
+	 * edit_theme_options or manage_options (templates, template parts,
+	 * popups…). Authors cannot write them, so the candidate SQL orders them
+	 * before any post an insider can publish. The one derivation, read by
+	 * the candidate SQL, the chrome-refs scan and the memo forgetter.
+	 *
+	 * @return list<string>
+	 */
+	function blocklane_pro_forms_chrome_types(): array {
+		$chrome = array();
+		foreach ( get_post_types( array(), 'objects' ) as $type ) {
+			if ( in_array( $type->cap->edit_posts ?? '', array( 'edit_theme_options', 'manage_options' ), true ) ) {
+				$chrome[] = (string) $type->name;
+			}
+		}
+		return $chrome;
+	}
+
+	/**
+	 * The synced-pattern ids a post's content references, read from the
+	 * stored markup without parsing it (core/block's `ref`).
+	 *
+	 * @param string $content Post content.
+	 * @return list<int>
+	 */
+	function blocklane_pro_forms_refs_named( string $content ): array {
+		$refs = array();
+		if ( false === strpos( $content, '<!-- wp:block ' ) || ! preg_match_all( '/<!-- wp:block (\{.*?\}) \/?-->/', $content, $found ) ) {
+			return $refs;
+		}
+		foreach ( $found[1] as $json ) {
+			$attrs = json_decode( $json, true );
+			if ( is_array( $attrs ) && isset( $attrs['ref'] ) && is_numeric( $attrs['ref'] ) && (int) $attrs['ref'] > 0 ) {
+				$refs[] = (int) $attrs['ref'];
+			}
+		}
+		return array_values( array_unique( $refs ) );
+	}
+
+	/**
+	 * The synced patterns some stored content places, and the patterns those
+	 * place, level by level (spec §19: F03 for chrome, F01 for the visitor's
+	 * page). Refs are read from the markup (blocklane_pro_forms_refs_named(),
+	 * never parsed) and followed by the schema walk's rules: a pattern is
+	 * descended only when core would render it (published, no password),
+	 * each id once (the result is the visited set), and at most $max ids in
+	 * all, at one query by primary key per level. Ordering only: a placement
+	 * past $max is not refused, its copies keep their author's tier.
+	 *
+	 * @param list<string> $contents The placing posts' stored content.
+	 * @param int          $max      The most pattern ids to return.
+	 * @return list<int> Pattern ids, nearest level first.
+	 */
+	function blocklane_pro_forms_placed( array $contents, int $max ): array {
+		global $wpdb;
+		$refs = array();
+		while ( array() !== $contents ) {
+			$level = array();
+			foreach ( $contents as $content ) {
+				$level = array_merge( $level, blocklane_pro_forms_refs_named( (string) $content ) );
+			}
+			$level = array_slice( array_values( array_diff( array_unique( $level ), $refs ) ), 0, max( 0, $max - count( $refs ) ) );
+			if ( array() === $level ) {
+				break;
+			}
+			$refs     = array_merge( $refs, $level );
+			$contents = (array) $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- by primary key, at most $max ids in all; the callers memoize or bound it.
+				$wpdb->prepare(
+					"SELECT post_content FROM {$wpdb->posts} WHERE ID IN ( " . implode( ', ', array_fill( 0, count( $level ), '%d' ) ) . " ) AND post_type = 'wp_block' AND post_status = 'publish' AND post_password = '' AND post_content LIKE %s",
+					array_merge( $level, array( '%' . $wpdb->esc_like( '<!-- wp:block ' ) . '%' ) )
+				)
+			);
+		}
+		return $refs;
+	}
+
+	/**
+	 * The synced patterns site chrome places (security read S-R4; spec §19,
+	 * F03): blocklane_pro_forms_placed() over every published chrome post
+	 * that references one, at most BLOCKLANE_PRO_FORMS_REF_CEILING, so a form
+	 * in a pattern nested inside a footer pattern is examined with the
+	 * chrome that places it. Memoized in the object cache for a minute (one
+	 * key, never keyed by a caller); saving or deleting a chrome post or a
+	 * synced pattern forgets it. A memo miss costs the chrome scan and one
+	 * query by primary key per nesting level.
+	 *
+	 * @return list<int>
+	 */
+	function blocklane_pro_forms_chrome_refs(): array {
+		$refs = wp_cache_get( 'placed', 'blocklane_pro_forms_chrome_refs' );
+		if ( is_array( $refs ) ) {
+			return $refs;
+		}
+		global $wpdb;
+		$chrome   = blocklane_pro_forms_chrome_types();
+		$chrome[] = ''; // Never an empty IN list.
+		$contents = (array) $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- memoized in the object cache below.
+			$wpdb->prepare(
+				"SELECT post_content FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_content LIKE %s AND post_type IN ( " . implode( ', ', array_fill( 0, count( $chrome ), '%s' ) ) . ' )',
+				array_merge( array( '%' . $wpdb->esc_like( '<!-- wp:block ' ) . '%' ), $chrome )
+			)
+		);
+		$refs = blocklane_pro_forms_placed( array_map( 'strval', $contents ), BLOCKLANE_PRO_FORMS_REF_CEILING );
+		wp_cache_set( 'placed', $refs, 'blocklane_pro_forms_chrome_refs', MINUTE_IN_SECONDS );
+		return $refs;
+	}
+
+	/**
+	 * Users in the trusted tier at most (spec §19, F04): the bound on the
+	 * candidate SQL's `post_author IN ( … )` list and on each get_users()
+	 * that builds it. A site with more such users ranks the rest's copies
+	 * with the untrusted tier: an order, never a verdict (D-R6).
+	 */
+	define( 'BLOCKLANE_PRO_FORMS_TRUSTED_CAP', 1000 );
+
+	/**
+	 * The trusted tier's authors (security read S-R3): users holding an
+	 * edit-others capability of some post type outside chrome, as get_users()
+	 * reads role capabilities, at most BLOCKLANE_PRO_FORMS_TRUSTED_CAP of
+	 * them, lowest ids first. A memo miss runs one get_users() per distinct
+	 * edit-others capability (posts and pages, plus any custom type with its
+	 * own), each bounded by the cap.
+	 *
+	 * Memoized in the object cache for a minute under one fixed key, never
+	 * keyed by a caller, like blocklane_pro_forms_chrome_refs(); a role
+	 * change forgets it (blocklane_pro_forms_forget_trusted()). Without a
+	 * persistent object cache the memo lives for one request, which NP17
+	 * names.
+	 *
+	 * @return list<int>
+	 */
+	function blocklane_pro_forms_trusted_authors(): array {
+		$trusted = wp_cache_get( 'trusted', 'blocklane_pro_forms_trusted' );
+		if ( is_array( $trusted ) ) {
+			return $trusted;
+		}
+		$chrome = blocklane_pro_forms_chrome_types();
+		$caps   = array();
+		foreach ( get_post_types( array(), 'objects' ) as $type ) {
+			$cap = (string) ( $type->cap->edit_others_posts ?? '' );
+			if ( '' !== $cap && ! in_array( (string) $type->name, $chrome, true ) ) {
+				$caps[ $cap ] = true;
+			}
+		}
+		$trusted = array();
+		foreach ( array_keys( $caps ) as $cap ) {
+			$trusted = array_merge(
+				$trusted,
+				array_map(
+					'intval',
+					(array) get_users(
+						array(
+							'capability' => $cap,
+							'fields'     => 'ID',
+							'orderby'    => 'ID',
+							'number'     => BLOCKLANE_PRO_FORMS_TRUSTED_CAP,
+						)
+					)
+				)
+			);
+		}
+		$trusted = array_values( array_unique( $trusted ) );
+		sort( $trusted, SORT_NUMERIC );
+		$trusted = array_slice( $trusted, 0, BLOCKLANE_PRO_FORMS_TRUSTED_CAP );
+		wp_cache_set( 'trusted', $trusted, 'blocklane_pro_forms_trusted', MINUTE_IN_SECONDS );
+		return $trusted;
+	}
+
+	/**
+	 * Forget the trusted tier's memo when a user's roles change: a role
+	 * added or removed, or a user deleted. WP_User::set_role() fires
+	 * add_user_role and remove_user_role for every role it changes, and
+	 * wp_insert_user() always calls set_role(), so those two hooks cover
+	 * set_user_role and user_register as well; hooking either would add a
+	 * door no change reaches alone. Deletion is deleted_user, after the row
+	 * and its roles are gone, so nothing can re-warm the memo with them in
+	 * between (delete_user fires before). A capability granted to a role or
+	 * a user directly is seen when the minute's memo lapses; the tier is an
+	 * order, never a verdict.
+	 */
+	function blocklane_pro_forms_forget_trusted(): void {
+		wp_cache_delete( 'trusted', 'blocklane_pro_forms_trusted' );
+	}
+	add_action( 'add_user_role', 'blocklane_pro_forms_forget_trusted', 10, 0 );
+	add_action( 'remove_user_role', 'blocklane_pro_forms_forget_trusted', 10, 0 );
+	add_action( 'deleted_user', 'blocklane_pro_forms_forget_trusted', 10, 0 );
+
+	/**
+	 * The two LIKE patterns a post must match to hold a copy of a formId:
+	 * the form block's own comment (`<!-- wp:blocklane/form ` with its
+	 * trailing space, so form-input and its siblings never match; the needle
+	 * blocklane_pro_forms_saved() uses) and the formId attribute. Read by
+	 * both holder queries, the candidate scan and the source fetch, so the
+	 * two cannot disagree on what a holder is.
+	 *
+	 * @param string $form_id A sanitize_title()d formId.
+	 * @return list<string>
+	 */
+	function blocklane_pro_forms_holder_likes( string $form_id ): array {
+		global $wpdb;
+		return array( '%' . $wpdb->esc_like( '<!-- wp:blocklane/form ' ) . '%', '%' . $wpdb->esc_like( '"formId":"' . $form_id . '"' ) . '%' );
+	}
+
+	/**
+	 * The posts that may hold a copy of a formId, as rows: id and author.
+	 * One content scan with the two needles
+	 * (blocklane_pro_forms_holder_likes()) over the live statuses, at most
+	 * BLOCKLANE_PRO_FORMS_CANDIDATE_LIMIT rows, in three tiers, each by ID:
+	 * 0. site chrome (blocklane_pro_forms_chrome_types()) and the synced
+	 *    patterns chrome places (blocklane_pro_forms_chrome_refs(), S-R4);
+	 * 1. posts by a trusted author (blocklane_pro_forms_trusted_authors();
+	 *    security read S-R3: the trust tier is in the SQL, so the limit
+	 *    trims only the untrusted tier);
+	 * 2. the rest.
+	 * The ORDER decides only which copies fit the limit and the examination
+	 * budget, never whose settings route a submission: capability decides
+	 * budget, never routing (decision D-R6; the rejected capability router
+	 * stays rejected, M-WB7).
+	 *
+	 * A row is a CANDIDATE, never a verdict: every one is re-read and
+	 * re-checked (blocklane_pro_forms_audience(), the needle, a real form)
+	 * when it is examined. Memoized in the object cache for a minute
+	 * (security read S2: the public route must not repeat a full-content scan
+	 * per request), only when not empty (a miss is the miss cache's
+	 * business), and forgotten by blocklane_pro_forms_saved() for every
+	 * formId a saved or deleted post carries. The group is not the 1.0.2
+	 * holder-id group, so the older list<int> shape is never read back.
+	 *
+	 * @param string $form_id A sanitize_title()d formId.
+	 * @return list<array{id: int, author: int}>
+	 */
+	function blocklane_pro_forms_candidate_rows( string $form_id ): array {
+		$rows = wp_cache_get( $form_id, 'blocklane_pro_forms_candidates' );
+		if ( is_array( $rows ) ) {
+			return $rows;
+		}
+		global $wpdb;
+		$chrome    = blocklane_pro_forms_chrome_types();
+		$placed    = blocklane_pro_forms_chrome_refs();
+		$trusted   = blocklane_pro_forms_trusted_authors();
+		$chrome[]  = ''; // Never an empty IN list.
+		$placed[]  = 0;
+		$trusted[] = -1;
+		$found     = (array) $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- a content search; the rows are memoized in the object cache below.
+			$wpdb->prepare(
+				"SELECT ID, post_author FROM {$wpdb->posts}
+				WHERE post_status IN ( " . implode( ', ', array_fill( 0, count( BLOCKLANE_PRO_FORMS_LIVE_STATUSES ), '%s' ) ) . ' )
+				AND post_content LIKE %s
+				AND post_content LIKE %s
+				ORDER BY CASE WHEN post_type IN ( ' . implode( ', ', array_fill( 0, count( $chrome ), '%s' ) ) . ' ) OR ID IN ( ' . implode( ', ', array_fill( 0, count( $placed ), '%d' ) ) . ' ) THEN 0 WHEN post_author IN ( ' . implode( ', ', array_fill( 0, count( $trusted ), '%d' ) ) . ' ) THEN 1 ELSE 2 END, ID ASC
+				LIMIT %d',
+				array_merge(
+					BLOCKLANE_PRO_FORMS_LIVE_STATUSES,
+					blocklane_pro_forms_holder_likes( $form_id ),
+					$chrome,
+					$placed,
+					$trusted,
+					array( BLOCKLANE_PRO_FORMS_CANDIDATE_LIMIT )
+				)
+			),
+			ARRAY_A
+		);
+		$rows = array();
+		foreach ( $found as $row ) {
+			$rows[] = array(
+				'id'     => (int) $row['ID'],
+				'author' => (int) $row['post_author'],
+			);
+		}
+		if ( array() !== $rows ) {
+			wp_cache_set( $form_id, $rows, 'blocklane_pro_forms_candidates', MINUTE_IN_SECONDS );
+		}
+		return $rows;
+	}
+
+	/**
+	 * The post a submission's `_bl_source` may name (#2030): the post, when
+	 * it exists, is_post_publicly_viewable() holds and it has no password —
+	 * a post an anonymous visitor can be shown as the page (decision D9 a);
+	 * else null. The caller chooses the id and nothing else may be read from
+	 * it first: both readers of `_bl_source` take this door's answer, the
+	 * examination order (blocklane_pro_forms_source_rows()) and the lead's
+	 * provenance in the submission handler, so a draft, private, trashed,
+	 * password-protected or internal post's stored content is never walked
+	 * and never named, and one predicate answers for both.
+	 *
+	 * @param int $source_id The posted _bl_source (0 when absent).
+	 * @return \WP_Post|null
+	 */
+	function blocklane_pro_forms_source_post( int $source_id ): ?\WP_Post {
+		$post = $source_id > 0 ? \WP_Post::get_instance( $source_id ) : false;
+		if ( ! $post instanceof \WP_Post || ! is_post_publicly_viewable( $post ) || '' !== (string) $post->post_password ) {
 			return null;
 		}
-		$cached = get_transient( $cache_key );
+		return $post;
+	}
 
-		// Positive fast path: the cached post still hosts the form → return
-		// without touching wp_posts. Revalidated so an edited/deleted source
-		// falls through to a fresh search.
-		if ( $cached ) {
-			$post = get_post( absint( $cached ) );
-			if ( $post && in_array( $post->post_status, array( 'publish', 'private' ), true )
-				&& false !== strpos( $post->post_content, $needle ) ) {
-				$form = blocklane_pro_forms_find_form_block( parse_blocks( $post->post_content ), $form_id );
-				if ( $form ) {
-					return array(
-						'form'      => $form,
-						'source_id' => (int) $post->ID,
-					);
+	/**
+	 * The posts the request itself names, by primary key (spec §19, F01):
+	 * the source post blocklane_pro_forms_source_post() admitted for the
+	 * posted `_bl_source` (#2030: none for a post nobody may be shown, so its
+	 * content is never walked) and at most BLOCKLANE_PRO_FORMS_EXAMINE_CAP - 1
+	 * of the synced patterns it places, nested ones included
+	 * (blocklane_pro_forms_placed()), each kept only when it passes the
+	 * candidate SQL's own prefilter — a live status and both needles
+	 * (blocklane_pro_forms_holder_likes()). The source first, then its
+	 * patterns, nearest level first.
+	 *
+	 * The candidate SQL cannot know them: its rows are memoized per formId,
+	 * so they are ranked by author and trimmed by its LIMIT before any
+	 * request is seen, and an on-page copy by an untrusted author could be
+	 * trimmed by 500 older untrusted copies. Fetched here, outside the
+	 * limit, the visitor's own page is always examined first, so a signed
+	 * visitor is never refused for copies someone else planted. Ordering
+	 * only (G3): every id is re-read and re-checked when it is examined.
+	 *
+	 * One query by primary key per nesting level the page places, and one
+	 * for the prefilter, only for a formId that has candidates (an unknown id
+	 * never gets here) and a source the door admitted.
+	 *
+	 * @param string        $form_id A sanitize_title()d formId.
+	 * @param \WP_Post|null $source  blocklane_pro_forms_source_post()'s answer.
+	 * @return list<int> Post ids.
+	 */
+	function blocklane_pro_forms_source_rows( string $form_id, ?\WP_Post $source ): array {
+		if ( null === $source ) {
+			return array();
+		}
+		global $wpdb;
+		$named = array_merge( array( (int) $source->ID ), blocklane_pro_forms_placed( array( (string) $source->post_content ), BLOCKLANE_PRO_FORMS_EXAMINE_CAP - 1 ) );
+		$found = array_map(
+			'intval',
+			(array) $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- by primary key, at most fifty ids; never memoized, it is the request's.
+				$wpdb->prepare(
+					"SELECT ID FROM {$wpdb->posts}
+					WHERE ID IN ( " . implode( ', ', array_fill( 0, count( $named ), '%d' ) ) . ' )
+					AND post_status IN ( ' . implode( ', ', array_fill( 0, count( BLOCKLANE_PRO_FORMS_LIVE_STATUSES ), '%s' ) ) . ' )
+					AND post_content LIKE %s
+					AND post_content LIKE %s',
+					array_merge( $named, BLOCKLANE_PRO_FORMS_LIVE_STATUSES, blocklane_pro_forms_holder_likes( $form_id ) )
+				)
+			)
+		);
+		return array_values( array_intersect( $named, $found ) );
+	}
+
+	/**
+	 * The order the candidates are examined in: the request's own posts
+	 * (blocklane_pro_forms_source_rows(), whether or not the candidate SQL
+	 * kept them) first, then every candidate row in the SQL's order (chrome
+	 * and the patterns chrome places, trusted authors, the rest), each id
+	 * once.
+	 *
+	 * THE ORDER DECIDES ONLY TWO THINGS (guarantee G3): which copies fit the
+	 * examination budget, and which of several IDENTICAL copies a `bound`
+	 * verdict names. Nothing a caller posts can make it choose whose
+	 * settings route a submission.
+	 *
+	 * @param list<array{id: int, author: int}> $rows  blocklane_pro_forms_candidate_rows().
+	 * @param list<int>                         $first blocklane_pro_forms_source_rows().
+	 * @return list<int> Post ids.
+	 */
+	function blocklane_pro_forms_examination_order( array $rows, array $first ): array {
+		$ids = array_column( $rows, 'id' );
+		return array_values( array_unique( array_merge( $first, $ids ) ) );
+	}
+
+	/**
+	 * The copies of a formId one post holds: one item per form, in tree
+	 * order, each the post, its audience and the form's definition — no
+	 * parsed block and no raw attributes, so nothing downstream can act on
+	 * bytes the binding did not sign (F03). Nothing when the post is not
+	 * rendered (audience `none`), does not carry the formId, or holds no real
+	 * form with it. At most BLOCKLANE_PRO_FORMS_COPIES_CAP copies; a post
+	 * holding more says so (`complete` false), and so does a copy whose
+	 * definition cannot be computed (its walk refused past the ref ceiling or
+	 * the pool, F06): a copy nobody examined is never left out of a verdict
+	 * as if it were absent.
+	 *
+	 * @param \WP_Post $post    A candidate.
+	 * @param string   $form_id A sanitize_title()d formId.
+	 * @param int|null $pool    The examination's synced-pattern descents left (resolve()'s pool), spent here; null lends
+	 *                          each definition the ceiling.
+	 * @return array{copies: list<array{post_id: int, audience: string, definition: array{attrs: array<string, mixed>, schema: array<string, array<string, mixed>>, ignored: list<string>}}>, complete: bool}
+	 */
+	function blocklane_pro_forms_copies_in( \WP_Post $post, string $form_id, ?int &$pool = null ): array {
+		$audience = blocklane_pro_forms_audience( $post );
+		$content  = (string) $post->post_content;
+		if ( 'none' === $audience || false === stripos( $content, '"formId":"' . $form_id . '"' ) ) {
+			return array(
+				'copies'   => array(),
+				'complete' => true,
+			);
+		}
+		$forms    = blocklane_pro_forms_forms_in( parse_blocks( $content ), $form_id );
+		$copies   = array();
+		$complete = count( $forms ) <= BLOCKLANE_PRO_FORMS_COPIES_CAP;
+		foreach ( array_slice( $forms, 0, BLOCKLANE_PRO_FORMS_COPIES_CAP ) as $form ) {
+			$definition = blocklane_pro_forms_definition( $form, $pool );
+			if ( is_wp_error( $definition ) ) {
+				$complete = false;
+				continue;
+			}
+			$copies[] = array(
+				'post_id'    => (int) $post->ID,
+				'audience'   => $audience,
+				'definition' => $definition,
+			);
+		}
+		return array(
+			'copies'   => $copies,
+			'complete' => $complete,
+		);
+	}
+
+	/**
+	 * Every blocklane/form in a parsed block tree whose sanitized formId is
+	 * the given one, in tree order. A quoted formId (a code block, a
+	 * paragraph) is not a form and is never returned.
+	 *
+	 * @param array<int|string, mixed> $blocks  Parsed blocks.
+	 * @param string                   $form_id A sanitize_title()d formId.
+	 * @return list<array<string, mixed>>
+	 */
+	function blocklane_pro_forms_forms_in( array $blocks, string $form_id ): array {
+		$found = array();
+		foreach ( $blocks as $block ) {
+			if ( ! is_array( $block ) ) {
+				continue;
+			}
+			if ( 'blocklane/form' === ( $block['blockName'] ?? '' ) && isset( $block['attrs']['formId'] ) && is_string( $block['attrs']['formId'] ) && '' !== $block['attrs']['formId'] && sanitize_title( $block['attrs']['formId'] ) === $form_id ) {
+				$found[] = $block;
+			}
+			if ( ! empty( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) {
+				$found = array_merge( $found, blocklane_pro_forms_forms_in( $block['innerBlocks'], $form_id ) );
+			}
+		}
+		return $found;
+	}
+
+	/**
+	 * The names a submission posts: every body key except module meta (the
+	 * reserved `_bl_` prefix, skipped by PREFIX so a newer view.js's meta is
+	 * never trapped), the honeypot and the Turnstile token, plus every file
+	 * key.
+	 *
+	 * @param array<int|string, mixed> $params Body params.
+	 * @param array<int|string, mixed> $files  File params.
+	 * @return list<string>
+	 */
+	function blocklane_pro_forms_posted_names( array $params, array $files ): array {
+		$meta  = array( blocklane_pro_forms_honeypot_name(), 'cf-turnstile-response' );
+		$names = array();
+		foreach ( array_keys( $params ) as $key ) {
+			$key = (string) $key;
+			if ( 0 === strpos( $key, '_bl_' ) || in_array( $key, $meta, true ) ) {
+				continue;
+			}
+			$names[] = $key;
+		}
+		foreach ( array_keys( $files ) as $key ) {
+			$names[] = (string) $key;
+		}
+		return array_values( array_unique( $names ) );
+	}
+
+	/**
+	 * The posted names a definition does not accept: the one tamper test.
+	 * A name in the definition's schema is a field; a name in its `ignored`
+	 * list is a field of a suite block this edition does not register (a
+	 * page cached under the other edition still posts it), dropped rather
+	 * than trapped. Anything else is unknown.
+	 *
+	 * @param array{schema: array<string, mixed>, ignored: list<string>} $definition A definition (or a resolution).
+	 * @param list<string>                                                $posted     blocklane_pro_forms_posted_names().
+	 * @return list<string>
+	 */
+	function blocklane_pro_forms_unknown_names( array $definition, array $posted ): array {
+		$unknown = array();
+		foreach ( $posted as $name ) {
+			if ( ! array_key_exists( $name, $definition['schema'] ) && ! in_array( $name, $definition['ignored'], true ) ) {
+				$unknown[] = $name;
+			}
+		}
+		return $unknown;
+	}
+
+	/**
+	 * A submission that trips a bot trap: the honeypot filled, or the
+	 * time-trap token missing (no JS, or a submit faster than the arm delay).
+	 * The honeypot compares against the empty string rather than !empty(): a
+	 * bot that stuffs '0' into every input must not read as human. A
+	 * honeypot posted as anything but a scalar (`hp[]=x`) is filled: a
+	 * browser never posts the text input that way (F02).
+	 *
+	 * @param array<int|string, mixed> $params Body params.
+	 */
+	function blocklane_pro_forms_is_bot( array $params ): bool {
+		$honeypot = blocklane_pro_forms_honeypot_name();
+		$filled   = isset( $params[ $honeypot ] ) && ( ! is_scalar( $params[ $honeypot ] ) || '' !== trim( (string) $params[ $honeypot ] ) );
+		return $filled || ! isset( $params['_bl_time'] ) || '1' !== $params['_bl_time'];
+	}
+
+	/**
+	 * The one verdict builder: what a submission decided by $copies may
+	 * route, gate and validate by. Every value comes from the copies'
+	 * definitions — the prepared bytes the binding signs, never raw block
+	 * attributes (F03) — and each attribute by its BLOCKLANE_PRO_FORMS_MEET
+	 * rule; a null (inherit) is never a value. `attrs` carries no gate or
+	 * unique key: those travel as `gates` (each a requireLogin/schedule
+	 * tuple the handler checks) and `unique` (the field names to hold
+	 * unique). Unattested, the schema is the first public copy's (every copy
+	 * shares it canonically by then) with no hidden field as Reply-To, and
+	 * `source_id` is 0: no copy is THE copy (the viewing page stays in the
+	 * payload's origin_id).
+	 *
+	 * @param list<array{post_id: int, audience: string, definition: array{attrs: array<string, mixed>, schema: array<string, array<string, mixed>>, ignored: list<string>}}> $copies   One copy (attested) or every live copy (unattested), public first among equals.
+	 * @param bool                                                                                                                                                         $attested Whether a binding verified $copies[0].
+	 * @return array{attrs: array<string, mixed>, gates: list<array<string, mixed>>, unique: list<string>, schema: array<string, array<string, mixed>>, ignored: list<string>, source_id: int}|\WP_Error
+	 *         blocklane_forms_stale when unattested copies disagree on an `agree` attribute.
+	 */
+	function blocklane_pro_forms_verdict( array $copies, bool $attested ): array|\WP_Error {
+		$copies = $attested ? array( $copies[0] ) : $copies;
+		$attrs  = array();
+		$unique = array();
+		$gates  = array();
+		foreach ( $copies as $copy ) {
+			$gate = array();
+			foreach ( BLOCKLANE_PRO_FORMS_MEET as $key => $rule ) {
+				if ( 'gate' === $rule ) {
+					$gate[ $key ] = $copy['definition']['attrs'][ $key ] ?? null;
+				}
+			}
+			$gates[ (string) wp_json_encode( $gate ) ] = $gate;
+		}
+		foreach ( BLOCKLANE_PRO_FORMS_MEET as $key => $rule ) {
+			$values    = array_map( static fn( array $copy ): mixed => $copy['definition']['attrs'][ $key ] ?? null, $copies );
+			$same      = 1 === count( array_unique( array_map( static fn( mixed $value ): string => (string) wp_json_encode( $value ), $values ) ) );
+			$all_false = array() === array_filter( $values, static fn( mixed $value ): bool => false !== $value );
+			if ( 'agree' === $rule ) {
+				if ( ! $same ) {
+					return new \WP_Error( 'blocklane_forms_stale', 'The live copies of this form disagree on ' . $key . '.' );
+				}
+				if ( is_string( $values[0] ) && '' !== $values[0] ) {
+					$unique[] = $values[0];
+				}
+				continue;
+			}
+			if ( in_array( $rule, array( 'identity', 'gate' ), true ) ) {
+				continue;
+			}
+			if ( $attested ) {
+				if ( null !== $values[0] ) {
+					$attrs[ $key ] = $values[0];
+				}
+				continue;
+			}
+			switch ( $rule ) {
+				case 'unanimous':
+					if ( $same && null !== $values[0] ) {
+						$attrs[ $key ] = $values[0];
+					}
+					break;
+				case 'opt_out':
+					// A copy that inherits (null) resolves to the site default,
+					// which resolve_config() fills when nothing is set here.
+					if ( in_array( true, $values, true ) ) {
+						$attrs[ $key ] = true;
+					} elseif ( $all_false ) {
+						$attrs[ $key ] = false;
+					}
+					break;
+				case 'narrow':
+					if ( $all_false ) {
+						$attrs[ $key ] = false;
+					}
+					break;
+				case 'off':
+					$attrs[ $key ] = array( 'enabled' => false );
+					break;
+			}
+		}
+		$first  = $copies[0];
+		$schema = $first['definition']['schema'];
+		if ( ! $attested ) {
+			foreach ( $copies as $copy ) {
+				if ( 'public' === $copy['audience'] ) {
+					$first = $copy;
+					break;
+				}
+			}
+			$schema = $first['definition']['schema'];
+			foreach ( $schema as $name => $row ) {
+				if ( 'hidden' === ( $row['type'] ?? '' ) ) {
+					$schema[ $name ]['isReplyTo'] = false;
 				}
 			}
 		}
-
-		global $wpdb;
-		$found = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- locate-by-content; a hit is cached in a transient, a miss in the object cache only.
-			$wpdb->prepare(
-				"SELECT ID FROM {$wpdb->posts}
-				WHERE post_status IN ( 'publish', 'private' )
-				AND post_type NOT IN ( 'revision', 'auto-draft' )
-				AND post_content LIKE %s
-				ORDER BY ID ASC
-				LIMIT 5",
-				'%' . $wpdb->esc_like( $needle ) . '%'
-			)
+		return array(
+			'attrs'     => $attrs,
+			'gates'     => array_values( $gates ),
+			'unique'    => $unique,
+			'schema'    => $schema,
+			'ignored'   => $first['definition']['ignored'],
+			'source_id' => $attested ? (int) $first['post_id'] : 0,
 		);
+	}
 
-		foreach ( array_map( 'absint', (array) $found ) as $candidate_id ) {
-			$post = get_post( $candidate_id );
-			if ( ! $post || false === strpos( $post->post_content, $needle ) ) {
-				continue;
+	/**
+	 * The one resolution door: which settings decide this submission?
+	 *
+	 * THE GUARANTEE (spec 2026-10-06-forms-form-ownership §16.4.2).
+	 * - G1 (identity). A submission is routed by a copy's own settings only
+	 *   when its `_bl_bind` verifies against a copy that renders, to anyone —
+	 *   a password-protected or private holder's included (`bound`;
+	 *   blocklane_pro_forms_binding_verifies(), the one verifier). The binding
+	 *   is the only door that chooses a copy: two copies tie only when their
+	 *   definitions are identical, and identical definitions route
+	 *   identically.
+	 * - G2 (unsigned). Any other submission is decided by the MEET of EVERY
+	 *   live copy (BLOCKLANE_PRO_FORMS_MEET, blocklane_pro_forms_verdict()):
+	 *   routing from the site defaults; every gate any copy sets; a unique
+	 *   field only when every copy names it; the storage and admin-mail
+	 *   opt-outs only when every copy opts out (storage never past the site's
+	 *   own opt-out); no auto-response; one schema every copy shares, with no
+	 *   Reply-To from a hidden field (`shared`). It is refused with an honest
+	 *   `stale` (the handler's 409, after the bot traps) when the copies
+	 *   disagree on the schema or on the unique field, when no copy is
+	 *   public, when the posted names are not the schema's, or when not every
+	 *   live copy can be examined: past the examination budget or a post's
+	 *   copy cap, or a copy whose schema walk needs more synced patterns than
+	 *   BLOCKLANE_PRO_FORMS_REF_CEILING or the request's pool allows (F06).
+	 * - G3 (order never decides). The examination order and `_bl_source`
+	 *   decide only which copies fit the budget and which of several
+	 *   identical copies a `bound` verdict names. An incomplete examination
+	 *   fails closed; no verdict depends on a prior request.
+	 * - G4 (no state). No write query, no option read by formId, no cached
+	 *   verdict, no durable state. The only caches are in the object cache:
+	 *   the miss (written only when no candidate exists at all), the
+	 *   candidate rows (re-checked on every call, forgotten on save and
+	 *   delete), and the two site-wide sets the candidate SQL orders by, each
+	 *   under one fixed key (the patterns chrome places, the trusted authors).
+	 * - G5 (no content writes). No forms code rewrites a formId or any post
+	 *   content.
+	 * Outside the guarantee, by name (spec §8, §16.8): NP1 (own routing for
+	 * unsigned submissions), NP6 (a form with no live copy left
+	 * fake-succeeds), NP10 (a caller replaying a live copy's binding), NP11
+	 * (previews), NP13–NP25 (the 409 cases, the examination budget, the only
+	 * remaining copy, render-time rewriters, the cost, unused parts of the
+	 * active theme, the binding as a TIMING oracle — narrowed by #1986: a
+	 * token is minted fresh on every render, so no two printed values can be
+	 * compared, and what remains is the examination's time, rate-limited per
+	 * client (ND7) — ids sanitize_title()
+	 * rewrites, `source_id` 0, the payload, more than fifty legitimate
+	 * copies, free-only rows, logged-in unsigned visitors).
+	 *
+	 * Context-free (no current user, no request, no is_admin) and read-only.
+	 * The binding is not authentication: an anonymous caller who replays one
+	 * chooses which LIVE definition validates their own submission, which is
+	 * what submitting on that page does.
+	 *
+	 * @param string       $form_id   A sanitize_title()d formId.
+	 * @param string       $binding   The posted _bl_bind ('' when absent).
+	 * @param int          $source_id The posted _bl_source (0 when absent): the examination's first post, never a verdict.
+	 * @param list<string> $posted    blocklane_pro_forms_posted_names().
+	 * @return array{attrs: array<string, mixed>, gates: list<array<string, mixed>>, unique: list<string>, schema: array<string, array<string, mixed>>, ignored: list<string>, source_id: int, resolution: string, copies: int}|\WP_Error
+	 *         blocklane_forms_unknown (no live copy), blocklane_forms_stale
+	 *         (copies the submission cannot be decided by), blocklane_forms_
+	 *         unavailable (the form block is not registered).
+	 */
+	function blocklane_pro_forms_resolve( string $form_id, string $binding, int $source_id, array $posted ): array|\WP_Error {
+		// A miss remembered in the object cache: an unknown formId (spam
+		// against the public route) must not run a content scan on every hit.
+		if ( '' === $form_id || false !== wp_cache_get( $form_id, 'blocklane_pro_forms_loc_miss' ) ) {
+			return new \WP_Error( 'blocklane_forms_unknown', 'No live form carries this formId.' );
+		}
+		// Without the block type no definition can be computed: an honest
+		// refusal, never a fake success (sweep-1005).
+		if ( ! \WP_Block_Type_Registry::get_instance()->is_registered( 'blocklane/form' ) ) {
+			return new \WP_Error( 'blocklane_forms_unavailable', 'The blocklane/form block type is not registered.' );
+		}
+		$rows = blocklane_pro_forms_candidate_rows( $form_id );
+		if ( array() === $rows ) {
+			// Remember the miss briefly — in the object cache only, so a formId
+			// that matches nothing writes nothing durable.
+			wp_cache_set( $form_id, 1, 'blocklane_pro_forms_loc_miss', MINUTE_IN_SECONDS );
+			return new \WP_Error( 'blocklane_forms_unknown', 'No live form carries this formId.' );
+		}
+		$seen     = array();
+		$complete = true;
+		$examined = 0;
+		$pool     = BLOCKLANE_PRO_FORMS_EXAMINE_CAP * BLOCKLANE_PRO_FORMS_REF_CEILING;
+		foreach ( blocklane_pro_forms_examination_order( $rows, blocklane_pro_forms_source_rows( $form_id, blocklane_pro_forms_source_post( $source_id ) ) ) as $id ) {
+			if ( BLOCKLANE_PRO_FORMS_EXAMINE_CAP === $examined ) {
+				$complete = false;
+				break;
 			}
-			$form = blocklane_pro_forms_find_form_block( parse_blocks( $post->post_content ), $form_id );
-			if ( $form ) {
-				set_transient( $cache_key, $candidate_id, DAY_IN_SECONDS );
-
-				return array(
-					'form'      => $form,
-					'source_id' => $candidate_id,
-				);
+			++$examined;
+			$post = get_post( $id );
+			if ( ! $post instanceof \WP_Post ) {
+				continue; // Gone since the rows were memoized; it still counted.
+			}
+			$found    = blocklane_pro_forms_copies_in( $post, $form_id, $pool );
+			$complete = $complete && $found['complete'];
+			foreach ( $found['copies'] as $copy ) {
+				if ( '' !== $binding && blocklane_pro_forms_binding_verifies( $form_id, $copy['definition'], $binding ) ) {
+					return blocklane_pro_forms_verdict( array( $copy ), true ) + array(
+						'resolution' => 'bound',
+						'copies'     => 1,
+					);
+				}
+				$seen[] = $copy;
 			}
 		}
-
-		// Remember the miss briefly so a formId that matches nothing can't be
-		// used to amplify full-table scans — in the object cache only.
-		wp_cache_set( $form_id, 1, 'blocklane_pro_forms_loc_miss', MINUTE_IN_SECONDS );
-
-		return null;
+		if ( ! $complete ) {
+			return new \WP_Error( 'blocklane_forms_stale', 'Not every live copy of this form could be examined.' );
+		}
+		if ( array() === $seen ) {
+			return new \WP_Error( 'blocklane_forms_unknown', 'No live form carries this formId.' );
+		}
+		$public = array_values( array_filter( $seen, static fn( array $copy ): bool => 'public' === $copy['audience'] ) );
+		if ( array() === $public ) {
+			return new \WP_Error( 'blocklane_forms_stale', 'No public copy of this form exists.' );
+		}
+		$shape = static function ( array $copy ): string {
+			$ignored = $copy['definition']['ignored'];
+			sort( $ignored, SORT_STRING );
+			return (string) wp_json_encode( array( blocklane_pro_forms_canonical( $copy['definition']['schema'] ), $ignored ) );
+		};
+		foreach ( $seen as $copy ) {
+			if ( $shape( $copy ) !== $shape( $public[0] ) ) {
+				return new \WP_Error( 'blocklane_forms_stale', 'The live copies of this form have different fields.' );
+			}
+		}
+		if ( array() !== blocklane_pro_forms_unknown_names( $public[0]['definition'], $posted ) ) {
+			return new \WP_Error( 'blocklane_forms_stale', 'No live copy of this form accepts the posted names.' );
+		}
+		$verdict = blocklane_pro_forms_verdict( $seen, false );
+		if ( is_wp_error( $verdict ) ) {
+			return $verdict;
+		}
+		return $verdict + array(
+			'resolution' => 'shared',
+			'copies'     => count( $seen ),
+		);
 	}
 
 	/**
@@ -1925,53 +2907,35 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	}
 
 	/**
-	 * save_post: forget a remembered miss AND a cached location for every
-	 * formId the saved post carries, so a form published a moment after a
-	 * spam submission named its id is located on the very next submission
-	 * (security read F4), and a copy published or edited since the location
-	 * was cached is weighed by a fresh search (review 2026-10-06 F05).
+	 * save_post and deleted_post: forget the remembered miss and the
+	 * memoized candidate rows for every formId the post carries, so a form
+	 * published a moment after a spam submission named its id resolves on
+	 * the very next submission (security read F4), a copy published, edited
+	 * or deleted since the rows were memoized is weighed on the next one, and
+	 * a deleted copy stops counting toward the examination budget (S-R8).
+	 * Saving or deleting site chrome or a synced pattern also forgets the
+	 * synced patterns chrome places (S-R4, F03: a pattern can place
+	 * another). It reads the post's content and deletes object-cache
+	 * entries; it writes nothing else and never touches content (G5).
 	 *
 	 * @param int      $post_id Post ID.
 	 * @param \WP_Post $post    Post.
 	 */
 	function blocklane_pro_forms_saved( int $post_id, \WP_Post $post ): void {
 		unset( $post_id );
+		if ( 'wp_block' === $post->post_type || in_array( $post->post_type, blocklane_pro_forms_chrome_types(), true ) ) {
+			wp_cache_delete( 'placed', 'blocklane_pro_forms_chrome_refs' );
+		}
 		if ( ! str_contains( (string) $post->post_content, 'wp:blocklane/form ' ) ) {
 			return;
 		}
 		foreach ( blocklane_pro_forms_form_ids( parse_blocks( (string) $post->post_content ) ) as $form_id ) {
 			wp_cache_delete( $form_id, 'blocklane_pro_forms_loc_miss' );
-			delete_transient( 'blocklane_pro_forms_loc_' . $form_id );
+			wp_cache_delete( $form_id, 'blocklane_pro_forms_candidates' );
 		}
 	}
 	add_action( 'save_post', 'blocklane_pro_forms_saved', 10, 2 );
-
-	/**
-	 * Find a form block with a matching formId in a parsed block tree.
-	 *
-	 * @param array  $blocks  Parsed blocks.
-	 * @param string $form_id Form id.
-	 * @return array|null The parsed form block.
-	 */
-	function blocklane_pro_forms_find_form_block( $blocks, $form_id ) {
-		foreach ( (array) $blocks as $block ) {
-			if ( ! is_array( $block ) ) {
-				continue;
-			}
-			if ( isset( $block['blockName'] ) && 'blocklane/form' === $block['blockName']
-				&& isset( $block['attrs']['formId'] ) && $block['attrs']['formId'] === $form_id ) {
-				return $block;
-			}
-			if ( ! empty( $block['innerBlocks'] ) ) {
-				$found = blocklane_pro_forms_find_form_block( $block['innerBlocks'], $form_id );
-				if ( $found ) {
-					return $found;
-				}
-			}
-		}
-
-		return null;
-	}
+	add_action( 'deleted_post', 'blocklane_pro_forms_saved', 10, 2 );
 
 	/**
 	 * Merge a parsed block's saved attributes over its block.json defaults.
@@ -2009,14 +2973,30 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	 * the later field wins (matching the browser's last-value-wins POST and
 	 * the render, which also uses pure names).
 	 *
-	 * @param array $form_block Parsed blocklane/form block.
-	 * @param list<string>|null $ignored Filled with the posted names of suite blocks this
-	 *                                    edition does not register (rule 6); null skips it.
-	 * @return array Field schemas keyed by field name.
+	 * A walk that needs more synced patterns than it may read (the ceiling,
+	 * or what is left of the caller's pool) is refused whole: a schema
+	 * missing the fields core still renders would trap their names as
+	 * tampering and fake-succeed a real visitor (spec §19, F06).
+	 *
+	 * @param array<string, mixed> $form_block Parsed blocklane/form block.
+	 * @param list<string>|null    $ignored    Filled with the posted names of suite blocks this
+	 *                                         edition does not register (rule 6); null skips it.
+	 * @param int|null             $pool       Synced-pattern descents left to the caller, spent by this walk; null
+	 *                                         lends it BLOCKLANE_PRO_FORMS_REF_CEILING.
+	 * @return array<string, array<string, mixed>>|\WP_Error Field schemas keyed by field name;
+	 *         blocklane_forms_ref_ceiling when the walk is refused.
 	 */
-	function blocklane_pro_forms_derive_schema( $form_block, ?array &$ignored = null ) {
+	function blocklane_pro_forms_derive_schema( array $form_block, ?array &$ignored = null, ?int &$pool = null ): array|\WP_Error {
 		$fields = array();
-		blocklane_pro_forms_collect_fields( isset( $form_block['innerBlocks'] ) ? $form_block['innerBlocks'] : array(), $fields, 0, $ignored );
+		$ctx    = null;
+		$lent   = null === $pool ? BLOCKLANE_PRO_FORMS_REF_CEILING : min( BLOCKLANE_PRO_FORMS_REF_CEILING, max( 0, $pool ) );
+		blocklane_pro_forms_collect_fields( isset( $form_block['innerBlocks'] ) && is_array( $form_block['innerBlocks'] ) ? $form_block['innerBlocks'] : array(), $fields, $ignored, $ctx, $lent );
+		if ( null !== $pool ) {
+			$pool -= $lent - $ctx['refs'];
+		}
+		if ( $ctx['refused'] ) {
+			return new \WP_Error( 'blocklane_forms_ref_ceiling', 'The form references more synced patterns than one examination reads.' );
+		}
 
 		return $fields;
 	}
@@ -2037,6 +3017,15 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	 *           // block; PHP passes extra arguments to a userland callable
 	 *           // harmlessly, so a collector that needs only the attributes
 	 *           // may declare one parameter.
+	 *           //
+	 *           // A PURE FUNCTION OF THE BLOCK'S STORED ATTRIBUTES. The row
+	 *           // is part of the form's definition, which the form's binding
+	 *           // (_bl_bind) signs: anything the environment decides — an
+	 *           // upload cap, a filter's answer, the request, the user —
+	 *           // belongs in `validate`, computed at call time. A row that
+	 *           // varies with its context changes the binding under every
+	 *           // cached page, and every submission of the form then arrives
+	 *           // unsigned (spec 2026-10-06-forms-form-ownership NP16).
 	 *           'collect'  => function ( array $attrs, array $block ) { … },
 	 *           // Same contract as the internal validator:
 	 *           // return array( 'value' => mixed, 'error' => string ), plus
@@ -2238,15 +3227,25 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	 * and E38g/E38h do exactly that), so a cache that outlived one walk would
 	 * be a second source of truth with a different answer.
 	 *
-	 * @param array $blocks Parsed blocks.
-	 * @param array $fields Collected schemas (by reference).
-	 * @param int   $depth  Recursion guard for synced-pattern cycles.
+	 * The walk's state rides $ctx BY REFERENCE: `visited` (the synced
+	 * patterns already descended), `refs` (the descents left) and `refused`
+	 * are one walk's, shared by every recursion, or a pattern that
+	 * references itself would be descended once per branch. The visited set
+	 * alone ends a cycle; `refs` only bounds the cost, and running out of it
+	 * REFUSES the walk (`refused`, which derive_schema() turns into an
+	 * error) instead of skipping the pattern: core renders that pattern's
+	 * fields, so a schema without them would trap a real visitor (F06).
+	 *
+	 * @param array             $blocks  Parsed blocks.
+	 * @param array             $fields  Collected schemas (by reference).
 	 * @param list<string>|null $ignored Collects the names of unknown-suite wrappers' fields (rule 6).
-	 * @param array{registry: array<string, array<string, mixed>>, known: list<string>, field_blocks: list<string>}|null $ctx
-	 *        The walk's sets; null computes them (the entry call). Recursion
-	 *        passes its own down.
+	 * @param array{registry: array<string, array<string, mixed>>, known: list<string>, field_blocks: list<string>, visited: array<int, true>, refs: int, refused: bool}|null $ctx
+	 *        The walk's sets and state; null computes them (the entry call).
+	 *        Recursion passes its own down, by reference.
+	 * @param int               $lent    The entry call's synced-pattern descents (derive_schema() lends the
+	 *                                   ceiling, or less when the caller's pool is lower); recursion ignores it.
 	 */
-	function blocklane_pro_forms_collect_fields( $blocks, array &$fields, $depth = 0, ?array &$ignored = null, ?array $ctx = null ): void {
+	function blocklane_pro_forms_collect_fields( $blocks, array &$fields, ?array &$ignored = null, ?array &$ctx = null, int $lent = BLOCKLANE_PRO_FORMS_REF_CEILING ): void {
 		if ( null === $ctx ) {
 			$blocklane_registry = blocklane_pro_forms_field_type_registry();
 			$blocklane_known    = array();
@@ -2257,12 +3256,18 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 				'registry'     => $blocklane_registry,
 				'known'        => $blocklane_known,
 				'field_blocks' => blocklane_pro_forms_field_blocks( $blocklane_registry ),
+				'visited'      => array(),
+				'refs'         => $lent,
+				'refused'      => false,
 			);
 		}
 		$registry = $ctx['registry'];
 		$known    = $ctx['known'];
 
 		foreach ( (array) $blocks as $block ) {
+			if ( $ctx['refused'] ) {
+				return;
+			}
 			if ( ! is_array( $block ) || empty( $block['blockName'] ) ) {
 				continue;
 			}
@@ -2346,7 +3351,7 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 					$ignored[] = blocklane_pro_forms_field_name( isset( $block['attrs'] ) && is_array( $block['attrs'] ) ? $block['attrs'] : array() );
 				}
 				if ( ! empty( $block['innerBlocks'] ) ) {
-					blocklane_pro_forms_collect_fields( $block['innerBlocks'], $fields, $depth, $ignored, $ctx );
+					blocklane_pro_forms_collect_fields( $block['innerBlocks'], $fields, $ignored, $ctx );
 				}
 				continue;
 			}
@@ -2465,11 +3470,23 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 
 				case 'core/block':
 					// A synced pattern reference: load and descend its content
-					// so fields moved into a reusable block are still validated.
-					if ( $depth < 5 && ! empty( $attrs['ref'] ) ) {
-						$ref = get_post( absint( $attrs['ref'] ) );
-						if ( $ref && 'wp_block' === $ref->post_type ) {
-							blocklane_pro_forms_collect_fields( parse_blocks( $ref->post_content ), $fields, $depth + 1, $ignored, $ctx );
+					// so fields moved into a reusable block are still validated
+					// — exactly when core renders it. MIRROR CONTRACT, core
+					// blocks/block.php:27-42: a wp_block, published, with no
+					// password, and each ref once ($seen_refs there, `visited`
+					// here), at any depth, as core. A ref past what the walk
+					// may read refuses the walk (BLOCKLANE_PRO_FORMS_REF_CEILING).
+					$blocklane_ref_id = ! empty( $attrs['ref'] ) && is_numeric( $attrs['ref'] ) ? absint( $attrs['ref'] ) : 0;
+					if ( $blocklane_ref_id > 0 && ! isset( $ctx['visited'][ $blocklane_ref_id ] ) ) {
+						if ( $ctx['refs'] < 1 ) {
+							$ctx['refused'] = true;
+							break;
+						}
+						$ctx['visited'][ $blocklane_ref_id ] = true;
+						--$ctx['refs'];
+						$ref = get_post( $blocklane_ref_id );
+						if ( $ref && 'wp_block' === $ref->post_type && 'publish' === $ref->post_status && '' === (string) $ref->post_password ) {
+							blocklane_pro_forms_collect_fields( parse_blocks( $ref->post_content ), $fields, $ignored, $ctx );
 						}
 					}
 					break;
@@ -2477,7 +3494,7 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 				default:
 					// Layout wrappers (group, columns…) may nest fields.
 					if ( ! empty( $block['innerBlocks'] ) ) {
-						blocklane_pro_forms_collect_fields( $block['innerBlocks'], $fields, $depth, $ignored, $ctx );
+						blocklane_pro_forms_collect_fields( $block['innerBlocks'], $fields, $ignored, $ctx );
 					}
 			}
 
@@ -2707,6 +3724,11 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	 * A root whose guard files could not be written is REFUSED, not handed
 	 * out (#1845): on Apache the .htaccess is the only thing between a
 	 * visitor's file and its URL, so a store without it must not take one.
+	 * Whether a guard is already in place is the uploads door's question,
+	 * not a file_exists() here (#1860): File_Ops::uploads_ensure() refuses a
+	 * guard that is a link (to anything, inside uploads or out) or a folder,
+	 * rewrites one holding other bytes, and leaves one holding ours alone;
+	 * File_Ops::uploads_dir() refuses a root that is a link or not a folder.
 	 *
 	 * @return string|\WP_Error Absolute path without trailing slash, or why
 	 *                          the store cannot take a file now.
@@ -2717,22 +3739,19 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 			return new \WP_Error( 'blocklane_pro_forms_uploads_unavailable', 'The uploads directory is unavailable: ' . (string) $uploads['error'] );
 		}
 		$root = $uploads['basedir'] . '/blocklane-forms';
-		if ( ! is_dir( $root ) && ! wp_mkdir_p( $root ) ) {
-			return new \WP_Error( 'blocklane_pro_forms_root_uncreatable', 'Could not create ' . $root . '.' );
+		$made = \blocklane_pro\File_Ops::uploads_dir( $root );
+		if ( is_wp_error( $made ) ) {
+			return new \WP_Error( 'blocklane_pro_forms_root_uncreatable', 'The form upload store is not a folder it can use, so it takes no file: ' . $made->get_error_message() );
 		}
 
-		// Guard files in our own upload folder, through the uploads door
-		// (blocklane_pro\File_Ops::uploads_put(), which refuses any path
-		// outside wp_upload_dir()'s basedir, and a link at the file name).
+		// Guard files in our own upload folder, through the uploads door,
+		// which decides whether each is already in place.
 		$guards = array(
 			'.htaccess' => "# Blocklane Forms uploads — served only via the plugin.\n<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n",
 			'index.php' => "<?php // Silence is golden.\n",
 		);
 		foreach ( $guards as $name => $body ) {
-			if ( file_exists( $root . '/' . $name ) ) {
-				continue;
-			}
-			$written = \blocklane_pro\File_Ops::uploads_put( $root . '/' . $name, $body );
+			$written = \blocklane_pro\File_Ops::uploads_ensure( $root . '/' . $name, $body );
 			if ( is_wp_error( $written ) ) {
 				return new \WP_Error( 'blocklane_pro_forms_unguarded', 'The form upload store has no ' . $name . ' guard, so it takes no file: ' . $written->get_error_message() );
 			}
@@ -2815,15 +3834,23 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	/**
 	 * The public submission handler.
 	 *
-	 * Bot-classified rejections (honeypot, time-trap, unknown form, unknown
-	 * field names) return FAKE SUCCESS — bots learn nothing. Human validation
-	 * failures return structured per-field errors. The rate limit returns an
-	 * honest 429: a double-clicking human deserves the truth.
+	 * Bot-classified rejections (honeypot, time-trap, unknown form, a bound
+	 * payload carrying a name its definition does not accept) return FAKE
+	 * SUCCESS — bots learn nothing. Human validation failures return
+	 * structured per-field errors. The rate limit returns an honest 429: a
+	 * double-clicking human deserves the truth. An unsigned payload the
+	 * live copies cannot decide (a page cached before a field was renamed,
+	 * copies that disagree, more copies than the budget) gets an honest 409
+	 * asking for a reload, and a form whose block type is not registered an
+	 * honest 503, each once it has passed the bot traps (decision D2).
 	 *
-	 * @param WP_REST_Request $request Request.
-	 * @return WP_REST_Response
+	 * Which settings decide a submission is blocklane_pro_forms_resolve()'s
+	 * answer alone; the handler reaches a form's attributes, gates and unique
+	 * fields only through it.
+	 *
+	 * @param \WP_REST_Request $request Request.
 	 */
-	function blocklane_pro_forms_handle_submission( $request ) {
+	function blocklane_pro_forms_handle_submission( \WP_REST_Request $request ): \WP_REST_Response {
 		// A submission's answer is never cacheable: WordPress sends no-cache
 		// headers on REST responses only for logged-in requests, and this
 		// route is anonymous. POSTs are not cached by HTTP semantics; this
@@ -2871,28 +3898,89 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 			}
 		}
 
-		// _bl_source (the viewing page) is intentionally not consulted — the
-		// form is resolved deterministically from content (see locate_form).
-		$located = '' !== $form_id ? blocklane_pro_forms_locate_form( $form_id ) : null;
-		if ( ! $located ) {
-			// Unknown form: fake-success shaped exactly like a no-override
-			// form's real success (resolved defaults, not neutral attrs).
+		// The visitor's two statements, read once: the binding the page's
+		// form carried (_bl_bind) and the page they were on (_bl_source).
+		// resolve() decides what each is worth; the same source id feeds the
+		// provenance block below, which judges it on its own terms.
+		$binding     = isset( $params['_bl_bind'] ) && is_string( $params['_bl_bind'] ) ? $params['_bl_bind'] : '';
+		$source_id   = isset( $params['_bl_source'] ) && is_scalar( $params['_bl_source'] ) ? absint( $params['_bl_source'] ) : 0;
+		/**
+		 * Widened on purpose: the stubs type every entry as ONE file's
+		 * array{name: string, ...}, but a multi-file input (`field[]`) posts
+		 * an array in each slot — the part counting below relies on that.
+		 *
+		 * @var array<string, mixed> $file_params
+		 */
+		$file_params = $request->get_file_params();
+		$posted      = blocklane_pro_forms_posted_names( $params, $file_params );
+		$resolved    = '' !== $form_id
+			? blocklane_pro_forms_resolve( $form_id, $binding, $source_id, $posted )
+			: new \WP_Error( 'blocklane_forms_unknown', 'No formId.' );
+		if ( is_wp_error( $resolved ) ) {
+			// Live copies exist and cannot decide this unsigned payload: the
+			// page was cached before the form changed (or the copies disagree,
+			// or there are more than the budget). A human gets the truth (D2) —
+			// after the bot traps, so a bot still learns nothing.
+			if ( 'blocklane_forms_stale' === $resolved->get_error_code() && ! blocklane_pro_forms_is_bot( $params ) ) {
+				return new \WP_REST_Response(
+					array(
+						'success' => false,
+						'message' => __( 'This form has changed since the page loaded. Please reload the page and try again.', 'blocklane' ),
+					),
+					409
+				);
+			}
+			// The form block is not registered (the skew guard left it out
+			// until the assets are rebuilt): no definition can be computed,
+			// and a fake success would lose the submission (sweep-1005).
+			if ( 'blocklane_forms_unavailable' === $resolved->get_error_code() && ! blocklane_pro_forms_is_bot( $params ) ) {
+				return new \WP_REST_Response(
+					array(
+						'success' => false,
+						'message' => __( 'This form is temporarily unavailable. Please try again later.', 'blocklane' ),
+					),
+					503
+				);
+			}
+			// Unknown form (or a bot on a stale one): fake-success shaped
+			// exactly like a no-override form's real success (resolved
+			// defaults, not neutral attrs).
 			return blocklane_pro_forms_success_response( blocklane_pro_forms_resolve_config( array() ) );
 		}
 
-		$form_attrs = isset( $located['form']['attrs'] ) && is_array( $located['form']['attrs'] ) ? $located['form']['attrs'] : array();
+		$form_attrs = $resolved['attrs'];
 
 		// Availability gates (v3) run BEFORE the bot traps: closed-form
 		// state is honest form policy, not bot detection, and evaluating it
 		// first means a scheduled form never wastes a Cloudflare round-trip.
-		$blocklane_availability = blocklane_pro_forms_availability(
-			blocklane_pro_forms_attrs_with_defaults( 'blocklane/form', $form_attrs )
-		);
-		if ( ! $blocklane_availability['open'] ) {
+		// One loop for both verdicts: a bound submission carries its own
+		// copy's gate, an unsigned one every live copy's distinct gate
+		// (decision D-R3), and the closed message is the copy's own only
+		// when attested. The first closed gate answers.
+		$blocklane_closed = null;
+		$blocklane_open   = false;
+		foreach ( $resolved['gates'] as $blocklane_gate ) {
+			$blocklane_availability = blocklane_pro_forms_availability( $blocklane_gate + array( 'closedMessage' => $form_attrs['closedMessage'] ?? '' ) );
+			if ( $blocklane_availability['open'] ) {
+				$blocklane_open = true;
+			} elseif ( null === $blocklane_closed ) {
+				$blocklane_closed = $blocklane_availability;
+			}
+		}
+		if ( null !== $blocklane_closed ) {
+			// An unsigned submission one copy's gate closed while another
+			// copy's is open: during a cache window a reload is bound, but
+			// under a render-time rewriter every submission is unsigned for
+			// good (NP16), so the operator gets a line (S-R6; F09). A form
+			// every copy closes (its own schedule ended, its own login
+			// required) is the form's policy, not a failure: no line.
+			if ( 'shared' === $resolved['resolution'] && $blocklane_open ) {
+				blocklane_pro_log_failure( 'Blocklane: an unsigned submission to form "' . $form_id . '" was refused by the login or schedule gate of one of its live copies while another copy is open (live copies examined: ' . $resolved['copies'] . ').' );
+			}
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => $blocklane_availability['message'],
+					'message' => $blocklane_closed['message'],
 				),
 				403
 			);
@@ -2906,66 +3994,30 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 		$form_attrs = blocklane_pro_forms_resolve_config( $form_attrs );
 
 		// Honeypot filled, or the time-trap token missing (no JS / sub-3s
-		// submit): classify as bot, reveal nothing. The honeypot test compares
-		// against the empty string rather than !empty() — a bot that stuffs
-		// the string '0' into every input must not read as human.
-		$honeypot     = blocklane_pro_forms_honeypot_name();
-		$honeypot_val = isset( $params[ $honeypot ] ) ? trim( (string) $params[ $honeypot ] ) : '';
-		if ( '' !== $honeypot_val || ! isset( $params['_bl_time'] ) || '1' !== $params['_bl_time'] ) {
+		// submit): classify as bot, reveal nothing.
+		if ( blocklane_pro_forms_is_bot( $params ) ) {
 			return blocklane_pro_forms_success_response( $form_attrs );
 		}
 
-		$ignored = array();
-		$schema  = blocklane_pro_forms_derive_schema( $located['form'], $ignored );
+		$schema = $resolved['schema'];
 
 		// Unknown field names = a tampered or replayed payload: fake success.
-		// The Turnstile token is meta, not a field (whitelisted even when the
-		// feature is off — a stale cached page must not trip the tamper trap).
-		// Only a genuinely UNKNOWN name — a posted value or an uploaded file with
-		// no matching schema key — trips the trap. A KNOWN name whose posted type
-		// differs from the schema is NOT tampering: when a file field and a
-		// non-file field resolve to the same name (a last-wins collision), a real
-		// browser posts BOTH a value and a file under that name. The validation
-		// loop below reads each field from its own source ($file_params for file
-		// types, $params otherwise), so the mismatched half is ignored and the
-		// collision resolves last-wins — never a silently swallowed submission.
-		// Module meta rides the reserved `_bl_` namespace (the field namer
-		// refuses those names, so no schema key can ever wear the prefix).
-		// ANY posted _bl_* key is therefore skipped by PREFIX, not by list:
-		// a newer view.js posting a meta key this (possibly baked, older)
-		// runtime predates must be ignored, never trapped — the trap's fake
-		// success would silently swallow every genuine visitor for as long
-		// as the version skew lasts. Non-prefixed meta stays an exact list.
-		$known_meta = array( $honeypot, 'cf-turnstile-response' );
-		foreach ( array_keys( $params ) as $key ) {
-			if ( 0 === strpos( (string) $key, '_bl_' ) || in_array( $key, $known_meta, true ) ) {
-				continue;
-			}
-			// A field of a suite block this edition does not register (a
-			// page cached under the other edition still posts it): dropped,
-			// never trapped — the visitor's other answers are real.
-			if ( in_array( (string) $key, $ignored, true ) ) {
-				continue;
-			}
-			if ( ! isset( $schema[ $key ] ) ) {
-				return blocklane_pro_forms_success_response( $form_attrs );
-			}
-		}
-		/**
-		 * Widened on purpose: the stubs type every entry as ONE file's
-		 * array{name: string, ...}, but a multi-file input (`field[]`) posts
-		 * an array in each slot — the part counting below relies on that.
-		 *
-		 * @var array<string, mixed> $file_params
-		 */
-		$file_params = $request->get_file_params();
-		foreach ( array_keys( $file_params ) as $key ) {
-			if ( in_array( (string) $key, $ignored, true ) ) {
-				continue; // A file field this edition does not carry: dropped, not trapped.
-			}
-			if ( ! isset( $schema[ $key ] ) ) {
-				return blocklane_pro_forms_success_response( $form_attrs );
-			}
+		// blocklane_pro_forms_unknown_names() is the one tamper test: a name
+		// the resolved definition's schema holds is a field, a name on its
+		// `ignored` list (a field of a suite block this edition does not
+		// register, posted by a page cached under the other edition) is
+		// dropped, anything else is unknown. Module meta rides the reserved
+		// `_bl_` prefix and never counts (blocklane_pro_forms_posted_names()),
+		// so a newer view.js's meta is never trapped. A KNOWN name whose
+		// posted type differs from the schema is NOT tampering: when a file
+		// field and a non-file field resolve to the same name (a last-wins
+		// collision), a real browser posts BOTH a value and a file under that
+		// name, and the validation loop below reads each field from its own
+		// source. For a `bound` submission the binding attests the names, so
+		// an unknown one is real tampering; a `shared` one was decided only
+		// because the shared schema accepts every posted name.
+		if ( array() !== blocklane_pro_forms_unknown_names( $resolved, $posted ) ) {
+			return blocklane_pro_forms_success_response( $form_attrs );
 		}
 
 		// PHP registers only the first max_file_uploads parts in $_FILES and
@@ -2978,7 +4030,7 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 		// counted the way PHP counts them — every posted slot per field,
 		// including empty (UPLOAD_ERR_NO_FILE) ones — so the threshold aligns
 		// with when PHP actually truncates. Parts posted for a field this
-		// edition does not carry (see $ignored above) are counted too, on
+		// edition does not carry (its definition's `ignored` names) are counted too, on
 		// purpose: PHP dropped them the same way, and an honest 400 beats a
 		// fake success that lost files (#1021).
 		$max_uploads = (int) ini_get( 'max_file_uploads' );
@@ -3109,11 +4161,12 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 		// field. Runs on VALIDATED values, and only when storage is on —
 		// without rows there is nothing to compare against (the editor
 		// surfaces that combination). Honest rejection on the field, like
-		// any validation error: the duplicate submitter is a human.
-		$blocklane_unique_field = isset( $located['form']['attrs']['uniqueField'] ) ? sanitize_text_field( (string) $located['form']['attrs']['uniqueField'] ) : '';
-		if ( '' !== $blocklane_unique_field
-			&& ( ! isset( $form_attrs['storeSubmissions'] ) || false !== $form_attrs['storeSubmissions'] )
-			&& function_exists( 'blocklane_pro_forms_is_duplicate_entry' ) ) {
+		// any validation error: the duplicate submitter is a human. The
+		// fields come from resolve() alone: the bound copy's own, or the one
+		// every live copy names (S-R1) — none when they do not agree.
+		$blocklane_unique_store = ! isset( $form_attrs['storeSubmissions'] ) || false !== $form_attrs['storeSubmissions'];
+		foreach ( $blocklane_unique_store && function_exists( 'blocklane_pro_forms_is_duplicate_entry' ) ? $resolved['unique'] : array() as $blocklane_unique_field ) {
+			$blocklane_unique_field = sanitize_text_field( $blocklane_unique_field );
 			$blocklane_unique_value = '';
 			foreach ( $fields as $blocklane_unique_probe ) {
 				// The editor stopped OFFERING hidden fields and checkbox
@@ -3130,46 +4183,44 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 					break;
 				}
 			}
+			if ( '' === $blocklane_unique_value ) {
+				continue;
+			}
 			// Hold the value for the rest of this request: the probe below reads,
 			// but the row is written later by the storage listener, so without
 			// this two simultaneous submissions of the same value both pass.
 			// A lock we cannot take means someone else is mid-flight with this
 			// exact value — treat that as the duplicate it is about to become.
-			$blocklane_unique_lock = '';
-			if ( '' !== $blocklane_unique_value ) {
-				$blocklane_unique_lock = blocklane_pro_forms_claim_unique_lock( $form_id, $blocklane_unique_field, $blocklane_unique_value );
+			$blocklane_unique_lock = blocklane_pro_forms_claim_unique_lock( $form_id, $blocklane_unique_field, $blocklane_unique_value );
 
-				// Released at shutdown rather than at any one exit point: by
-				// then the row is stored, so the probe itself catches the
-				// duplicate and the lock has done its job. Covers every path
-				// out of the handler, including a fatal.
-				if ( is_string( $blocklane_unique_lock ) && '' !== $blocklane_unique_lock ) {
-					$blocklane_unique_lock_key = $blocklane_unique_lock;
-					// Priority -10: the lock's job is covering the probe-to-store
-					// window, which is over well before shutdown. Releasing
-					// ahead of the notification flush (priority 0) means a
-					// fatal while sending mail cannot strand it for 30s.
-					add_action(
-						'shutdown',
-						static function () use ( $blocklane_unique_lock_key ) {
-							delete_option( $blocklane_unique_lock_key );
-						},
-						-10
-					);
-				}
+			// Released at shutdown rather than at any one exit point: by
+			// then the row is stored, so the probe itself catches the
+			// duplicate and the lock has done its job. Covers every path
+			// out of the handler, including a fatal.
+			if ( is_string( $blocklane_unique_lock ) && '' !== $blocklane_unique_lock ) {
+				$blocklane_unique_lock_key = $blocklane_unique_lock;
+				// Priority -10: the lock's job is covering the probe-to-store
+				// window, which is over well before shutdown. Releasing
+				// ahead of the notification flush (priority 0) means a
+				// fatal while sending mail cannot strand it for 30s.
+				add_action(
+					'shutdown',
+					static function () use ( $blocklane_unique_lock_key ) {
+						delete_option( $blocklane_unique_lock_key );
+					},
+					-10
+				);
 			}
 
 			// Only a LIVE holder rejects. null means the lock could not be
 			// operated at all — fail open and let the probe decide, rather
 			// than turn a database hiccup into a rejected form.
-			if ( '' !== $blocklane_unique_value
-				&& ( false === $blocklane_unique_lock
-					|| blocklane_pro_forms_is_duplicate_entry( $form_id, $blocklane_unique_field, $blocklane_unique_value ) ) ) {
+			if ( false === $blocklane_unique_lock || blocklane_pro_forms_is_duplicate_entry( $form_id, $blocklane_unique_field, $blocklane_unique_value ) ) {
 				if ( is_string( $blocklane_unique_lock ) && '' !== $blocklane_unique_lock ) {
 					delete_option( $blocklane_unique_lock );
 				}
-				$blocklane_unique_message = isset( $located['form']['attrs']['uniqueMessage'] ) && '' !== trim( (string) $located['form']['attrs']['uniqueMessage'] )
-					? sanitize_text_field( (string) $located['form']['attrs']['uniqueMessage'] )
+				$blocklane_unique_message = isset( $form_attrs['uniqueMessage'] ) && is_string( $form_attrs['uniqueMessage'] ) && '' !== trim( $form_attrs['uniqueMessage'] )
+					? sanitize_text_field( $form_attrs['uniqueMessage'] )
 					: __( 'You have already submitted this form.', 'blocklane' );
 
 				return new \WP_REST_Response(
@@ -3221,25 +4272,21 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 		}
 
 		// Lead provenance (v2): the page the visitor was VIEWING — which
-		// source_id (the located definition) can't tell for a synced-pattern
-		// form. _bl_source is still never consulted for the schema (the
-		// hijack guard above); as PROVENANCE it is safe — worst case a bot
-		// misreports its own lead's origin — so it is verified down to a
-		// real published post or dropped. The URL and referrer carry the
-		// campaign signal (UTMs) a post id can't; client-supplied, so they
-		// are sanitized, length-capped display metadata — never logic.
-		$origin_id = isset( $params['_bl_source'] ) ? absint( $params['_bl_source'] ) : 0;
-		if ( $origin_id > 0 ) {
-			$origin_post = get_post( $origin_id );
-			// Publicly viewable, not just status 'publish': internal types
-			// (wp_block, wp_navigation, templates…) also carry 'publish',
-			// and a bot could inject their names into the inbox origin
-			// filter. render.php only stamps singular views, so a genuine
-			// origin is always a viewable post.
-			if ( ! $origin_post || ! is_post_publicly_viewable( $origin_post ) ) {
-				$origin_id = 0;
-			}
-		}
+		// source_id can't tell (the holder of a synced-pattern or popup form,
+		// and 0 for a shared submission). resolve() read _bl_source only as
+		// the first post to examine; here the same value is PROVENANCE —
+		// worst case a bot misreports its own lead's origin — and it is
+		// verified by the same `_bl_source` door,
+		// blocklane_pro_forms_source_post() (#2030): a publicly viewable post
+		// with no password, or dropped. Publicly viewable, not just status
+		// 'publish': internal types (wp_block, wp_navigation, templates…)
+		// also carry 'publish', and a bot could inject their names into the
+		// inbox origin filter; render.php only stamps singular views, so a
+		// genuine origin is always a viewable post. The URL and referrer
+		// carry the campaign signal (UTMs) a post id can't; client-supplied,
+		// so they are sanitized, length-capped display metadata — never logic.
+		$origin_post = blocklane_pro_forms_source_post( $source_id );
+		$origin_id   = $origin_post ? (int) $origin_post->ID : 0;
 
 		// The origin URL renders as a LINK in the inbox, labeled by the
 		// VERIFIED origin title — an attacker URL under that trusted label
@@ -3267,33 +4314,51 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 			'type'     => $origin_id ? (string) get_post_type( $origin_id ) : '',
 		);
 
+		// A submission the route could not tie to the copy its page showed
+		// is delivered to the site defaults; say so for the operator
+		// (decision D5: the inbox's source_id 0 marks the row), with how many
+		// live copies decided it (S-R6). The door throttles per message, so
+		// this is one line a day per form for each copy count (F08).
+		if ( 'shared' === $resolved['resolution'] ) {
+			blocklane_pro_log_failure( 'Blocklane: a submission to form "' . $form_id . '" could not be matched to the copy its page showed; it went to the site default recipients (live copies examined: ' . $resolved['copies'] . ').' );
+		}
+
 		/**
 		 * A validated submission. Storage (Phase 3) and email (Phase 3) hook
 		 * here — the pipeline seam, Form Block's `form_block_submit_data`
 		 * lesson kept as an action.
 		 *
 		 * @param array $submission {
-		 *     @type string $form_id   Form id.
-		 *     @type string $form_name Form name attribute.
-		 *     @type int    $source_id Located source post id.
-		 *     @type int    $origin_id Viewing page id (verified published, 0 when unknown).
-		 *     @type array  $origin    Provenance snapshot { url, referrer, title, type }.
-		 *     @type array  $fields    array of { name, label, type, value }.
-		 *     @type string $reply_to  Validated reply-to email ('' when none).
-		 *     @type array  $attrs     The form block's attributes, config-resolved.
+		 *     @type string $form_id    Form id.
+		 *     @type string $form_name  Form name attribute.
+		 *     @type int    $source_id  The post holding the bound copy; 0 for a
+		 *                              shared submission (no copy is the copy).
+		 *     @type string $resolution How the settings were decided: 'bound' (the
+		 *                              binding verified a live copy, whose own
+		 *                              settings apply) or 'shared' (every live
+		 *                              copy decided it; routed by the site
+		 *                              defaults).
+		 *     @type int    $origin_id  Viewing page id (publicly viewable, 0 when
+		 *                              unknown).
+		 *     @type array  $origin     Provenance snapshot { url, referrer, title, type }.
+		 *     @type array  $fields     array of { name, label, type, value }.
+		 *     @type string $reply_to   Validated reply-to email ('' when none).
+		 *     @type array  $attrs      The decided attributes, config-resolved; no
+		 *                              gate or unique-field key (spec NP22).
 		 * }
 		 */
 		do_action(
 			'blocklane_pro_forms_submission',
 			array(
-				'form_id'   => $form_id,
-				'form_name' => isset( $form_attrs['formName'] ) ? sanitize_text_field( (string) $form_attrs['formName'] ) : '',
-				'source_id' => $located['source_id'],
-				'origin_id' => $origin_id,
-				'origin'    => $origin,
-				'fields'    => $fields,
-				'reply_to'  => $reply_to,
-				'attrs'     => $form_attrs,
+				'form_id'    => $form_id,
+				'form_name'  => isset( $form_attrs['formName'] ) ? sanitize_text_field( (string) $form_attrs['formName'] ) : '',
+				'source_id'  => $resolved['source_id'],
+				'resolution' => $resolved['resolution'],
+				'origin_id'  => $origin_id,
+				'origin'     => $origin,
+				'fields'     => $fields,
+				'reply_to'   => $reply_to,
+				'attrs'      => $form_attrs,
 			)
 		);
 
@@ -3346,8 +4411,6 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 		}
 		global $wpdb;
 
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-
 		$table           = blocklane_pro_forms_table();
 		$charset_collate = $wpdb->get_charset_collate();
 
@@ -3355,12 +4418,14 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 		// inbox search matches what visitors typed — not the JSON structural
 		// tokens ("label", "value", "email"…) present in every row.
 		// origin_id/origin (v2) are lead provenance: the page the visitor was
-		// VIEWING, distinct from source_id (the located form definition — the
+		// VIEWING, distinct from source_id (the holder of the resolved definition — the
 		// security anchor, which for a synced-pattern form is the same shared
 		// wp_block whatever page converted). origin is a self-describing JSON
 		// snapshot { url, referrer, title, type } taken at store time, so the
 		// row keeps rendering after the origin page is renamed or deleted —
 		// the same doctrine as the fields snapshot.
+		// Neither admin_init nor a visitor's submission loads dbDelta().
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta(
 			"CREATE TABLE {$table} (
 	id bigint(20) unsigned NOT NULL AUTO_INCREMENT,

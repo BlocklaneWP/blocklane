@@ -4,7 +4,7 @@ Tags: seo, contact form, popup, coming soon, security
 Requires at least: 7.1
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,57 @@ Every setting writes into WordPress's own options, post meta and block
 attributes. Deactivate Blocklane and your content is still ordinary WordPress
 content.
 
+== Source Code ==
+
+Blocklane's PHP ships as source. Its JavaScript and CSS ship compiled, and the source of every compiled file is public:
+
+* Repository: https://github.com/BlocklaneWP/blocklane
+* This version: tag v1.0.2, https://github.com/BlocklaneWP/blocklane/tree/v1.0.2
+
+Every build folder is compiled from the src folder beside it: inc/forms/src builds inc/forms/build, inc/onboarding/src builds inc/onboarding/build, and so on for each folder. A build file whose name is a number, such as 452.js, is a chunk webpack split out of that same src folder. The THIRD-PARTY-NOTICES.txt in each build folder names the npm packages in every file, with their versions and license texts.
+
+To build it yourself with Node.js 22 and npm 10:
+
+1. `git clone https://github.com/BlocklaneWP/blocklane.git`
+2. `cd blocklane`
+3. `git checkout v1.0.2`
+4. `npm ci`
+5. `npm run build`
+
+The build uses @wordpress/scripts (webpack) and writes the same build folders this plugin ships. We build the tagged source and check that every file matches this plugin's files byte for byte.
+
+Bundled npm packages, by name and version. Each one's source is linked from its page on npm (`https://www.npmjs.com/package/<name>`):
+
+* @ariakit/components 0.1.13
+* @ariakit/react-components 0.6.1
+* @ariakit/react-store 0.1.11
+* @ariakit/react-utils 0.2.6
+* @ariakit/store 0.1.10
+* @ariakit/utils 0.2.1
+* @base-ui/react 1.8.0
+* @base-ui/utils 0.4.0
+* @date-fns/tz 1.5.0
+* @floating-ui/core 1.8.0
+* @floating-ui/dom 1.8.0
+* @floating-ui/react-dom 2.1.9
+* @floating-ui/utils 0.2.12
+* @wordpress/dataviews 19.1.0
+* @wordpress/icons 17.0.0
+* @wordpress/kebab-case 1.3.0
+* @wordpress/ui 0.23.0
+* clsx 2.1.1
+* colord 2.10.0
+* date-fns 4.4.0
+* dot-case 3.0.4
+* fast-deep-equal 3.1.3
+* lower-case 2.0.2
+* no-case 3.0.4
+* param-case 3.0.4
+* react-day-picker 10.0.1
+* remove-accents 0.5.0
+* tslib 2.8.1
+* use-sync-external-store 1.6.0
+
 == Installation ==
 
 1. Install and activate the plugin from Plugins → Add New (search for "Blocklane"), or upload the zip.
@@ -80,23 +131,9 @@ Questions and bug reports go to the plugin's support forum on WordPress.org. We 
 
 == Frequently Asked Questions ==
 
-= Where is the source code for the compiled JavaScript and CSS? =
+= My site is behind a CDN or a proxy. Do the visitor limits still work? =
 
-Every script and stylesheet in the plugin's build folders is compiled from source we publish in full at https://github.com/BlocklaneWP/blocklane, with one tagged commit per release. Each bundle's source is the src folder beside its build folder (for example, inc/forms/src builds inc/forms/build).
-
-To build it yourself with Node.js 22 and npm 10:
-
-1. `git clone https://github.com/BlocklaneWP/blocklane.git`
-2. `cd blocklane`
-3. `git checkout v1.0.1` (this version's tag; every release has one, named v and its version number)
-4. `npm ci`
-5. `npm run build`
-
-The build uses @wordpress/scripts (webpack) and writes the same build folders this plugin ships, each with a THIRD-PARTY-NOTICES.txt naming the packages it bundles.
-
-= My site is behind a CDN or a proxy. Does the form rate limit still work? =
-
-Yes. Contact forms limit submissions per visitor address (an IPv6 address counts per /64 network). Behind a CDN or reverse proxy every request can arrive from the proxy's address, so return the real visitor address from the `blocklane_pro_forms_client_ip` filter, read from the header your proxy sets.
+Yes. Three limits count attempts per visitor address: contact form submissions, Coming Soon password attempts and login attempts (an IPv6 address counts per /64 network). Behind a CDN or reverse proxy every request can arrive from the proxy's address, so return the real visitor address from the `blocklane_pro_client_ip` filter, read from the header your proxy sets. One filter covers all three limits; its second argument names which one is asking (`forms`, `site-lock` or `login`). The older `blocklane_pro_forms_client_ip` and `blocklane_pro_login_client_ip` filters still work and are deprecated.
 
 = Does this add its own blocks? =
 
@@ -179,13 +216,10 @@ All of it is credited in credits.txt inside the plugin folder:
   plugin's own dashboard;
 * the Phosphor Icons starter set (MIT), the 75 SVGs the Icon block offers
   under "Blocklane";
-* npm packages the build bundles into the plugin's scripts and styles:
-  WordPress packages WordPress itself does not load, such as
-  @wordpress/dataviews and @wordpress/icons (GPL-2.0-or-later), and the MIT
-  and 0BSD packages they use, such as Ariakit, Base UI, Floating UI, date-fns
-  and clsx. The build writes a THIRD-PARTY-NOTICES.txt into every build
-  folder, naming each bundle, the packages in it, and each package's version
-  and license text.
+* the npm packages the build bundles into the plugin's scripts and styles,
+  each listed by name and version in the Source Code section above. The
+  build writes a THIRD-PARTY-NOTICES.txt into every build folder, naming each
+  bundle, the packages in it, and each package's version and license text.
 
 The plugin loads its own scripts, styles and fonts from its own folder; the
 one file it can load from another site is Cloudflare's Turnstile widget
@@ -198,6 +232,26 @@ From WordPress.org, like any other plugin here. Blocklane contains no updater of
 its own and never contacts any other server for updates.
 
 == Changelog ==
+
+= 1.0.2 =
+* Security: with Safe SVG Uploads on, an SVG file sent through XML-RPC (the wp.uploadFile and metaWeblog.newMediaObject methods that blog clients use) or the WordPress importer is now refused. That path stored the file without cleaning it, so a user who can upload files could store an SVG that runs scripts. Upload SVG files in the Media Library, where they are cleaned.
+* Security: every SVG upload is cleaned before WordPress moves it into your uploads folder, whichever upload route a plugin uses, and an SVG that cannot be cleaned is not stored. Cropping an SVG, for example as the Site Icon, saves a cleaned copy.
+* Security: before 1.0.2, an SVG added through XML-RPC or another plugin's upload form by a user who cannot add scripts to your site (an Author, for example) could be stored without being cleaned. If your Media Library has SVG files added before this update, a notice on the Dashboard, Plugins and Media screens offers to clean the ones from such users, and lists the ones from users who can add scripts for you to review. Cleaning saves each file the way a new upload is saved. A file that cannot be read as an SVG is left unchanged and listed so you can delete or replace it. Nothing changes until you choose to clean.
+* Safe SVG Uploads refuses an SVG too large to check safely: more than 4 MB of markup, more than 100,000 tags (every opening and closing tag counts, and so do comments), or more than 20,000 attributes (every equals sign in the file counts). A very large drawing is refused even when it is harmless.
+* Compressed SVG files (.svgz) are now cleaned too, and stay compressed. WordPress stores them only for users it allows unfiltered uploads.
+* Security: Safe SVG Uploads refuses a file whose styles use escape sequences, or that loads anything from outside the file: another site, another file on this site, or data embedded in a style. The sanitizer could not reliably check these. Most SVG exports are unaffected; export a refused file again with its styles kept inside the file.
+* Icons your site saved with Blocklane Pro are checked against the same SVG rules before a page shows them, and a cached copy is used only when it was made from the same icon under the same rules. An icon that cannot be read shows a placeholder.
+* Contact forms: the hidden value that ties a submission to the form on the page differs on every page load, so it never reveals whether two copies of a form are set up the same way.
+* Contact forms: the page a submission says it came from is used only when it is a published page anyone can view.
+* The contact form limit, the Coming Soon password limit and the login limit read the visitor address from one filter, `blocklane_pro_client_ip`, so a site behind a CDN or proxy sets it once. The older `blocklane_pro_forms_client_ip` and `blocklane_pro_login_client_ip` filters still work and are deprecated.
+* Form submissions are matched to the form the visitor's page displayed. Another post that carries a copy of a form's ID can no longer receive that form's submissions, choose where visitors are redirected, or send them a confirmation email.
+* A submission from a page cached before this update, or before the form was last edited, is sent to your default form recipients and stored, unless your form defaults turn storage off or every copy of the form turns it off. The form's own redirect and confirmation email are skipped for that submission. If copies of the form have different fields, the visitor is asked to reload the page.
+* Reordering content changes only the items you can edit. An item you cannot edit, such as the Privacy Policy page for an Editor, keeps its place, and the rest are ordered around it.
+* When the site refuses a reorder, the list goes back to its previous order without leaving an empty row behind.
+* Internal rewrite, no behavior change: the SVG sanitizer, the responsive controls' render filter, the editor's responsive value writer, the responsive controls' editor preview and the size field the transparent header's top offset uses were rewritten from their specifications. The Create Child Theme screen's text is reworded; the screen works as before.
+* The readme has a Source Code section: where the source of every compiled file is, how to build it, and each bundled npm package by name and version.
+* Media Replace now fully replaces video and audio files. Before, the file was replaced but its details were not updated, and the screen said the replacement had failed.
+* The popup list behind the editor's popup picker returns only popups the requesting user may read: published popups, or every popup for a user who can manage them.
 
 = 1.0.1 =
 * Every inline style and script the plugin adds (on its admin screens, the Coming Soon and Maintenance page, popups, the HTML sitemap page, the fallback that reveals scroll-animated blocks, and the structured data) is now printed through WordPress's own style and script functions.

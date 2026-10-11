@@ -112,12 +112,9 @@ export const ROWS = Object.fromEntries(
    mark (isProRow), never by a row's own `pro` property (#986). */
 const isProSlug = ( slug ) => isProRow( ROWS[ slug ] );
 
-/* The user-facing toggle list, alphabetical by title to match BlocklanePro's admin
-   display order (so the two lists scan straight down side by side; BlocklanePro's
-   extra rows — BlocklanePro AI on top, Pattern Library after Keyboard Shortcuts — are
-   the only gaps, since we skip those). The handler also tracks the always-on/
-   hidden slug (advanced-paragraph) that loads but is intentionally not shown
-   here. */
+/* The user-facing toggle list, in display order. The handler also tracks the
+   always-on/hidden slug (advanced-paragraph) that loads but is intentionally
+   not shown here. */
 export const DISPLAY_ORDER = [
 	'advanced-grid',
 	'advanced-group',

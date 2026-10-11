@@ -1,5 +1,5 @@
 /**
- * Extensions webpack config. Multiple entry points mirroring BlocklanePro Pro's:
+ * Extensions webpack config. Multiple entry points:
  * - index.js   -> the editor controls bundle (build/index.js + style-index.css)
  * - editor.js  -> editor-only styles (build/editor.css), enqueued in the editor
  * - *-frontend -> per-extension frontend behavior bundles, enqueued on the front end

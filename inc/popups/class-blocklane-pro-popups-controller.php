@@ -3,12 +3,17 @@
  * Popups REST controller: the read-only popup list behind the block editor's
  * popup-binding picker (docs/specs/popup-bindings.md).
  *
- * The CPT maps every capability to manage_options (popups are site chrome),
- * so core REST rejects the editors who actually wire landing-page buttons.
- * This route leaks only IDs, titles, and statuses — never content or settings
- * — and only to logged-in users who can edit posts. Plugin-only on purpose:
- * the picker dies with the plugin while existing bindings keep rendering from
- * the bake (popups.md: editor/REST surfaces stay plugin-only).
+ * The route admits users who can edit posts, and lists to each of them only
+ * the popups they may read, by core's REST read rule
+ * (blocklane_pro\Post_Access, spec 2026-10-10 wordpress.org review round 2,
+ * §3.3): published popups to everyone it admits, and every status to a user
+ * who can read_post a popup, which the CPT maps to manage_options. Each row
+ * carries the popup's ID, title, status, its trigger and a summary of how it
+ * opens; the trigger and the summary come from the popup's settings. A
+ * published popup's title and trigger are what any Contributor, Author or
+ * Editor sees, as /wp/v2/blocklane_popup already shows them. Plugin-only on
+ * purpose: the picker dies with the plugin while existing bindings keep
+ * rendering from the bake (popups.md: editor/REST surfaces stay plugin-only).
  *
  * @package blocklane_pro
  */
@@ -48,12 +53,11 @@ class Popups_Controller implements Rest_Registrable {
 	}
 
 	/**
-	 * Every bindable popup, for the binding panel's picker.
+	 * Every popup the caller may read, for the binding panel's picker.
 	 *
 	 * @param \WP_REST_Request<array<string, mixed>> $request Unused.
-	 * @return \WP_REST_Response|\WP_Error
 	 */
-	public function list_popups( \WP_REST_Request $request ) {
+	public function list_popups( \WP_REST_Request $request ): \WP_REST_Response {
 		unset( $request );
 
 		// The runtime registers the CPT only when the whole popups gate chain
@@ -63,16 +67,19 @@ class Popups_Controller implements Rest_Registrable {
 		// one source of truth instead of re-deriving the gates. Literal key:
 		// the runtime's constant is only defined when the gates pass.
 		if ( ! post_type_exists( 'blocklane_popup' ) ) {
-			return rest_ensure_response( array() );
+			return new \WP_REST_Response( array() );
 		}
 
 		// Bindable ahead of publish (the render side ignores non-publish):
-		// drafts, scheduled (future), pending, and private popups all belong
-		// in the picker, else an existing binding to one is mislabeled "not
-		// found". 100 is a UI ceiling for the picker, not a data contract —
-		// the footer render has its own caps. Meta cache stays primed (one
-		// query) because every row reads the settings meta below.
-		$posts = get_posts(
+		// drafts, scheduled (future), pending, and private popups belong in
+		// the picker of a user who can read them, else an existing binding
+		// to one is mislabeled "not found". Post_Access narrows the statuses
+		// to what the caller may list before the query, so the 100-row UI
+		// ceiling counts only rows the caller sees, and then holds every row
+		// to the read rule. The footer render has its own caps. Meta cache
+		// stays primed (one query) because every row reads the settings meta
+		// below.
+		$posts = Post_Access::listable(
 			array(
 				'post_type'              => 'blocklane_popup',
 				'post_status'            => array( 'publish', 'future', 'draft', 'pending', 'private' ),
@@ -82,6 +89,10 @@ class Popups_Controller implements Rest_Registrable {
 				'update_post_term_cache' => false,
 			)
 		);
+
+		if ( is_wp_error( $posts ) ) {
+			return rest_convert_error_to_response( $posts );
+		}
 
 		$items = array();
 		foreach ( $posts as $post ) {
@@ -114,6 +125,6 @@ class Popups_Controller implements Rest_Registrable {
 			);
 		}
 
-		return rest_ensure_response( $items );
+		return new \WP_REST_Response( $items );
 	}
 }

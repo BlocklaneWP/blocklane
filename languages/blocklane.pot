@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Blocklane 1.0.1\n"
+"Project-Id-Version: Blocklane 1.0.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stage\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-06T22:50:01+00:00\n"
+"POT-Creation-Date: 2026-10-11T16:44:25+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: blocklane\n"
@@ -17,7 +17,7 @@ msgstr ""
 #. Plugin Name of the plugin
 #. Author of the plugin
 #: blocklane.php
-#: inc/icon-collection/runtime.php:213
+#: inc/icon-collection/runtime.php:363
 #: inc/onboarding/src/screens/HomeScreen.js:341
 msgid "Blocklane"
 msgstr ""
@@ -37,213 +37,226 @@ msgstr ""
 msgid "https://profiles.wordpress.org/blocklane/"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced-controller.php:99
-#: inc/seo/class-blocklane-pro-seo-controller.php:426
+#: inc/advanced/class-blocklane-pro-advanced-controller.php:109
+#: inc/seo/class-blocklane-pro-seo-controller.php:429
 msgid "You do not have permission to manage these settings."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced-controller.php:215
+#: inc/advanced/class-blocklane-pro-advanced-controller.php:202
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:470
+msgid "Sorry, you are not allowed to do that."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced-controller.php:250
 msgid "No file was received."
 msgstr ""
 
 #. translators: %s: the setting key.
-#: inc/advanced/class-blocklane-pro-advanced.php:256
+#: inc/advanced/class-blocklane-pro-advanced.php:273
 #, php-format
 msgid "The \"%s\" setting belongs to a feature this edition does not include."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:559
+#: inc/advanced/class-blocklane-pro-advanced.php:561
 msgid "Sort by Order"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:644
+#: inc/advanced/class-blocklane-pro-advanced.php:646
 msgid "Couldn’t save the new order. Please refresh and try again."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:645
+#: inc/advanced/class-blocklane-pro-advanced.php:647
 msgid "Indent"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:646
+#: inc/advanced/class-blocklane-pro-advanced.php:648
 msgid "Outdent"
 msgstr ""
 
 #. translators: 1: page title, 2: new parent page title.
-#: inc/advanced/class-blocklane-pro-advanced.php:648
+#: inc/advanced/class-blocklane-pro-advanced.php:650
 #, php-format
 msgid "%1$s is now nested under %2$s."
 msgstr ""
 
 #. translators: %s: page title.
-#: inc/advanced/class-blocklane-pro-advanced.php:650
+#: inc/advanced/class-blocklane-pro-advanced.php:652
 #, php-format
 msgid "%s moved up one level."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:651
+#: inc/advanced/class-blocklane-pro-advanced.php:653
 msgid "Move up"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:652
-msgid "Move down"
-msgstr ""
-
-#. translators: %s: item title.
 #: inc/advanced/class-blocklane-pro-advanced.php:654
-#, php-format
-msgid "%s moved up."
+msgid "Move down"
 msgstr ""
 
 #. translators: %s: item title.
 #: inc/advanced/class-blocklane-pro-advanced.php:656
 #, php-format
-msgid "%s moved down."
+msgid "%s moved up."
 msgstr ""
 
-#. translators: %s: page title.
+#. translators: %s: item title.
 #: inc/advanced/class-blocklane-pro-advanced.php:658
 #, php-format
-msgid "Collapse %s"
+msgid "%s moved down."
 msgstr ""
 
 #. translators: %s: page title.
 #: inc/advanced/class-blocklane-pro-advanced.php:660
 #, php-format
+msgid "Collapse %s"
+msgstr ""
+
+#. translators: %s: page title.
+#: inc/advanced/class-blocklane-pro-advanced.php:662
+#, php-format
 msgid "Expand %s"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:661
+#: inc/advanced/class-blocklane-pro-advanced.php:663
 msgid "Collapse All"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:662
+#: inc/advanced/class-blocklane-pro-advanced.php:664
 msgid "Expand All"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:663
+#: inc/advanced/class-blocklane-pro-advanced.php:665
 msgid "The Sort by Order view shows every item so the full order can be arranged at once. This setting applies to the other views."
 msgstr ""
 
 #. translators: %s: the title of the item the move would shift, in quotation marks, or "item #123".
-#: inc/advanced/class-blocklane-pro-advanced.php:774
+#: inc/advanced/class-blocklane-pro-advanced.php:834
 #, php-format
 msgid "This move would shift %s, which you are not allowed to edit, so the new order was not saved. An Administrator, or another user who can edit it, has to make any move that shifts it."
 msgstr ""
 
 #. translators: %d: a post ID.
-#: inc/advanced/class-blocklane-pro-advanced.php:811
+#: inc/advanced/class-blocklane-pro-advanced.php:868
 #, php-format
 msgid "item #%d"
 msgstr ""
 
 #. translators: %s: a post title.
-#: inc/advanced/class-blocklane-pro-advanced.php:814
+#: inc/advanced/class-blocklane-pro-advanced.php:871
 #, php-format
 msgid "“%s”"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:886
+#: inc/advanced/class-blocklane-pro-advanced.php:939
 msgid "This content type doesn’t support nesting."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:895
+#: inc/advanced/class-blocklane-pro-advanced.php:948
 msgid "That item can’t be moved."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:906
+#: inc/advanced/class-blocklane-pro-advanced.php:959
 msgid "That item can’t be nested there."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:933
+#: inc/advanced/class-blocklane-pro-advanced.php:986
 msgid "That item couldn’t be moved. Please try again."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1004
+#: inc/advanced/class-blocklane-pro-advanced.php:1057
 msgid "Last Login"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1023
+#: inc/advanced/class-blocklane-pro-advanced.php:1076
 msgid "Never"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1024
+#: inc/advanced/class-blocklane-pro-advanced.php:1077
 msgid "Never logged in"
 msgstr ""
 
 #. translators: %s: human-readable time difference, e.g. "2 hours".
-#: inc/advanced/class-blocklane-pro-advanced.php:1033
+#: inc/advanced/class-blocklane-pro-advanced.php:1086
 #, php-format
 msgid "%s ago"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1064
+#: inc/advanced/class-blocklane-pro-advanced.php:1117
 msgid "Clone"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1079
+#: inc/advanced/class-blocklane-pro-advanced.php:1132
 msgid "Invalid or expired duplicate request."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1084
+#: inc/advanced/class-blocklane-pro-advanced.php:1137
 msgid "You are not allowed to duplicate this item."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1089
+#: inc/advanced/class-blocklane-pro-advanced.php:1142
 msgid "You are not allowed to create items of this type."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1094
+#: inc/advanced/class-blocklane-pro-advanced.php:1147
 msgid "The item could not be duplicated."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1211
-msgid "The SVG sanitizer is unavailable, so this file was not uploaded."
+#: inc/advanced/class-blocklane-pro-advanced.php:1406
+msgid "The SVG sanitizer is unavailable, so this file was not saved."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1218
+#: inc/advanced/class-blocklane-pro-advanced.php:1486
+msgid "This SVG's styles use escape sequences or load something from outside the file, which cannot be checked safely, so it was not saved."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:1494
+msgid "This SVG could not be sanitized safely, so it was not saved."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:1551
 msgid "The SVG file could not be read."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1232
-msgid "This SVG could not be sanitized safely, so it was not uploaded."
-msgstr ""
-
-#: inc/advanced/class-blocklane-pro-advanced.php:1240
+#: inc/advanced/class-blocklane-pro-advanced.php:1564
 msgid "The sanitized SVG could not be saved."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1453
+#: inc/advanced/class-blocklane-pro-advanced.php:1758
+msgid "SVG files cannot be added this way while Safe SVG Uploads is on, so this file was not saved."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-advanced.php:1974
 msgid "Replace file"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1454
+#: inc/advanced/class-blocklane-pro-advanced.php:1975
 msgid "Replacing…"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1455
+#: inc/advanced/class-blocklane-pro-advanced.php:1976
 msgid "Replaced ✓"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1456
+#: inc/advanced/class-blocklane-pro-advanced.php:1977
 msgid "Replace failed"
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1479
+#: inc/advanced/class-blocklane-pro-advanced.php:2000
 msgid "The file could not be uploaded."
 msgstr ""
 
 #. translators: %s: the original file's mime type.
-#: inc/advanced/class-blocklane-pro-advanced.php:1490
+#: inc/advanced/class-blocklane-pro-advanced.php:2011
 #, php-format
 msgid "The replacement must be the same type (%s) so the URL stays valid."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-advanced.php:1503
+#: inc/advanced/class-blocklane-pro-advanced.php:2024
 msgid "The file was uploaded but could not replace the original. Please try again."
 msgstr ""
 
 #. translators: %s: file name of the previous copy left in the uploads folder.
-#: inc/advanced/class-blocklane-pro-advanced.php:1516
+#: inc/advanced/class-blocklane-pro-advanced.php:2037
 #, php-format
 msgid "Replaced, but the previous file could not be removed: %s"
 msgstr ""
@@ -267,15 +280,120 @@ msgstr ""
 msgid "Comments are turned off site-wide by %s, so the comment settings below are hidden and inactive."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-svg-editor.php:55
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:359
+msgid "Another check of the SVG files is running. Wait a moment, then try again."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:364
+msgid "There are no SVG files left to check."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:392
+msgid "The SVG sanitizer is missing from this copy of the plugin, so nothing was checked. Reinstall the plugin, then try again."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:467
+msgid "This action needs the form on the notice."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:474
+msgid "The link you followed has expired. Go back, reload the page and try again."
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:557
+msgid "Safe SVG Uploads:"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:558
+msgid "before this update, an SVG file added through XML-RPC or another plugin's upload form by a user who cannot add scripts to your site (an Author, for example) could be stored without being cleaned."
+msgstr ""
+
+#. translators: %d: number of files.
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:561
+#, php-format
+msgid "%d SVG file in your Media Library was added that way, or could have been. Clean saves it the way a new upload is saved; nothing changes until you choose to clean."
+msgid_plural "%d SVG files in your Media Library were added that way, or could have been. Clean saves each the way a new upload is saved; nothing changes until you choose to clean."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of files.
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:565
+#, php-format
+msgid "%d other SVG file was added before this update by, or is now credited to, a user who can add scripts. Clean lists it for review and does not change it."
+msgid_plural "%d other SVG files were added before this update by, or are now credited to, users who can add scripts. Clean lists them for review and does not change them."
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:567
+msgid "Clean SVG files"
+msgstr ""
+
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:568
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:599
+#: inc/bootstrap.php:268
+msgid "Dismiss"
+msgstr ""
+
+#. translators: %d: number of files.
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:581
+#, php-format
+msgid "%d SVG file was cleaned and is now saved the way a new upload is saved:"
+msgid_plural "%d SVG files were cleaned and are now saved the way a new upload is saved:"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of files.
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:583
+#, php-format
+msgid "%d SVG file could not be checked and was left unchanged, so it may still carry scripts and is still served. Delete or replace it:"
+msgid_plural "%d SVG files could not be checked and were left unchanged, so they may still carry scripts and are still served. Delete or replace them:"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of files.
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:585
+#, php-format
+msgid "%d SVG file is not in this site's uploads folder (it may be in offload storage), so it was not checked:"
+msgid_plural "%d SVG files are not in this site's uploads folder (they may be in offload storage), so they were not checked:"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of files.
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:587
+#, php-format
+msgid "%d SVG file was added before this update by, or is now credited to, a user who can add scripts. It was not changed. If it came from an account you removed, review it:"
+msgid_plural "%d SVG files were added before this update by, or are now credited to, users who can add scripts. They were not changed. If any came from an account you removed, review them:"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:593
+msgid "Safe SVG Uploads checked the SVG files added before this update."
+msgstr ""
+
+#. translators: %d: Media Library item ID.
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:614
+#, php-format
+msgid "item %d"
+msgstr ""
+
+#. translators: %d: number of further files.
+#: inc/advanced/class-blocklane-pro-svg-cleanup.php:626
+#, php-format
+msgid ", and %d more."
+msgid_plural ", and %d more."
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/advanced/class-blocklane-pro-svg-editor.php:63
+#: inc/advanced/class-blocklane-pro-svg-editor.php:96
 msgid "That file no longer exists."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-svg-editor.php:60
+#: inc/advanced/class-blocklane-pro-svg-editor.php:68
 msgid "That file is not an SVG image."
 msgstr ""
 
-#: inc/advanced/class-blocklane-pro-svg-editor.php:83
+#: inc/advanced/class-blocklane-pro-svg-editor.php:103
 msgid "The image could not be saved."
 msgstr ""
 
@@ -297,17 +415,13 @@ msgstr ""
 msgid "%1$s: these customized templates and template parts still use text and spacing presets retired by the current theme, so their sizes no longer apply: %2$s. Open each in the Site Editor and reapply current sizes, or reset it to its default."
 msgstr ""
 
-#: inc/bootstrap.php:268
-msgid "Dismiss"
-msgstr ""
-
 #. translators: 1: plugin name, 2: link to manage themes
-#: inc/bootstrap.php:548
+#: inc/bootstrap.php:552
 #, php-format
 msgid "%1$s needs a block theme. Activate any block theme to use its editing tools. %2$s"
 msgstr ""
 
-#: inc/bootstrap.php:550
+#: inc/bootstrap.php:554
 msgid "Manage themes"
 msgstr ""
 
@@ -317,12 +431,11 @@ msgstr ""
 msgid "%1$s — %2$s: the built assets are out of date, so these blocks did not register: %3$s. %4$s"
 msgstr ""
 
-#: inc/class-blocklane-pro-child-theme-controller.php:83
+#: inc/class-blocklane-pro-child-theme-controller.php:84
 msgid "You do not have permission to create a child theme."
 msgstr ""
 
-#: inc/class-blocklane-pro-child-theme-controller.php:125
-#: inc/onboarding/src/screens/ChildThemeScreen.js:294
+#: inc/class-blocklane-pro-child-theme-controller.php:128
 msgid "Child theme created and activated."
 msgstr ""
 
@@ -334,93 +447,93 @@ msgstr ""
 
 #. translators: %s: extension slug
 #: inc/class-blocklane-pro-extensions-controller.php:216
-#: inc/extensions/class-blocklane-pro-extensions-handler.php:190
+#: inc/extensions/class-blocklane-pro-extensions-handler.php:192
 #, php-format
 msgid "Unknown extension: %s"
 msgstr ""
 
-#: inc/class-blocklane-pro-helper.php:49
+#: inc/class-blocklane-pro-helper.php:50
 msgid "Please use a theme name (or text domain) that contains letters or numbers."
 msgstr ""
 
-#: inc/class-blocklane-pro-helper.php:58
+#: inc/class-blocklane-pro-helper.php:59
 msgid "That matches the parent theme. Choose a different name or text domain."
 msgstr ""
 
-#: inc/class-blocklane-pro-helper.php:81
+#: inc/class-blocklane-pro-helper.php:80
 msgid "Could not access the filesystem to create the theme."
 msgstr ""
 
-#: inc/class-blocklane-pro-helper.php:96
+#: inc/class-blocklane-pro-helper.php:95
 msgid "A theme with this slug already exists. Choose a different name or text domain."
 msgstr ""
 
-#: inc/class-blocklane-pro-helper.php:104
+#: inc/class-blocklane-pro-helper.php:103
 msgid "Could not create the theme directory."
 msgstr ""
 
-#: inc/class-blocklane-pro-helper.php:114
+#: inc/class-blocklane-pro-helper.php:113
 msgid "Could not read the child theme template."
 msgstr ""
 
-#: inc/class-blocklane-pro-helper.php:172
+#: inc/class-blocklane-pro-helper.php:163
 msgid "Could not write the child theme files. Check theme directory permissions."
 msgstr ""
 
-#: inc/class-blocklane-pro-helper.php:191
+#: inc/class-blocklane-pro-helper.php:182
 msgid "The generated theme could not be validated."
 msgstr ""
 
 #. translators: %s: a file path inside the plugin.
-#: inc/class-blocklane-pro-modules.php:840
+#: inc/class-blocklane-pro-modules.php:841
 #, php-format
 msgid "the file %s is missing"
 msgstr ""
 
 #. translators: %s: a PHP class name.
-#: inc/class-blocklane-pro-modules.php:843
+#: inc/class-blocklane-pro-modules.php:844
 #, php-format
 msgid "the class %s is not in inc/classmap.php"
 msgstr ""
 
 #. translators: 1: a PHP class name, 2: a file path inside the plugin.
-#: inc/class-blocklane-pro-modules.php:846
+#: inc/class-blocklane-pro-modules.php:847
 #, php-format
 msgid "the file %2$s for the class %1$s is missing"
 msgstr ""
 
 #. translators: 1: a PHP class name, 2: a file path inside the plugin.
-#: inc/class-blocklane-pro-modules.php:849
+#: inc/class-blocklane-pro-modules.php:850
 #, php-format
 msgid "the file %2$s no longer declares the class %1$s (inc/classmap.php is stale)"
 msgstr ""
 
 #. translators: 1: plugin name, 2: module slug, 3: the reason clause (e.g. "the class X is not in inc/classmap.php").
-#: inc/class-blocklane-pro-modules.php:889
+#: inc/class-blocklane-pro-modules.php:890
 #, php-format
 msgid "%1$s: the %2$s module is running, but its REST routes did not register — %3$s. Its dashboard screen will not work until the plugin is reinstalled."
 msgstr ""
 
 #. translators: 1: plugin name, 2: unit id, 3: the reason clause.
-#: inc/class-blocklane-pro-modules.php:897
+#: inc/class-blocklane-pro-modules.php:898
 #, php-format
 msgid "%1$s: the %2$s content runtime did not load — %3$s. Content you have already built with it will not render until the plugin is reinstalled."
 msgstr ""
 
 #. translators: 1: plugin name, 2: unit id, 3: the reason clause.
-#: inc/class-blocklane-pro-modules.php:905
+#: inc/class-blocklane-pro-modules.php:906
 #, php-format
 msgid "%1$s: the %2$s lifecycle file did not load — %3$s. Its once-per-version housekeeping was skipped and will run by itself once the file is back; reinstall the plugin to restore it."
 msgstr ""
 
 #. translators: 1: plugin name, 2: unit id, 3: the reason clause.
-#: inc/class-blocklane-pro-modules.php:913
+#: inc/class-blocklane-pro-modules.php:914
 #, php-format
 msgid "%1$s: the %2$s extension's editor controls did not load — %3$s. Content you have already built with it still renders, but it cannot be edited until the plugin is reinstalled."
 msgstr ""
 
 #. translators: 1: plugin name, 2: module slug, 3: the reason clause.
-#: inc/class-blocklane-pro-modules.php:921
+#: inc/class-blocklane-pro-modules.php:922
 #, php-format
 msgid "%1$s: the %2$s module did not load — %3$s. The plugin's files are incomplete; reinstall the plugin. In development, run php bin/generate-classmap.php."
 msgstr ""
@@ -441,15 +554,15 @@ msgstr ""
 #: inc/onboarding/src/screens/meta/seo.js:13
 #: inc/onboarding/src/screens/meta/seo.js:14
 #: inc/onboarding/src/screens/SeoScreen.js:89
-#: inc/seo/src/index.js:133
 #: inc/seo/src/index.js:137
+#: inc/seo/src/index.js:141
 msgid "SEO"
 msgstr ""
 
 #: inc/class-blocklane-pro-settings.php:198
 #: inc/forms/runtime.php:235
 #: inc/forms/runtime.php:326
-#: inc/forms/runtime.php:3916
+#: inc/forms/runtime.php:4981
 #: inc/onboarding/src/screens/advanced/rows/forms.js:15
 #: inc/onboarding/src/screens/FormsScreen.js:1240
 #: inc/onboarding/src/screens/meta/forms.js:11
@@ -481,6 +594,7 @@ msgid "Advanced"
 msgstr ""
 
 #: inc/class-blocklane-pro-settings.php:202
+#: inc/onboarding/src/screens/child-theme-copy.js:22
 #: inc/onboarding/src/screens/meta/child-theme.js:12
 #: inc/onboarding/src/screens/meta/child-theme.js:13
 msgid "Create Child Theme"
@@ -722,7 +836,7 @@ msgstr ""
 
 #: inc/content-types/mu-runtime.php:1340
 #: inc/extensions/src/controls/transparent-header/blocks.js:448
-#: inc/onboarding/src/screens/seo/SettingsTab.js:737
+#: inc/onboarding/src/screens/seo/SettingsTab.js:734
 msgid "Select image"
 msgstr ""
 
@@ -982,12 +1096,12 @@ msgid "Add header, body and footer code to every page: analytics, pixels and ver
 msgstr ""
 
 #. translators: %s: extension slug
-#: inc/extensions/class-blocklane-pro-extensions-handler.php:221
+#: inc/extensions/class-blocklane-pro-extensions-handler.php:223
 #, php-format
 msgid "The setting for %s could not be saved."
 msgstr ""
 
-#: inc/extensions/class-blocklane-pro-extensions-handler.php:358
+#: inc/extensions/class-blocklane-pro-extensions-handler.php:360
 msgid "The canvas grid tools setting could not be saved."
 msgstr ""
 
@@ -1044,8 +1158,8 @@ msgid "Date"
 msgstr ""
 
 #: inc/forms/class-blocklane-pro-forms.php:749
-#: inc/forms/runtime.php:3762
-#: inc/forms/src/form/edit.js:763
+#: inc/forms/runtime.php:4827
+#: inc/forms/src/form/edit.js:768
 #: inc/onboarding/src/screens/FormsScreen.js:1111
 msgid "Form"
 msgstr ""
@@ -1066,208 +1180,216 @@ msgid "NOTE: this export was truncated at %s rows. Narrow the filters and export
 msgstr ""
 
 #: inc/forms/runtime.php:236
-msgid "Saved forms render without those blocks, and submissions silently drop the fields they carry, until the assets are rebuilt."
+msgid "Saved forms render without those blocks, and their submissions are refused, until the assets are rebuilt."
 msgstr ""
 
 #: inc/forms/runtime.php:1214
-#: inc/forms/src/form/edit.js:1331
+#: inc/forms/src/form/edit.js:1336
 msgid "This form is not currently accepting submissions."
 msgstr ""
 
-#: inc/forms/runtime.php:2513
+#: inc/forms/runtime.php:3530
 msgid "This field is required."
 msgstr ""
 
-#: inc/forms/runtime.php:2539
+#: inc/forms/runtime.php:3556
 msgid "This field could not be validated."
 msgstr ""
 
-#: inc/forms/runtime.php:2557
-#: inc/forms/runtime.php:2678
+#: inc/forms/runtime.php:3574
+#: inc/forms/runtime.php:3695
 msgid "Please choose from the available options."
 msgstr ""
 
-#: inc/forms/runtime.php:2601
+#: inc/forms/runtime.php:3618
 msgid "Please enter a valid email address."
 msgstr ""
 
-#: inc/forms/runtime.php:2611
+#: inc/forms/runtime.php:3628
 msgid "Please enter a valid web address."
 msgstr ""
 
-#: inc/forms/runtime.php:2621
+#: inc/forms/runtime.php:3638
 msgid "Please enter a number."
 msgstr ""
 
-#: inc/forms/runtime.php:2628
+#: inc/forms/runtime.php:3645
 msgid "Please enter a number within the allowed range."
 msgstr ""
 
-#: inc/forms/runtime.php:2640
+#: inc/forms/runtime.php:3657
 msgid "Please enter a valid value."
 msgstr ""
 
-#: inc/forms/runtime.php:2651
+#: inc/forms/runtime.php:3668
 msgid "Please enter a valid date."
 msgstr ""
 
-#: inc/forms/runtime.php:2658
+#: inc/forms/runtime.php:3675
 msgid "Please enter a date within the allowed range."
 msgstr ""
 
 #. translators: %d: maximum number of characters.
-#: inc/forms/runtime.php:2689
+#: inc/forms/runtime.php:3706
 #, php-format
 msgid "Please use at most %d characters."
 msgstr ""
 
-#: inc/forms/runtime.php:2837
+#: inc/forms/runtime.php:3864
 msgid "Too many submissions from your connection. Please wait a minute and try again."
 msgstr ""
 
-#: inc/forms/runtime.php:2867
+#: inc/forms/runtime.php:3894
 msgid "Your submission was too large to upload. Please attach smaller or fewer files and try again."
 msgstr ""
 
-#: inc/forms/runtime.php:2997
+#: inc/forms/runtime.php:3928
+msgid "This form has changed since the page loaded. Please reload the page and try again."
+msgstr ""
+
+#: inc/forms/runtime.php:3940
+msgid "This form is temporarily unavailable. Please try again later."
+msgstr ""
+
+#: inc/forms/runtime.php:4049
 msgid "You attached too many files. Please attach fewer files and try again."
 msgstr ""
 
-#: inc/forms/runtime.php:3028
+#: inc/forms/runtime.php:4080
 msgid "We could not confirm you are human. Please complete the verification and try again."
 msgstr ""
 
-#: inc/forms/runtime.php:3101
+#: inc/forms/runtime.php:4153
 msgid "Please correct the highlighted fields."
 msgstr ""
 
-#: inc/forms/runtime.php:3173
-#: inc/forms/src/form/edit.js:1394
+#: inc/forms/runtime.php:4224
+#: inc/forms/src/form/edit.js:1399
 msgid "You have already submitted this form."
 msgstr ""
 
-#: inc/forms/runtime.php:3205
+#: inc/forms/runtime.php:4256
 msgid "We could not save your upload. Please try again."
 msgstr ""
 
 #. translators: 1: form name, 2: site title.
-#: inc/forms/runtime.php:3767
+#: inc/forms/runtime.php:4832
 #, php-format
 msgid "New submission: %1$s — %2$s"
 msgstr ""
 
 #. translators: 1: form name, 2: site title.
-#: inc/forms/runtime.php:3787
+#: inc/forms/runtime.php:4852
 #, php-format
 msgid "Sent by the “%1$s” form on %2$s."
 msgstr ""
 
 #. translators: %s: site title.
-#: inc/forms/runtime.php:3824
+#: inc/forms/runtime.php:4889
 #, php-format
 msgid "We received your message — %s"
 msgstr ""
 
-#: inc/forms/runtime.php:3830
+#: inc/forms/runtime.php:4895
 msgid "Thanks for getting in touch! Here is a copy of what you sent — we will get back to you soon."
 msgstr ""
 
-#: inc/forms/runtime.php:3878
+#: inc/forms/runtime.php:4943
 #: inc/forms/src/form-notification/edit.js:15
 msgid "Thanks! Your message has been sent."
 msgstr ""
 
-#: inc/forms/runtime.php:3881
+#: inc/forms/runtime.php:4946
 #: inc/forms/src/form-notification/edit.js:26
 msgid "Something went wrong and your message was not sent. Please check the highlighted fields and try again."
 msgstr ""
 
-#: inc/forms/runtime.php:3930
+#: inc/forms/runtime.php:4995
 msgid "Contact form"
 msgstr ""
 
-#: inc/forms/runtime.php:3931
+#: inc/forms/runtime.php:4996
 msgid "Name, email, and message with a submit button."
 msgstr ""
 
-#: inc/forms/runtime.php:3932
+#: inc/forms/runtime.php:4997
 msgid "Contact"
 msgstr ""
 
-#: inc/forms/runtime.php:3937
-#: inc/forms/runtime.php:4022
-#: inc/forms/src/form/edit.js:55
+#: inc/forms/runtime.php:5002
+#: inc/forms/runtime.php:5087
+#: inc/forms/src/form/edit.js:56
 msgid "Name"
 msgstr ""
 
-#: inc/forms/runtime.php:3946
-#: inc/forms/runtime.php:3978
-#: inc/forms/runtime.php:4031
+#: inc/forms/runtime.php:5011
+#: inc/forms/runtime.php:5043
+#: inc/forms/runtime.php:5096
 #: inc/forms/src/form-input/edit.js:305
-#: inc/forms/src/form/edit.js:64
+#: inc/forms/src/form/edit.js:65
 msgid "Email"
 msgstr ""
 
-#: inc/forms/runtime.php:3955
-#: inc/forms/src/form/edit.js:72
-#: inc/forms/src/form/edit.js:990
+#: inc/forms/runtime.php:5020
+#: inc/forms/src/form/edit.js:73
+#: inc/forms/src/form/edit.js:995
 msgid "Message"
 msgstr ""
 
-#: inc/forms/runtime.php:3959
+#: inc/forms/runtime.php:5024
 msgid "Send message"
 msgstr ""
 
-#: inc/forms/runtime.php:3971
+#: inc/forms/runtime.php:5036
 msgid "Newsletter signup"
 msgstr ""
 
-#: inc/forms/runtime.php:3972
+#: inc/forms/runtime.php:5037
 msgid "Email plus a consent checkbox."
 msgstr ""
 
-#: inc/forms/runtime.php:3973
+#: inc/forms/runtime.php:5038
 msgid "Newsletter"
 msgstr ""
 
-#: inc/forms/runtime.php:3988
+#: inc/forms/runtime.php:5053
 msgid "I agree to receive email updates."
 msgstr ""
 
-#: inc/forms/runtime.php:3992
+#: inc/forms/runtime.php:5057
 msgid "Subscribe"
 msgstr ""
 
-#: inc/forms/runtime.php:4002
+#: inc/forms/runtime.php:5067
 msgid "Will you attend?"
 msgstr ""
 
-#: inc/forms/runtime.php:4006
+#: inc/forms/runtime.php:5071
 msgid "Yes, I will be there"
 msgstr ""
 
-#: inc/forms/runtime.php:4007
+#: inc/forms/runtime.php:5072
 msgid "Sorry, I can’t make it"
 msgstr ""
 
-#: inc/forms/runtime.php:4015
-#: inc/forms/runtime.php:4017
+#: inc/forms/runtime.php:5080
+#: inc/forms/runtime.php:5082
 msgid "RSVP"
 msgstr ""
 
-#: inc/forms/runtime.php:4016
+#: inc/forms/runtime.php:5081
 msgid "Attendance, guest count, and a note."
 msgstr ""
 
-#: inc/forms/runtime.php:4042
+#: inc/forms/runtime.php:5107
 msgid "Number of guests"
 msgstr ""
 
-#: inc/forms/runtime.php:4047
+#: inc/forms/runtime.php:5112
 msgid "Anything we should know?"
 msgstr ""
 
-#: inc/forms/runtime.php:4048
+#: inc/forms/runtime.php:5113
 msgid "Send RSVP"
 msgstr ""
 
@@ -1281,31 +1403,31 @@ msgid "Sending…"
 msgstr ""
 
 #. translators: 1: current step number, 2: total number of steps. Both placeholders are literal tokens replaced by script — keep each exactly once.
-#: inc/forms/src/form/shell.php:81
+#: inc/forms/src/form/shell.php:98
 #, php-format
 msgid "Step %1$s of %2$s"
 msgstr ""
 
-#: inc/forms/src/form/shell.php:85
+#: inc/forms/src/form/shell.php:102
 msgid "Your session expired. Please reload the page and try again."
 msgstr ""
 
-#: inc/forms/src/form/shell.php:101
+#: inc/forms/src/form/shell.php:121
 msgid "Leave this field empty"
 msgstr ""
 
-#: inc/forms/src/form/shell.php:107
-#: inc/forms/src/form/edit.js:803
+#: inc/forms/src/form/shell.php:127
+#: inc/forms/src/form/edit.js:808
 msgid "Required fields are marked with an asterisk (*)."
 msgstr ""
 
 #. translators: %d: step number.
-#: inc/forms/src/form/shell.php:113
+#: inc/forms/src/form/shell.php:133
 #, php-format
 msgid "Step %d"
 msgstr ""
 
-#: inc/icon-collection/runtime.php:214
+#: inc/icon-collection/runtime.php:364
 msgid "Phosphor icons bundled with Blocklane, plus icons saved from its cloud library."
 msgstr ""
 
@@ -1324,11 +1446,11 @@ msgstr ""
 msgid "The Mega Menu module is not running on this site. This item is kept exactly as saved and works as a plain dropdown on the site."
 msgstr ""
 
-#: inc/popups/class-blocklane-pro-popups-controller.php:42
+#: inc/popups/class-blocklane-pro-popups-controller.php:47
 msgid "You do not have permission to list popups."
 msgstr ""
 
-#: inc/popups/class-blocklane-pro-popups-controller.php:107
+#: inc/popups/class-blocklane-pro-popups-controller.php:118
 #: inc/shared/seo-ui.js:190
 msgid "(no title)"
 msgstr ""
@@ -1431,7 +1553,7 @@ msgstr ""
 
 #: inc/popups/runtime.php:1015
 #: inc/onboarding/src/screens/FormsScreen.js:203
-#: inc/onboarding/src/screens/seo/EditSeoPanel.js:111
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:114
 msgid "Close"
 msgstr ""
 
@@ -1449,15 +1571,15 @@ msgstr ""
 msgid "The \"%s\" setting belongs to a part of Blocklane that is not in this build or did not load."
 msgstr ""
 
-#: inc/security/class-blocklane-pro-security.php:432
+#: inc/security/class-blocklane-pro-security.php:433
 msgid "Too many failed login attempts. Please try again in a few minutes."
 msgstr ""
 
-#: inc/seo/class-blocklane-pro-seo-controller.php:370
+#: inc/seo/class-blocklane-pro-seo-controller.php:373
 msgid "Content not found."
 msgstr ""
 
-#: inc/seo/class-blocklane-pro-seo-controller.php:374
+#: inc/seo/class-blocklane-pro-seo-controller.php:377
 msgid "You cannot edit this content."
 msgstr ""
 
@@ -1481,104 +1603,101 @@ msgstr ""
 msgid "Update Blocklane SEO site settings. Accepts a partial map of: sitemap (bool), html_sitemap (bool), html_sitemap_page (page ID), llms_txt (bool; serves an llms.txt content manifest for AI crawlers), archive_canonicals (bool), noindex_author_archives (bool), noindex_date_archives (bool), default_og_image_id (attachment ID for the fallback share image), indexnow (bool; the key is generated automatically and not writable here), title_format (a token string; the tokens are title, site, tagline and sep, each wrapped in percent signs), title_separator, org_name, org_description, org_logo_id, org_profiles (URL list), and the local-business fields: local_business (bool switches the schema to LocalBusiness), local_address, local_city, local_region, local_postal_code, local_country, local_phone, local_latitude, local_longitude, local_hours (day key monday–sunday to {open, close} in 24h HH:MM)."
 msgstr ""
 
-#: inc/seo/runtime.php:113
-#: inc/onboarding/src/screens/seo/EditSeoPanel.js:138
-#: inc/seo/src/index.js:160
-msgid "Search title"
+#: inc/seo/runtime.php:118
+#: inc/shared/seo-copy.js:68
+msgid "Custom search title"
 msgstr ""
 
-#: inc/seo/runtime.php:114
-msgid "Replaces the page title in search results and the browser tab."
+#: inc/seo/runtime.php:119
+#: inc/shared/seo-copy.js:69
+msgid "This replaces the whole page title in search results, on the browser tab and in shared links. When it is blank, the site's title pattern is used, or else WordPress's usual title."
 msgstr ""
 
-#: inc/seo/runtime.php:128
-#: inc/onboarding/src/screens/seo/EditSeoPanel.js:155
-#: inc/seo/src/index.js:180
-msgid "Search description"
+#: inc/seo/runtime.php:133
+#: inc/shared/seo-copy.js:73
+msgid "Custom search description"
 msgstr ""
 
-#: inc/seo/runtime.php:129
-msgid "The summary search engines may show under the title."
+#: inc/seo/runtime.php:134
+#: inc/shared/seo-copy.js:74
+msgid "The short summary a search listing can show under the title, also sent with shared links. When it is blank, the excerpt is used, or else the opening words of the content."
 msgstr ""
 
-#: inc/seo/runtime.php:145
-#: inc/onboarding/src/screens/seo/EditSeoPanel.js:188
-#: inc/seo/src/index.js:214
-msgid "Hide from search engines"
+#: inc/seo/runtime.php:150
+#: inc/shared/seo-copy.js:83
+msgid "Keep out of search engines"
 msgstr ""
 
-#: inc/seo/runtime.php:159
-#: inc/onboarding/src/screens/seo/ContentTab.js:75
-#: inc/onboarding/src/screens/seo/EditSeoPanel.js:174
-#: inc/seo/src/index.js:199
-msgid "Schema type"
+#: inc/seo/runtime.php:164
+#: inc/shared/seo-copy.js:78
+msgid "Structured data type"
 msgstr ""
 
-#: inc/seo/runtime.php:458
+#: inc/seo/runtime.php:474
 msgid "Sitemap Page"
 msgstr ""
 
-#: inc/seo/runtime.php:672
+#: inc/seo/runtime.php:688
 msgid "Site map"
 msgstr ""
 
-#: inc/seo/runtime.php:744
+#: inc/seo/runtime.php:760
 msgid "Toggle child pages"
 msgstr ""
 
-#: inc/seo/runtime.php:2244
-#: inc/onboarding/src/screens/seo/ContentTab.js:278
-msgid "SEO title"
+#: inc/seo/runtime.php:2260
+#: inc/shared/seo-copy.js:56
+msgid "Title in search"
 msgstr ""
 
-#: inc/seo/runtime.php:2245
-msgid "SEO description"
+#: inc/seo/runtime.php:2261
+#: inc/shared/seo-copy.js:57
+msgid "Description in search"
 msgstr ""
 
-#: inc/seo/runtime.php:2246
-#: inc/onboarding/src/screens/seo/ContentTab.js:262
-msgid "Schema"
+#: inc/seo/runtime.php:2262
+#: inc/shared/seo-copy.js:55
+msgid "Structured data"
 msgstr ""
 
-#: inc/seo/runtime.php:2247
-#: inc/onboarding/src/screens/seo/ContentTab.js:316
-msgid "Search"
+#: inc/seo/runtime.php:2263
+#: inc/shared/seo-copy.js:58
+msgid "Search indexing"
 msgstr ""
 
-#: inc/seo/runtime.php:2292
+#: inc/seo/runtime.php:2308
 #: inc/shared/seo-ui.js:47
 msgid "Article"
 msgstr ""
 
-#: inc/seo/runtime.php:2294
+#: inc/seo/runtime.php:2310
 #: inc/shared/seo-ui.js:48
 msgid "FAQ"
 msgstr ""
 
-#: inc/seo/runtime.php:2303
-#: inc/forms/src/form-input/edit.js:325
-#: inc/onboarding/src/screens/seo/ContentTab.js:321
-msgid "Hidden"
+#: inc/seo/runtime.php:2319
+#: inc/shared/seo-copy.js:60
+msgid "Kept out of indexes"
 msgstr ""
 
-#: inc/seo/runtime.php:2305
-#: inc/onboarding/src/screens/seo/ContentTab.js:325
-msgid "Visible"
+#: inc/seo/runtime.php:2321
+#: inc/shared/seo-copy.js:59
+msgid "Indexing allowed"
 msgstr ""
 
-#: inc/seo/runtime.php:2339
+#: inc/seo/runtime.php:2355
 msgid "SEO filter"
 msgstr ""
 
-#: inc/seo/runtime.php:2340
+#: inc/seo/runtime.php:2356
 msgid "Missing SEO title"
 msgstr ""
 
-#: inc/seo/runtime.php:2341
+#: inc/seo/runtime.php:2357
 msgid "Missing description"
 msgstr ""
 
-#: inc/seo/runtime.php:2342
+#: inc/seo/runtime.php:2358
 msgid "Hidden from search"
 msgstr ""
 
@@ -1628,96 +1747,96 @@ msgid "Your site is in maintenance mode — visitors see the maintenance page."
 msgstr ""
 
 #. translators: %s: site name.
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:718
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:720
 #, php-format
 msgid "%s — Coming soon"
 msgstr ""
 
 #. translators: %s: site name.
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:720
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:722
 #, php-format
 msgid "%s — Under maintenance"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:899
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:901
 #: inc/site-lock/src/site-password/index.js:129
 msgid "Log in"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:919
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:921
 #: inc/site-lock/src/site-password/index.js:104
 msgid "Password"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:929
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:931
 #: inc/onboarding/src/screens/SitePrivacyScreen.js:399
 msgid "Show password"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:937
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:939
 msgid "Too many attempts. Please wait a few minutes and try again."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:939
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:941
 msgid "Your session expired — please refresh and try again."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:941
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:943
 msgid "Sorry, that password is incorrect."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:972
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1045
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:974
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1047
 msgid "We’ll be right back"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:973
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:975
 msgid "The site is briefly down for maintenance. Please check back shortly."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1003
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1005
 msgid "Sales: (555) 123-4567"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1003
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1005
 msgid "Contact sales"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1004
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1006
 msgid "Support: (555) 765-4321"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1004
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1006
 msgid "Get help"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1005
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1007
 msgid "Guides &amp; training"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1005
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1007
 msgid "Learn more"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1006
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1008
 msgid "Office"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1006
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1008
 msgid "123 Example St, Suite 100, City, ST"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1012
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1014
 #: inc/onboarding/src/screens/HomeScreen.js:165
 #: inc/onboarding/src/screens/HomeScreen.js:178
 msgid "Coming soon"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1026
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1028
 msgid "Request website support"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1045
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1047
 msgid "Launching soon"
 msgstr ""
 
@@ -1744,10 +1863,9 @@ msgid "Activate anyway"
 msgstr ""
 
 #: inc/site-lock/class-blocklane-pro-site-lock-theme-switch.php:109
-#: inc/onboarding/src/screens/ChildThemeScreen.js:700
 #: inc/onboarding/src/screens/FormsScreen.js:227
-#: inc/onboarding/src/screens/seo/ContentTab.js:87
-#: inc/onboarding/src/screens/seo/EditSeoPanel.js:210
+#: inc/onboarding/src/screens/seo/ContentTab.js:90
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:201
 msgid "Cancel"
 msgstr ""
 
@@ -1759,6 +1877,10 @@ msgstr ""
 #: inc/site-lock/lifecycle.php:145
 #, php-format
 msgid "Your site is publicly visible. %1$s is still switched on, but it needs a block theme to be enforced — activate one and it starts working again. Nothing was lost: your settings and password are still saved."
+msgstr ""
+
+#: inc/svg-css-policy.php:120
+msgid "This SVG is too large to be checked safely, so it was not saved."
 msgstr ""
 
 #: inc/extensions/src/components/custom-icon-modal.js:84
@@ -1799,114 +1921,109 @@ msgstr ""
 msgid "Insert custom icon"
 msgstr ""
 
-#: inc/extensions/src/components/dimension-control.js:79
-msgid "Degrees"
-msgstr ""
-
-#: inc/extensions/src/components/dimension-control.js:105
-#: inc/extensions/src/components/dimension-control.js:172
+#: inc/extensions/src/components/dimension-control.js:218
 msgid "Dimension"
 msgstr ""
 
-#: inc/extensions/src/controls/responsive-controls/index.js:183
+#: inc/extensions/src/controls/responsive-controls/index.js:174
 #: inc/onboarding/src/components/HelpTip.js:22
 #: inc/shared/seo-ui.js:108
 msgid "More information"
 msgstr ""
 
-#: inc/extensions/src/controls/responsive-controls/index.js:271
+#: inc/extensions/src/controls/responsive-controls/index.js:262
 msgid "Could not save. Please try again."
 msgstr ""
 
-#: inc/extensions/src/controls/responsive-controls/index.js:280
+#: inc/extensions/src/controls/responsive-controls/index.js:271
 msgid "Tablet breakpoint"
 msgstr ""
 
-#: inc/extensions/src/controls/responsive-controls/index.js:281
+#: inc/extensions/src/controls/responsive-controls/index.js:272
 msgid "Mobile breakpoint"
 msgstr ""
 
-#: inc/extensions/src/controls/responsive-controls/index.js:284
+#: inc/extensions/src/controls/responsive-controls/index.js:275
 msgid "Applies site-wide — including core responsive styles. Reload the editor to see core panels follow."
 msgstr ""
 
-#: inc/extensions/src/controls/responsive-controls/index.js:292
-#: inc/onboarding/src/screens/ExtensionsScreen.js:270
+#: inc/extensions/src/controls/responsive-controls/index.js:283
+#: inc/onboarding/src/screens/ExtensionsScreen.js:267
 msgid "Tablet (px)"
 msgstr ""
 
-#: inc/extensions/src/controls/responsive-controls/index.js:293
-#: inc/onboarding/src/screens/ExtensionsScreen.js:283
+#: inc/extensions/src/controls/responsive-controls/index.js:284
+#: inc/onboarding/src/screens/ExtensionsScreen.js:280
 msgid "Mobile (px)"
 msgstr ""
 
 #. translators: %d: mobile breakpoint width in px.
-#: inc/extensions/src/controls/responsive-controls/index.js:306
+#: inc/extensions/src/controls/responsive-controls/index.js:297
 #, js-format
 msgid "Must be larger than the mobile breakpoint (%dpx)."
 msgstr ""
 
 #. translators: %d: tablet breakpoint width in px.
-#: inc/extensions/src/controls/responsive-controls/index.js:314
+#: inc/extensions/src/controls/responsive-controls/index.js:305
 #, js-format
 msgid "Must be smaller than the tablet breakpoint (%dpx)."
 msgstr ""
 
-#: inc/extensions/src/controls/responsive-controls/index.js:333
-#: inc/onboarding/src/screens/seo/EditSeoPanel.js:230
+#: inc/extensions/src/controls/responsive-controls/index.js:324
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:221
 #: inc/onboarding/src/screens/SitePrivacyScreen.js:573
 msgid "Save"
 msgstr ""
 
-#: inc/extensions/src/controls/responsive-controls/index.js:346
+#: inc/extensions/src/controls/responsive-controls/index.js:337
 msgid "Reset to default"
 msgstr ""
 
-#: inc/extensions/src/controls/responsive-controls/index.js:387
-#: inc/extensions/src/controls/responsive-controls/index.js:684
+#: inc/extensions/src/controls/responsive-controls/index.js:378
+#: inc/extensions/src/controls/responsive-controls/index.js:675
 msgid "Edit"
 msgstr ""
 
-#: inc/extensions/src/controls/responsive-controls/index.js:453
+#: inc/extensions/src/controls/responsive-controls/index.js:444
 msgid "Desktop"
 msgstr ""
 
-#: inc/extensions/src/controls/responsive-controls/index.js:454
+#: inc/extensions/src/controls/responsive-controls/index.js:445
 msgid "Tablet"
 msgstr ""
 
-#: inc/extensions/src/controls/responsive-controls/index.js:455
+#: inc/extensions/src/controls/responsive-controls/index.js:446
 msgid "Mobile"
 msgstr ""
 
 #. translators: %s: device (Desktop/Tablet/Mobile).
-#: inc/extensions/src/controls/responsive-controls/index.js:565
+#: inc/extensions/src/controls/responsive-controls/index.js:556
 #, js-format
 msgid "Hide on %s"
 msgstr ""
 
-#: inc/extensions/src/controls/responsive-controls/index.js:587
+#: inc/extensions/src/controls/responsive-controls/index.js:578
 msgid "Removes this block at this screen size on the front end (still editable here). Stored as core block visibility — core’s eye badge and options-menu Hide show the same state."
 msgstr ""
 
 #. translators: 1: device (Tablet/Mobile), 2: breakpoint width in px.
-#: inc/extensions/src/controls/responsive-controls/index.js:657
+#: inc/extensions/src/controls/responsive-controls/index.js:648
 #, js-format
 msgid "%1$s ≤ %2$dpx"
 msgstr ""
 
 #. translators: %s: device (Tablet/Mobile).
-#: inc/extensions/src/controls/responsive-controls/index.js:809
+#: inc/extensions/src/controls/responsive-controls/index.js:800
 #, js-format
 msgid "Display order (%s)"
 msgstr ""
 
-#: inc/extensions/src/controls/responsive-controls/index.js:824
+#: inc/extensions/src/controls/responsive-controls/index.js:815
 msgid "Reorders this item among its siblings at this screen size — works whether they sit in a row or stack. Visual only; keyboard and reading order are unchanged."
 msgstr ""
 
 #. translators: %s: device (Tablet/Mobile).
-#: inc/extensions/src/controls/responsive-controls/index.js:881
+#: inc/extensions/src/controls/responsive-controls/index.js:872
 #, js-format
 msgid "Max width (%s)"
 msgstr ""
@@ -1964,7 +2081,7 @@ msgid "Shown instead of the site logo while the header is transparent. Use a ver
 msgstr ""
 
 #: inc/extensions/src/controls/transparent-header/blocks.js:440
-#: inc/onboarding/src/screens/seo/SettingsTab.js:852
+#: inc/onboarding/src/screens/seo/SettingsTab.js:846
 msgid "Remove"
 msgstr ""
 
@@ -1978,8 +2095,8 @@ msgid "Recolor the logo with a filter while the header is transparent. White sui
 msgstr ""
 
 #: inc/extensions/src/controls/transparent-header/blocks.js:482
-#: inc/forms/src/form/edit.js:145
-#: inc/forms/src/form/edit.js:986
+#: inc/forms/src/form/edit.js:146
+#: inc/forms/src/form/edit.js:991
 msgid "Default"
 msgstr ""
 
@@ -2010,7 +2127,6 @@ msgstr ""
 
 #: inc/extensions/src/controls/transparent-header/index.js:384
 #: inc/extensions/src/controls/transparent-header/index.js:392
-#: inc/onboarding/src/screens/seo/SettingsTab.js:696
 msgid "Preview"
 msgstr ""
 
@@ -2198,7 +2314,7 @@ msgid "Text"
 msgstr ""
 
 #: inc/forms/src/form-input/edit.js:309
-#: inc/onboarding/src/screens/seo/SettingsTab.js:949
+#: inc/onboarding/src/screens/seo/SettingsTab.js:934
 msgid "Phone"
 msgstr ""
 
@@ -2208,6 +2324,10 @@ msgstr ""
 
 #: inc/forms/src/form-input/edit.js:317
 msgid "Number"
+msgstr ""
+
+#: inc/forms/src/form-input/edit.js:325
+msgid "Hidden"
 msgstr ""
 
 #: inc/forms/src/form-input/edit.js:329
@@ -2360,278 +2480,278 @@ msgid "Rows"
 msgstr ""
 
 #. translators: %s: the resolved site default: On, Off, or the default action.
-#: inc/forms/src/form/edit.js:119
-#: inc/forms/src/form/edit.js:957
+#: inc/forms/src/form/edit.js:120
+#: inc/forms/src/form/edit.js:962
 #, js-format
 msgid "Site default: %s."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:121
-#: inc/forms/src/form/edit.js:149
+#: inc/forms/src/form/edit.js:122
+#: inc/forms/src/form/edit.js:150
 msgid "On"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:122
-#: inc/forms/src/form/edit.js:153
-#: inc/forms/src/form/edit.js:1374
+#: inc/forms/src/form/edit.js:123
+#: inc/forms/src/form/edit.js:154
+#: inc/forms/src/form/edit.js:1379
 msgid "Off"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:706
+#: inc/forms/src/form/edit.js:711
 msgid "Input background"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:708
+#: inc/forms/src/form/edit.js:713
 msgid "Input text"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:709
+#: inc/forms/src/form/edit.js:714
 msgid "Input border"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:712
+#: inc/forms/src/form/edit.js:717
 msgid "Input focus border"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:714
+#: inc/forms/src/form/edit.js:719
 msgid "Asterisk"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:764
+#: inc/forms/src/form/edit.js:769
 msgid "Start from a ready-made form, or build one from blank."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:789
+#: inc/forms/src/form/edit.js:794
 msgid "Start blank"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:818
+#: inc/forms/src/form/edit.js:823
 msgid "Cloudflare Turnstile (only shown when needed)"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:822
+#: inc/forms/src/form/edit.js:827
 #: inc/onboarding/src/screens/FormsScreen.js:657
 msgid "Cloudflare Turnstile"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:828
+#: inc/forms/src/form/edit.js:833
 msgid "test mode"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:840
+#: inc/forms/src/form/edit.js:845
 #: inc/onboarding/src/screens/FormsScreen.js:1133
 msgid "Submission"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:858
-#: inc/forms/src/form/edit.js:865
+#: inc/forms/src/form/edit.js:863
+#: inc/forms/src/form/edit.js:870
 msgid "Form name"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:866
+#: inc/forms/src/form/edit.js:871
 msgid "Identifies this form in email subjects and the submissions inbox."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:878
-#: inc/forms/src/form/edit.js:884
+#: inc/forms/src/form/edit.js:883
+#: inc/forms/src/form/edit.js:889
 #: inc/onboarding/src/screens/FormsScreen.js:535
 msgid "Recipients"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:890
+#: inc/forms/src/form/edit.js:895
 msgid "Comma-separated email addresses. Empty uses the site default shown."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:894
+#: inc/forms/src/form/edit.js:899
 msgid "Comma-separated email addresses. Empty uses the site default."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:908
-#: inc/forms/src/form/edit.js:914
+#: inc/forms/src/form/edit.js:913
+#: inc/forms/src/form/edit.js:919
 #: inc/onboarding/src/screens/FormsScreen.js:546
 msgid "Email subject"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:917
-#: inc/forms/src/form/edit.js:1005
+#: inc/forms/src/form/edit.js:922
+#: inc/forms/src/form/edit.js:1010
 msgid "Empty uses the site default shown."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:921
+#: inc/forms/src/form/edit.js:926
 #: inc/onboarding/src/screens/FormsScreen.js:547
 msgid "Empty uses “New submission” with the form name and site title."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:939
-#: inc/forms/src/form/edit.js:952
+#: inc/forms/src/form/edit.js:944
+#: inc/forms/src/form/edit.js:957
 #: inc/onboarding/src/screens/FormsScreen.js:557
 msgid "After submission"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:962
-#: inc/forms/src/form/edit.js:994
+#: inc/forms/src/form/edit.js:967
+#: inc/forms/src/form/edit.js:999
 #: inc/onboarding/src/screens/FormsScreen.js:565
 msgid "Redirect"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:966
+#: inc/forms/src/form/edit.js:971
 msgid "Show message"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1001
+#: inc/forms/src/form/edit.js:1006
 #: inc/onboarding/src/screens/FormsScreen.js:576
 msgid "Redirect URL"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1025
+#: inc/forms/src/form/edit.js:1030
 #: inc/onboarding/src/screens/FormsScreen.js:584
 msgid "Replace form with message"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1029
+#: inc/forms/src/form/edit.js:1034
 #: inc/onboarding/src/screens/FormsScreen.js:585
 msgid "After a successful submission, hide the form and leave only the success message."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1048
-#: inc/forms/src/form/edit.js:1054
+#: inc/forms/src/form/edit.js:1053
+#: inc/forms/src/form/edit.js:1059
 #: inc/onboarding/src/screens/FormsScreen.js:595
 msgid "Store submissions"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1055
+#: inc/forms/src/form/edit.js:1060
 #: inc/onboarding/src/screens/FormsScreen.js:596
 msgid "Keep a copy in the submissions inbox. The inbox is the safety net when email fails."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1070
-#: inc/forms/src/form/edit.js:1076
+#: inc/forms/src/form/edit.js:1075
+#: inc/forms/src/form/edit.js:1081
 #: inc/onboarding/src/screens/FormsScreen.js:605
 msgid "Email notification"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1077
+#: inc/forms/src/form/edit.js:1082
 #: inc/onboarding/src/screens/FormsScreen.js:606
 msgid "Email each submission to the recipients."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1090
-#: inc/forms/src/form/edit.js:1097
+#: inc/forms/src/form/edit.js:1095
+#: inc/forms/src/form/edit.js:1102
 #: inc/onboarding/src/screens/FormsScreen.js:615
 msgid "Auto-responder"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1098
+#: inc/forms/src/form/edit.js:1103
 #: inc/onboarding/src/screens/FormsScreen.js:616
 msgid "Send a confirmation email to the submitter, using the field marked as reply-to."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1115
+#: inc/forms/src/form/edit.js:1120
 #: inc/onboarding/src/screens/FormsScreen.js:628
 msgid "Auto-responder subject"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1132
+#: inc/forms/src/form/edit.js:1137
 #: inc/onboarding/src/screens/FormsScreen.js:637
 msgid "Auto-responder message"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1136
+#: inc/forms/src/form/edit.js:1141
 #: inc/onboarding/src/screens/FormsScreen.js:641
 msgid "A summary of the submitted values is appended."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1157
+#: inc/forms/src/form/edit.js:1162
 msgid "Notices"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1167
-#: inc/forms/src/form/edit.js:1175
+#: inc/forms/src/form/edit.js:1172
+#: inc/forms/src/form/edit.js:1180
 msgid "Required-fields note"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1176
+#: inc/forms/src/form/edit.js:1181
 msgid "The “Required fields are marked with an asterisk (*)” line above the fields."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1191
+#: inc/forms/src/form/edit.js:1196
 msgid "Steps"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1199
-#: inc/forms/src/form/edit.js:1207
+#: inc/forms/src/form/edit.js:1204
+#: inc/forms/src/form/edit.js:1212
 msgid "Progress indicator"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1211
+#: inc/forms/src/form/edit.js:1216
 msgid "Step labels above the form, with the current step highlighted."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1224
+#: inc/forms/src/form/edit.js:1229
 msgid "Availability"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1240
+#: inc/forms/src/form/edit.js:1245
 msgid "Schedule"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1252
+#: inc/forms/src/form/edit.js:1257
 msgid "Only accept submissions between…"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1256
+#: inc/forms/src/form/edit.js:1261
 msgid "Outside the window the form shows the closed message instead of its fields. Site timezone. Leave a side empty for no bound."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1271
+#: inc/forms/src/form/edit.js:1276
 msgid "Opens"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1283
+#: inc/forms/src/form/edit.js:1288
 msgid "Closes"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1297
-#: inc/forms/src/form/edit.js:1304
+#: inc/forms/src/form/edit.js:1302
+#: inc/forms/src/form/edit.js:1309
 msgid "Require login"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1305
+#: inc/forms/src/form/edit.js:1310
 msgid "Logged-out visitors see the closed message instead of the form. Enforced again at submission."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1318
-#: inc/forms/src/form/edit.js:1326
+#: inc/forms/src/form/edit.js:1323
+#: inc/forms/src/form/edit.js:1331
 msgid "Closed message"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1327
+#: inc/forms/src/form/edit.js:1332
 msgid "Shown in place of the form while it isn’t accepting submissions."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1344
-#: inc/forms/src/form/edit.js:1356
+#: inc/forms/src/form/edit.js:1349
+#: inc/forms/src/form/edit.js:1361
 msgid "One entry per…"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1362
+#: inc/forms/src/form/edit.js:1367
 msgid "This field has a Visibility rule. While it is hidden its value is not collected, so the uniqueness check does not run and a visitor can submit again by changing the field the rule depends on. Pick a field that is always shown."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1366
+#: inc/forms/src/form/edit.js:1371
 msgid "Rejects a submission whose value for this field matches an earlier one — one entry per email address, typically."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1390
+#: inc/forms/src/form/edit.js:1395
 msgid "Duplicate message"
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1420
+#: inc/forms/src/form/edit.js:1425
 msgid "Storing submissions is off for this form, so there is nothing to compare against — the unique check cannot run."
 msgstr ""
 
-#: inc/forms/src/form/edit.js:1460
-#: inc/forms/src/form/edit.js:1468
+#: inc/forms/src/form/edit.js:1465
+#: inc/forms/src/form/edit.js:1473
 msgid "Input radius"
 msgstr ""
 
@@ -2800,7 +2920,6 @@ msgid "This screen is turned off."
 msgstr ""
 
 #: inc/onboarding/src/components/ScreenDisabledNotice.js:67
-#: inc/onboarding/src/screens/ChildThemeScreen.js:247
 msgid "Open Advanced settings"
 msgstr ""
 
@@ -3046,14 +3165,14 @@ msgstr ""
 
 #. translators: %s: the feature or extension name.
 #: inc/onboarding/src/screens/AdvancedScreen.js:688
-#: inc/onboarding/src/screens/ExtensionsScreen.js:619
+#: inc/onboarding/src/screens/ExtensionsScreen.js:616
 #, js-format
 msgid "%s enabled"
 msgstr ""
 
 #. translators: %s: the feature or extension name.
 #: inc/onboarding/src/screens/AdvancedScreen.js:693
-#: inc/onboarding/src/screens/ExtensionsScreen.js:624
+#: inc/onboarding/src/screens/ExtensionsScreen.js:621
 #, js-format
 msgid "%s disabled"
 msgstr ""
@@ -3088,7 +3207,7 @@ msgstr[1] ""
 
 #. translators: %d: the number of rows on the tab that belong to Blocklane Pro and were not changed.
 #: inc/onboarding/src/screens/AdvancedScreen.js:846
-#: inc/onboarding/src/screens/ExtensionsScreen.js:718
+#: inc/onboarding/src/screens/ExtensionsScreen.js:715
 #, js-format
 msgid "%d is part of Blocklane Pro."
 msgid_plural "%d are part of Blocklane Pro."
@@ -3144,7 +3263,6 @@ msgid "Enforced by your server configuration (wp-config.php) and can’t be chan
 msgstr ""
 
 #: inc/onboarding/src/screens/AdvancedScreen.js:1155
-#: inc/onboarding/src/screens/ChildThemeScreen.js:636
 #: inc/onboarding/src/screens/SeoScreen.js:35
 #: inc/onboarding/src/screens/SitePrivacyScreen.js:593
 msgid "Overview"
@@ -3158,230 +3276,237 @@ msgstr ""
 msgid "Turn one on, then click it again to configure any extra options. The hardening switches are safe to leave on — where your host already covers one, the toggle simply does nothing."
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:132
-msgid "Could not check the parent theme for Site Editor customizations — the import option is unavailable."
+#: inc/onboarding/src/screens/child-theme-copy.js:24
+msgid "Child theme creation is disabled for now."
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:149
-msgid "your global styles"
+#: inc/onboarding/src/screens/child-theme-copy.js:28
+msgid "While it stays disabled, this page has no menu entry and the endpoints that write theme files are unavailable. Turn on Child Theme Generator under Advanced whenever you want it back."
 msgstr ""
 
-#. translators: %d: number of edited templates
-#: inc/onboarding/src/screens/ChildThemeScreen.js:155
+#: inc/onboarding/src/screens/child-theme-copy.js:32
+msgid "Take me to that setting"
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:34
+msgid "Looking for saved Site Editor changes failed, so copying them cannot be offered right now. Making the theme still works."
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:39
+msgid "Theme name (can stay blank)"
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:40
+msgid "Shown under Appearance > Themes, and also used for the folder whenever the text domain is empty."
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:44
+msgid "Theme URL (can stay blank)"
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:45
+msgid "A link for the theme that goes into its header; your site's home address fills in when you skip it."
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:49
+msgid "Description (can stay blank)"
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:53
+msgid "A sentence or two shown beside the theme under Appearance > Themes; skip it and a line naming the parent goes in."
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:57
+msgid "Author (can stay blank)"
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:58
+msgid "Whoever gets credit for the theme; skip it and your site's title is used, or the parent's author if the site has no title."
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:62
+msgid "Author URL (can stay blank)"
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:63
+msgid "Where that author can be found online; your site's home address is used if you skip it."
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:67
+msgid "Version (can stay blank)"
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:68
+msgid "Which release this is, as written to the theme's header; it begins at 1.0.0 and falls back to that if cleared."
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:72
+msgid "Text domain (can stay blank)"
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:73
+msgid "Translation ID and, if set, the directory name; left empty, the header takes the parent's directory with -child added, and the folder comes from the theme name."
+msgstr ""
+
+#. translators: %s: display name of the theme whose Site Editor changes would be copied.
+#: inc/onboarding/src/screens/child-theme-copy.js:79
 #, js-format
-msgid "%d edited template"
-msgid_plural "%d edited templates"
+msgid "Carry over the Site Editor changes made to %s"
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:83
+msgid "the theme you started from"
+msgstr ""
+
+#. translators: %s: the list of things being copied, such as global styles and a number of templates.
+#: inc/onboarding/src/screens/child-theme-copy.js:85
+#, js-format
+msgid "This writes %s into files inside the new theme, so the design you have built carries across, and nothing in the source theme is altered."
+msgstr ""
+
+#. translators: 1: first item being copied, 2: second item being copied.
+#: inc/onboarding/src/screens/child-theme-copy.js:90
+#, js-format
+msgid "both %1$s and %2$s"
+msgstr ""
+
+#. translators: 1: first item being copied, 2: second item, 3: third item.
+#: inc/onboarding/src/screens/child-theme-copy.js:92
+#, js-format
+msgid "%1$s, %2$s, plus %3$s"
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:93
+msgid "your global style settings"
+msgstr ""
+
+#. translators: %d: number of templates edited in the Site Editor.
+#: inc/onboarding/src/screens/child-theme-copy.js:95
+#, js-format
+msgid "%d template you edited"
+msgid_plural "%d templates you edited"
 msgstr[0] ""
 msgstr[1] ""
 
-#. translators: %d: number of edited template parts
-#: inc/onboarding/src/screens/ChildThemeScreen.js:169
+#. translators: %d: number of template parts edited in the Site Editor.
+#: inc/onboarding/src/screens/child-theme-copy.js:102
 #, js-format
-msgid "%d template part"
-msgid_plural "%d template parts"
+msgid "%d template part you edited"
+msgid_plural "%d template parts you edited"
 msgstr[0] ""
 msgstr[1] ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:230
-#: inc/onboarding/src/screens/ChildThemeScreen.js:273
-msgid "Create a Child Theme"
+#: inc/onboarding/src/screens/child-theme-copy.js:108
+msgid "Build my child theme and use it"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:234
-msgid "This tool is turned off."
+#: inc/onboarding/src/screens/child-theme-copy.js:110
+msgid "Just so you know"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:237
-msgid "The Child Theme Generator is hidden and its endpoints are disabled. Turn it back on from the Advanced screen whenever you need to generate another child theme."
+#: inc/onboarding/src/screens/child-theme-copy.js:111
+msgid "Your site starts using the new theme the moment you continue. Whatever you saved in the Site Editor belongs to whichever theme was in use back then, so the new theme only shows it if you chose to copy it over. None of it is removed; reactivate the old theme and it all comes back."
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:302
-msgid "Your customizations were copied into the child theme’s files."
+#: inc/onboarding/src/screens/child-theme-copy.js:115
+msgid "Leave it for now"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:310
-msgid "Some customizations could not be copied — check the child theme’s files."
+#: inc/onboarding/src/screens/child-theme-copy.js:116
+msgid "Yes, build it and switch"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:328
-msgid "Theme Name"
+#: inc/onboarding/src/screens/child-theme-copy.js:118
+msgid "Done. The new child theme exists and your site is now using it."
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:338
+#: inc/onboarding/src/screens/child-theme-copy.js:122
+msgid "Your Site Editor changes were copied over and now sit in the new theme's own files."
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:126
+msgid "A few files could not be saved during the copy, though the theme was still made and switched on. Look over its theme.json, templates folder and parts folder."
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:131
+msgid "Theme name"
+msgstr ""
+
+#: inc/onboarding/src/screens/child-theme-copy.js:132
 msgid "Theme URL"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:345
-#: inc/onboarding/src/screens/seo/SettingsTab.js:780
+#: inc/onboarding/src/screens/child-theme-copy.js:133
+#: inc/onboarding/src/screens/seo/SettingsTab.js:777
 msgid "Description"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:355
+#: inc/onboarding/src/screens/child-theme-copy.js:134
 msgid "Author"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:359
+#: inc/onboarding/src/screens/child-theme-copy.js:135
 msgid "Author URL"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:369
+#: inc/onboarding/src/screens/child-theme-copy.js:136
 msgid "Version"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:373
-msgid "Text Domain"
+#: inc/onboarding/src/screens/child-theme-copy.js:137
+msgid "Text domain"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:386
-msgid "Child theme preview"
+#: inc/onboarding/src/screens/child-theme-copy.js:139
+msgid "Screenshot image included with the new theme"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:395
-msgid "Done with this tool? You can hide it from the menu — flip “Child Theme Generator” off under Advanced, and back on whenever you need it again."
+#: inc/onboarding/src/screens/child-theme-copy.js:143
+msgid "You'll likely need this only once, so feel free to tuck it out of the menu by switching off Child Theme Generator under Advanced. Doing so never touches a child theme you have made, and you can bring the tool back at any point."
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:400
-msgid "Open Advanced"
+#: inc/onboarding/src/screens/child-theme-copy.js:147
+msgid "Head over to Advanced"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:407
-msgid "Theme Name (optional)"
+#: inc/onboarding/src/screens/child-theme-copy.js:149
+msgid "In a nutshell"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:411
-msgid "The name of your child theme as it appears in the WordPress admin."
+#: inc/onboarding/src/screens/child-theme-copy.js:150
+msgid "Fill in as much of the form as you like and this builds a child of your site's parent theme, saves it in the themes folder next to that parent, and moves your site onto it. You can also copy your Site Editor changes into its files."
 msgstr ""
 
-#. translators: %s: parent theme name.
-#: inc/onboarding/src/screens/ChildThemeScreen.js:425
-#, js-format
-msgid "%s Child"
+#: inc/onboarding/src/screens/child-theme-copy.js:157
+msgid "What is a child theme, exactly?"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:431
-msgid "My Child Theme"
+#: inc/onboarding/src/screens/child-theme-copy.js:158
+msgid "Think of it as a thin layer on top of another theme, called its parent. Anything the child doesn't supply itself, such as templates, patterns or styles, comes from the parent. Updating the parent stays safe, since no update writes over what lives in the child's folder."
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:440
-msgid "Theme URL (optional)"
+#: inc/onboarding/src/screens/child-theme-copy.js:164
+msgid "Does my site really need one?"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:444
-msgid "The URL where users can learn more about your theme."
+#: inc/onboarding/src/screens/child-theme-copy.js:165
+msgid "Plenty of sites get by without one. Your Site Editor edits live in WordPress's database, not inside theme files, so parent updates can't wipe them. A child pays off once you want work kept as files, for instance styling added to style.css, a snippet dropped into functions.php, or template files you'd like under version control or copied onto another site."
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:460
-msgid "Description (optional)"
+#: inc/onboarding/src/screens/child-theme-copy.js:171
+msgid "Where did my Site Editor changes go after switching?"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:464
-msgid "A brief description of your child theme."
+#: inc/onboarding/src/screens/child-theme-copy.js:175
+msgid "Each set of edits stays linked to whichever theme was running at the time, so the new one starts without them if the import box was left unticked. Nothing was deleted; turn the earlier theme back on and they reappear. Make the child before you start customizing, and every later edit lands on it."
 msgstr ""
 
-#. translators: %s: parent theme name.
-#: inc/onboarding/src/screens/ChildThemeScreen.js:477
-#, js-format
-msgid "A child theme of %s."
+#: inc/onboarding/src/screens/child-theme-copy.js:181
+msgid "How do I undo this?"
 msgstr ""
 
-#: inc/onboarding/src/screens/ChildThemeScreen.js:483
-msgid "A child theme."
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:492
-msgid "Author (optional)"
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:493
-msgid "The name of the theme author."
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:503
-msgid "Your name"
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:511
-msgid "Author URL (optional)"
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:515
-msgid "The URL of the theme author's website."
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:531
-msgid "Version (optional)"
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:535
-msgid "The version number of your child theme."
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:550
-msgid "Text Domain (optional)"
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:554
-msgid "The text domain used for theme translations."
-msgstr ""
-
-#. translators: %s: name of the theme being imported from
-#: inc/onboarding/src/screens/ChildThemeScreen.js:576
-#, js-format
-msgid "Import customizations from %s"
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:581
-msgid "the parent theme"
-msgstr ""
-
-#. translators: %s: list of customizations, e.g. "your global styles, 2 edited templates"
-#: inc/onboarding/src/screens/ChildThemeScreen.js:592
-#, js-format
-msgid "Bakes %s into the child theme’s files so it keeps the look you’ve built. Your current theme is left unchanged."
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:613
-msgid "Create and Activate Child Theme"
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:639
-msgid "Create and activate a child theme based on your active theme so your customizations survive parent-theme updates."
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:647
-msgid "What is a child theme?"
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:651
-msgid "A child theme inherits the functionality and styling of another theme (the parent) while letting you make customizations that survive parent-theme updates."
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:659
-msgid "Do I need a child theme?"
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:663
-msgid "These days most users don’t — many customizations can be done directly in the block and site editor."
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:671
-msgid "I lost my customizations!"
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:675
-msgid "Global style changes are tied to your active theme. Activate your child theme first, then make customizations."
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:685
-msgid "Heads up!"
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:690
-msgid "Global style changes (colors, typography, etc.) are tied to your active theme. If you activate a child theme after making customizations, those changes won't appear — you'd need to re-activate the previous theme to see them again."
-msgstr ""
-
-#: inc/onboarding/src/screens/ChildThemeScreen.js:709
-msgid "Create and Activate"
+#: inc/onboarding/src/screens/child-theme-copy.js:182
+msgid "Open Appearance > Themes and activate whichever theme you want, parent included. The child remains installed until you remove it from that same screen. Because this tool won't write over a folder that already exists, another child needs a fresh name or text domain."
 msgstr ""
 
 #: inc/onboarding/src/screens/extensions/rows/responsive-controls.js:16
@@ -3461,96 +3586,96 @@ msgstr ""
 msgid "Solid on Scroll needs a background on the header Group — without one the header stays transparent"
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:143
+#: inc/onboarding/src/screens/ExtensionsScreen.js:140
 msgid "Styling & Effects"
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:144
+#: inc/onboarding/src/screens/ExtensionsScreen.js:141
 msgid "Layout & Responsive"
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:145
+#: inc/onboarding/src/screens/ExtensionsScreen.js:142
 msgid "Workflow & Tools"
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:208
-#: inc/onboarding/src/screens/ExtensionsScreen.js:225
-#: inc/onboarding/src/screens/ExtensionsScreen.js:260
+#: inc/onboarding/src/screens/ExtensionsScreen.js:205
+#: inc/onboarding/src/screens/ExtensionsScreen.js:222
+#: inc/onboarding/src/screens/ExtensionsScreen.js:257
 msgid "Breakpoints"
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:210
+#: inc/onboarding/src/screens/ExtensionsScreen.js:207
 msgid "Could not load the breakpoints. Reload the page to try again."
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:244
+#: inc/onboarding/src/screens/ExtensionsScreen.js:241
 msgid "Saved. The front end uses these breakpoints; reload the editor to refresh previews."
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:251
+#: inc/onboarding/src/screens/ExtensionsScreen.js:248
 msgid "Could not save breakpoints."
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:262
+#: inc/onboarding/src/screens/ExtensionsScreen.js:259
 msgid "The max-widths where Tablet and Mobile overrides take effect on the front end. Global — applies to every block."
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:297
+#: inc/onboarding/src/screens/ExtensionsScreen.js:294
 msgid "Mobile must be smaller than Tablet — it will be adjusted on save."
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:311
+#: inc/onboarding/src/screens/ExtensionsScreen.js:308
 msgid "Save breakpoints"
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:319
+#: inc/onboarding/src/screens/ExtensionsScreen.js:316
 msgid "Reset to defaults"
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:373
-#: inc/onboarding/src/screens/ExtensionsScreen.js:388
-#: inc/onboarding/src/screens/ExtensionsScreen.js:422
+#: inc/onboarding/src/screens/ExtensionsScreen.js:370
+#: inc/onboarding/src/screens/ExtensionsScreen.js:385
+#: inc/onboarding/src/screens/ExtensionsScreen.js:419
 msgid "Canvas grid tools"
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:375
+#: inc/onboarding/src/screens/ExtensionsScreen.js:372
 msgid "Could not load this setting. Reload the page to try again."
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:406
+#: inc/onboarding/src/screens/ExtensionsScreen.js:403
 msgid "Saved. Reload the editor for the change to take effect."
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:413
+#: inc/onboarding/src/screens/ExtensionsScreen.js:410
 msgid "Could not save this setting."
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:424
+#: inc/onboarding/src/screens/ExtensionsScreen.js:421
 msgid "Drag grid items to move them, and drag their edges to resize — directly on the canvas, instead of setting spans in the sidebar."
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:430
+#: inc/onboarding/src/screens/ExtensionsScreen.js:427
 msgid "Enable canvas grid tools"
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:431
+#: inc/onboarding/src/screens/ExtensionsScreen.js:428
 msgid "These tools are built into WordPress but switched off while their keyboard support and performance on large grids are still being finished. They save standard WordPress grid settings, so anything you build keeps working if you switch them back off."
 msgstr ""
 
 #. translators: %s: the tab (category) name.
-#: inc/onboarding/src/screens/ExtensionsScreen.js:682
+#: inc/onboarding/src/screens/ExtensionsScreen.js:679
 #, js-format
 msgid "All %s extensions enabled"
 msgstr ""
 
 #. translators: %s: the tab (category) name.
-#: inc/onboarding/src/screens/ExtensionsScreen.js:687
+#: inc/onboarding/src/screens/ExtensionsScreen.js:684
 #, js-format
 msgid "All %s extensions disabled"
 msgstr ""
 
 #. translators: 1: the number of extensions enabled, 2: the tab (category) name.
-#: inc/onboarding/src/screens/ExtensionsScreen.js:694
+#: inc/onboarding/src/screens/ExtensionsScreen.js:691
 #, js-format
 msgid "%1$d %2$s extension enabled."
 msgid_plural "%1$d %2$s extensions enabled."
@@ -3558,56 +3683,56 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: the number of extensions disabled, 2: the tab (category) name.
-#: inc/onboarding/src/screens/ExtensionsScreen.js:705
+#: inc/onboarding/src/screens/ExtensionsScreen.js:702
 #, js-format
 msgid "%1$d %2$s extension disabled."
 msgid_plural "%1$d %2$s extensions disabled."
 msgstr[0] ""
 msgstr[1] ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:745
+#: inc/onboarding/src/screens/ExtensionsScreen.js:742
 msgid "Extension categories"
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:781
+#: inc/onboarding/src/screens/ExtensionsScreen.js:778
 msgid "Search extensions"
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:785
+#: inc/onboarding/src/screens/ExtensionsScreen.js:782
 msgid "Search extensions…"
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:824
+#: inc/onboarding/src/screens/ExtensionsScreen.js:821
 msgid "No extensions in this tab match your search."
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:828
+#: inc/onboarding/src/screens/ExtensionsScreen.js:825
 msgid "No extensions in this tab."
 msgstr ""
 
 #. translators: %s: the plugin name.
-#: inc/onboarding/src/screens/ExtensionsScreen.js:907
+#: inc/onboarding/src/screens/ExtensionsScreen.js:904
 #, js-format
 msgid "What are %s Extensions?"
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:916
+#: inc/onboarding/src/screens/ExtensionsScreen.js:913
 msgid "Extensions are powerful features that enhance your WordPress editing experience. Some add new settings to existing blocks, while others add entirely new blocks and creation tools."
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:922
+#: inc/onboarding/src/screens/ExtensionsScreen.js:919
 msgid "The extensions this plugin includes are enabled by default, and you can disable the ones you don't need to curate your building experience."
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:929
+#: inc/onboarding/src/screens/ExtensionsScreen.js:926
 msgid "Rows marked \"Pro\" are part of Blocklane Pro and are not included here — their switches are shown but cannot be turned on. Open one to read what it does."
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:938
+#: inc/onboarding/src/screens/ExtensionsScreen.js:935
 msgid "Learn about each extension"
 msgstr ""
 
-#: inc/onboarding/src/screens/ExtensionsScreen.js:945
+#: inc/onboarding/src/screens/ExtensionsScreen.js:942
 msgid "Click each feature to learn more about it and watch a video tutorial to learn how to use it."
 msgstr ""
 
@@ -4102,291 +4227,148 @@ msgstr ""
 msgid "Control who can see the site — a password or maintenance page for visitors, plus search-engine indexing."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/ContentTab.js:95
+#: inc/onboarding/src/screens/seo/ContentTab.js:98
 msgid "Apply"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/ContentTab.js:240
-msgid "Title"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/ContentTab.js:248
-msgid "Type"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/ContentTab.js:292
-#: inc/onboarding/src/screens/seo/ContentTab.js:310
-#: inc/onboarding/src/screens/seo/OverviewTab.js:202
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1080
-msgid "Not set"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/ContentTab.js:298
-msgid "Meta description"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/ContentTab.js:341
-#: inc/onboarding/src/screens/seo/EditSeoPanel.js:86
-msgid "Edit SEO"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/ContentTab.js:348
-msgid "Hide from search"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/ContentTab.js:362
-msgid "Show in search"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/ContentTab.js:374
-#: inc/onboarding/src/screens/seo/ContentTab.js:376
-msgid "Set schema type"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/ContentTab.js:387
+#: inc/onboarding/src/screens/seo/ContentTab.js:390
 msgid "Edit page"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/ContentTab.js:395
+#: inc/onboarding/src/screens/seo/ContentTab.js:398
 msgid "View page"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/ContentTab.js:415
+#: inc/onboarding/src/screens/seo/ContentTab.js:418
 msgid "Retry"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/EditSeoPanel.js:95
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:98
 msgid "Previous item"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/EditSeoPanel.js:102
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:105
 msgid "Next item"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/EditSeoPanel.js:139
-#: inc/seo/src/index.js:161
-msgid "Replaces the title in search results and the browser tab. Leave blank to use the page title."
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/EditSeoPanel.js:156
-#: inc/seo/src/index.js:181
-msgid "The summary search engines may show under the title. Leave blank to use the excerpt or page content."
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/EditSeoPanel.js:175
-#: inc/seo/src/index.js:200
-msgid "Structured data that helps search engines understand the page. For FAQ, questions and answers are read from the Accordion and Details blocks on the page."
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/EditSeoPanel.js:189
-#: inc/seo/src/index.js:218
-msgid "Adds a noindex directive and leaves this content out of the sitemap."
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/EditSeoPanel.js:220
+#: inc/onboarding/src/screens/seo/EditSeoPanel.js:211
 msgid "Save & next"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/OverviewTab.js:91
+#: inc/onboarding/src/screens/seo/OverviewTab.js:94
 msgid "Could not load the overview."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/OverviewTab.js:105
-msgid "Content SEO"
-msgstr ""
-
 #. translators: %d: number of published posts and pages.
-#: inc/onboarding/src/screens/seo/OverviewTab.js:109
+#: inc/onboarding/src/screens/seo/OverviewTab.js:112
 #, js-format
 msgid "Across %d published items — what has each SEO field set."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/OverviewTab.js:120
-msgid "Schema applied"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/OverviewTab.js:125
-msgid "SEO title set"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/OverviewTab.js:130
-msgid "Meta description added"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/OverviewTab.js:138
-msgid "Visible to search engines"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/OverviewTab.js:149
-msgid "Manage content"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/OverviewTab.js:154
-#: inc/onboarding/src/screens/seo/SettingsTab.js:391
-msgid "Site visibility"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/OverviewTab.js:161
+#: inc/onboarding/src/screens/seo/OverviewTab.js:158
 msgid "Search engines allowed"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/OverviewTab.js:162
+#: inc/onboarding/src/screens/seo/OverviewTab.js:159
 msgid "Search engines discouraged"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/OverviewTab.js:169
+#: inc/onboarding/src/screens/seo/OverviewTab.js:166
 msgid "Sitemap active"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/OverviewTab.js:170
+#: inc/onboarding/src/screens/seo/OverviewTab.js:167
 msgid "Sitemap off"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/OverviewTab.js:174
+#: inc/onboarding/src/screens/seo/OverviewTab.js:171
 msgid "Site locked — crawlers can’t reach it"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/OverviewTab.js:186
-msgid "Manage visibility"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/OverviewTab.js:191
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1066
-msgid "Site verification"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/OverviewTab.js:201
-msgid "Set"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/OverviewTab.js:214
-msgid "Manage verification"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/OverviewTab.js:220
-msgid "Using a different SEO solution?"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/OverviewTab.js:222
-msgid "Disable Blocklane SEO"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:49
+#: inc/onboarding/src/screens/seo/SettingsTab.js:57
 msgid "Monday"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:50
+#: inc/onboarding/src/screens/seo/SettingsTab.js:58
 msgid "Tuesday"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:51
+#: inc/onboarding/src/screens/seo/SettingsTab.js:59
 msgid "Wednesday"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:52
+#: inc/onboarding/src/screens/seo/SettingsTab.js:60
 msgid "Thursday"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:53
+#: inc/onboarding/src/screens/seo/SettingsTab.js:61
 msgid "Friday"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:54
+#: inc/onboarding/src/screens/seo/SettingsTab.js:62
 msgid "Saturday"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:55
+#: inc/onboarding/src/screens/seo/SettingsTab.js:63
 msgid "Sunday"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:106
+#: inc/onboarding/src/screens/seo/SettingsTab.js:114
 msgid "Replace"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:141
+#: inc/onboarding/src/screens/seo/SettingsTab.js:151
 msgid "Search engines will pick a snippet from the homepage content."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:150
-msgid "Google search result"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:163
-msgid "Social share card"
-msgstr ""
-
 #. translators: %s: weekday name(s).
-#: inc/onboarding/src/screens/seo/SettingsTab.js:308
+#: inc/onboarding/src/screens/seo/SettingsTab.js:320
 #, js-format
 msgid "Opening hours for %s need both times — set an opening and a closing time, or clear both."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:347
+#: inc/onboarding/src/screens/seo/SettingsTab.js:359
 msgid "Could not load the SEO settings."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:382
+#: inc/onboarding/src/screens/seo/SettingsTab.js:394
 msgid "SEO settings saved."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:397
+#: inc/onboarding/src/screens/seo/SettingsTab.js:409
 msgid "Site Visibility has this site locked, so crawlers can’t reach it right now regardless of these settings."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:405
+#: inc/onboarding/src/screens/seo/SettingsTab.js:417
 msgid "Allow search engines to index this site"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:409
-msgid "The same switch as Settings → Reading and the Site Visibility screen. Turning it off asks search engines to skip the whole site — use only for staging or pre-launch."
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:418
-msgid "Add canonical URLs on archives"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:422
-msgid "Points search engines at the clean URL for category, tag, author, and date pages (paginated pages keep their own). Posts and pages already get one from WordPress."
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:431
+#: inc/onboarding/src/screens/seo/SettingsTab.js:434
 msgid "Hide author archives from search engines"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:435
+#: inc/onboarding/src/screens/seo/SettingsTab.js:438
 msgid "Author pages mostly repeat your post lists, and their URLs expose usernames. Search engines still follow the links on them."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:444
+#: inc/onboarding/src/screens/seo/SettingsTab.js:447
 msgid "Hide date archives from search engines"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:448
+#: inc/onboarding/src/screens/seo/SettingsTab.js:451
 msgid "Monthly and yearly archives repeat the same posts under many URLs. Search engines still follow the links on them."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:458
+#: inc/onboarding/src/screens/seo/SettingsTab.js:461
 msgid "Sitemaps"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:463
-msgid "Generate an XML sitemap"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:467
-msgid "View the sitemap"
-msgstr ""
-
 #: inc/onboarding/src/screens/seo/SettingsTab.js:470
-msgid "WordPress builds the sitemap (wp-sitemap.xml) automatically from your published content."
+msgid "View the sitemap"
 msgstr ""
 
 #: inc/onboarding/src/screens/seo/SettingsTab.js:482
 msgid "Include in the sitemap"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:485
-msgid "Anything unchecked stays out of the XML sitemap. Individual items are hidden per page with “Hide from search engines”."
 msgstr ""
 
 #: inc/onboarding/src/screens/seo/SettingsTab.js:545
@@ -4473,195 +4455,131 @@ msgstr ""
 msgid "Sample Page"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:717
-msgid "Search & social previews"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:722
+#: inc/onboarding/src/screens/seo/SettingsTab.js:719
 msgid "Default share image"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:725
+#: inc/onboarding/src/screens/seo/SettingsTab.js:722
 msgid "The card image links unfurl with when the shared page has no featured image of its own."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:738
+#: inc/onboarding/src/screens/seo/SettingsTab.js:735
 msgid "Replace share image"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:742
+#: inc/onboarding/src/screens/seo/SettingsTab.js:739
 msgid "Remove share image"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:746
+#: inc/onboarding/src/screens/seo/SettingsTab.js:743
 msgid "How your homepage can look in search results and when shared. The description comes from your front page’s own SEO (Content tab) or, for a posts homepage, the site tagline."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:755
+#: inc/onboarding/src/screens/seo/SettingsTab.js:752
 msgid "Organization schema"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:759
+#: inc/onboarding/src/screens/seo/SettingsTab.js:756
 msgid "Structured data describing who is behind the site. Blank fields fall back to your site title, tagline, and logo."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:766
+#: inc/onboarding/src/screens/seo/SettingsTab.js:763
 msgid "Defaults"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:772
-msgid "Organization name"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:787
+#: inc/onboarding/src/screens/seo/SettingsTab.js:784
 msgid "Logo"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:790
+#: inc/onboarding/src/screens/seo/SettingsTab.js:787
 msgid "Shown next to your organization in search results. Leave empty to use the site logo."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:802
+#: inc/onboarding/src/screens/seo/SettingsTab.js:799
 msgid "Select logo"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:803
+#: inc/onboarding/src/screens/seo/SettingsTab.js:800
 msgid "Replace logo"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:804
+#: inc/onboarding/src/screens/seo/SettingsTab.js:801
 msgid "Remove logo"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:809
-msgid "Social profiles"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:812
-msgid "Links to this organization’s official profiles (Facebook, X, LinkedIn, …)."
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:827
-msgid "Profile URL"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:864
-msgid "Add profile"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:870
-msgid "This is a local business"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:871
-msgid "Adds the address, phone number, and opening hours to your structured data — the details search engines can show in local and map results."
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:883
-msgid "Street address"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:896
+#: inc/onboarding/src/screens/seo/SettingsTab.js:887
 msgid "City"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:905
-msgid "State / Region"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:923
-msgid "Postal code"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:939
+#: inc/onboarding/src/screens/seo/SettingsTab.js:924
 msgid "Country"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:955
-msgid "Opening hours"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:958
-msgid "Leave a day blank if you’re closed."
-msgstr ""
-
-#. translators: %s: weekday name.
-#: inc/onboarding/src/screens/seo/SettingsTab.js:980
-#, js-format
-msgid "%s opens at"
-msgstr ""
-
-#. translators: %s: weekday name.
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1004
-#, js-format
-msgid "%s closes at"
-msgstr ""
-
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1033
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1007
 msgid "Latitude"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1045
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1019
 msgid "Longitude"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1055
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1029
 msgid "Coordinates are optional — they pin the business on the map when search engines can’t place the address."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1071
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1045
 msgid "Paste the verification code — or the whole meta tag — each service gives you. The matching tag is printed on your homepage."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1102
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1076
 msgid "IndexNow"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1107
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1081
 msgid "Notify search engines of content changes"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1114
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1088
 msgid "Bing, Yandex, and other IndexNow engines are pinged the moment content is published, updated, or removed."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1121
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1095
 msgid "View the key file"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1125
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1099
 msgid "Pings Bing, Yandex, and other IndexNow search engines the moment content is published, updated, or removed, instead of waiting for a crawl. Google doesn’t use IndexNow."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1137
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1111
 msgid "Import from another SEO plugin"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1141
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1115
 msgid "Copies each post’s search title, description, hidden-from-search flag, and schema type into Blocklane. Nothing you’ve already set here is overwritten, so it’s safe to run more than once."
 msgstr ""
 
 #. translators: 1: posts, 2: titles, 3: descriptions, 4: noindex flags, 5: schema types, 6: skipped values.
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1161
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1135
 #, js-format
 msgid "Imported %1$d post(s): %2$d title(s), %3$d description(s), %4$d hidden flag(s), %5$d schema type(s). %6$d value(s) already set here were kept."
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1181
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1155
 msgid "No SEO data from other plugins was found on this site."
 msgstr ""
 
 #. translators: %d: number of posts with importable data.
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1199
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1173
 #, js-format
 msgid "%d post(s)"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1210
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1184
 msgid "Import"
 msgstr ""
 
-#: inc/onboarding/src/screens/seo/SettingsTab.js:1227
+#: inc/onboarding/src/screens/seo/SettingsTab.js:1201
 msgid "Save SEO Settings"
 msgstr ""
 
@@ -5010,12 +4928,8 @@ msgstr ""
 msgid "Not available in this edition"
 msgstr ""
 
-#: inc/seo/src/index.js:96
+#: inc/seo/src/index.js:97
 msgid "You are currently editing the page that shows your site map."
-msgstr ""
-
-#: inc/seo/src/index.js:232
-msgid "This page asks search engines not to index it and is left out of the sitemap."
 msgstr ""
 
 #: inc/shared/animation-options.js:11
@@ -5045,6 +4959,204 @@ msgstr ""
 
 #: inc/shared/animation-options.js:20
 msgid "Zoom"
+msgstr ""
+
+#: inc/shared/seo-copy.js:25
+msgid "SEO coverage of your content"
+msgstr ""
+
+#: inc/shared/seo-copy.js:29
+msgid "Structured data chosen"
+msgstr ""
+
+#: inc/shared/seo-copy.js:30
+msgid "Search title set"
+msgstr ""
+
+#: inc/shared/seo-copy.js:31
+msgid "Search description set"
+msgstr ""
+
+#: inc/shared/seo-copy.js:32
+msgid "Open to search indexing"
+msgstr ""
+
+#: inc/shared/seo-copy.js:33
+msgid "Review content SEO"
+msgstr ""
+
+#: inc/shared/seo-copy.js:34
+msgid "Visibility to search engines"
+msgstr ""
+
+#: inc/shared/seo-copy.js:38
+msgid "Adjust visibility settings"
+msgstr ""
+
+#: inc/shared/seo-copy.js:42
+msgid "Ownership verification"
+msgstr ""
+
+#: inc/shared/seo-copy.js:43
+msgid "Enter verification codes"
+msgstr ""
+
+#: inc/shared/seo-copy.js:47
+msgid "Code saved"
+msgstr ""
+
+#: inc/shared/seo-copy.js:48
+msgid "No code yet"
+msgstr ""
+
+#: inc/shared/seo-copy.js:49
+msgid "Do you handle SEO with another tool?"
+msgstr ""
+
+#: inc/shared/seo-copy.js:50
+msgid "Turn off Blocklane SEO"
+msgstr ""
+
+#: inc/shared/seo-copy.js:53
+msgid "Title"
+msgstr ""
+
+#: inc/shared/seo-copy.js:54
+msgid "Content type"
+msgstr ""
+
+#: inc/shared/seo-copy.js:61
+msgid "No custom value"
+msgstr ""
+
+#: inc/shared/seo-copy.js:62
+msgid "Edit SEO fields"
+msgstr ""
+
+#: inc/shared/seo-copy.js:63
+msgid "Hide from search results"
+msgstr ""
+
+#: inc/shared/seo-copy.js:64
+msgid "Allow in search results"
+msgstr ""
+
+#: inc/shared/seo-copy.js:65
+msgid "Set structured data type"
+msgstr ""
+
+#: inc/shared/seo-copy.js:79
+msgid "Structured data describes this page to search engines in a form they can read. Article marks it as an article. FAQ builds questions and answers from the page's Details and Accordion blocks, with each Details summary as a question."
+msgstr ""
+
+#: inc/shared/seo-copy.js:84
+msgid "Turning this on adds a request not to index the page and removes it from the sitemap."
+msgstr ""
+
+#: inc/shared/seo-copy.js:88
+msgid "Search engines are now asked to keep this item out of their indexes, and it no longer appears in the sitemap."
+msgstr ""
+
+#: inc/shared/seo-copy.js:94
+msgid "This is the option WordPress shows under Settings > Reading, which the Site Visibility screen also changes. Turning it off asks every crawler to skip the whole site, so do that only before your site launches."
+msgstr ""
+
+#: inc/shared/seo-copy.js:98
+msgid "Canonical links on archives"
+msgstr ""
+
+#: inc/shared/seo-copy.js:102
+msgid "Adds a canonical link to category, tag, author, date and other archive pages, pointing to the archive's own clean address. Later pages point to themselves, and archives hidden from search engines get none."
+msgstr ""
+
+#: inc/shared/seo-copy.js:106
+msgid "Publish an XML sitemap"
+msgstr ""
+
+#: inc/shared/seo-copy.js:107
+msgid "WordPress builds this sitemap by itself from everything you publish."
+msgstr ""
+
+#. translators: %s: the name of the switch that keeps a single item out of search engines.
+#: inc/shared/seo-copy.js:112
+#, js-format
+msgid "Anything you leave unchecked is left out of the XML sitemap. To leave out a single item, turn on “%s” for that item."
+msgstr ""
+
+#: inc/shared/seo-copy.js:116
+msgid "Search and sharing previews"
+msgstr ""
+
+#: inc/shared/seo-copy.js:117
+msgid "As a search result"
+msgstr ""
+
+#: inc/shared/seo-copy.js:118
+msgid "As a shared link"
+msgstr ""
+
+#: inc/shared/seo-copy.js:119
+msgid "Sample page title"
+msgstr ""
+
+#: inc/shared/seo-copy.js:120
+msgid "Name of your organization"
+msgstr ""
+
+#: inc/shared/seo-copy.js:121
+msgid "Your social profiles"
+msgstr ""
+
+#: inc/shared/seo-copy.js:122
+msgid "Add the web address of each account you run, such as on Facebook, Instagram or LinkedIn, so your structured data links to it."
+msgstr ""
+
+#: inc/shared/seo-copy.js:126
+msgid "Profile web address"
+msgstr ""
+
+#: inc/shared/seo-copy.js:127
+msgid "Add a profile"
+msgstr ""
+
+#: inc/shared/seo-copy.js:128
+msgid "Describe it as a local business"
+msgstr ""
+
+#: inc/shared/seo-copy.js:132
+msgid "Turns your structured data into a local business and adds whichever address, contact, hours and map details you fill in. Search engines may display them."
+msgstr ""
+
+#: inc/shared/seo-copy.js:136
+msgid "Street address"
+msgstr ""
+
+#: inc/shared/seo-copy.js:137
+msgid "Region or state"
+msgstr ""
+
+#: inc/shared/seo-copy.js:138
+msgid "Postal code"
+msgstr ""
+
+#: inc/shared/seo-copy.js:139
+msgid "Opening hours"
+msgstr ""
+
+#: inc/shared/seo-copy.js:140
+msgid "Any day you leave without times is treated as closed."
+msgstr ""
+
+#. translators: %s: a weekday name, such as Monday.
+#: inc/shared/seo-copy.js:145
+#, js-format
+msgid "%s opening time"
+msgstr ""
+
+#. translators: %s: a weekday name, such as Monday.
+#: inc/shared/seo-copy.js:147
+#, js-format
+msgid "%s closing time"
 msgstr ""
 
 #: inc/shared/seo-ui.js:58

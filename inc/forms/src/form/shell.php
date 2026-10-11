@@ -19,11 +19,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$blocklane_form_id    = isset( $attributes['formId'] ) && '' !== $attributes['formId']
-	? sanitize_title( $attributes['formId'] )
-	: wp_unique_id( 'blf-' );
-$blocklane_form_name  = isset( $attributes['formName'] ) ? (string) $attributes['formName'] : '';
-$blocklane_form_style = blocklane_pro_forms_input_style_vars( isset( $attributes['inputStyles'] ) ? $attributes['inputStyles'] : array() );
+// The stored formId, sanitized the way the submission route sanitizes the
+// posted one: '' when the form has none (or one that sanitizes to nothing),
+// and then the render falls back to a per-request id the route can never
+// find — and prints no binding for it.
+$blocklane_form_stored = isset( $attributes['formId'] ) && '' !== $attributes['formId'] ? sanitize_title( (string) $attributes['formId'] ) : '';
+$blocklane_form_id     = '' !== $blocklane_form_stored ? $blocklane_form_stored : wp_unique_id( 'blf-' );
+$blocklane_form_name   = isset( $attributes['formName'] ) ? (string) $attributes['formName'] : '';
+$blocklane_form_style  = blocklane_pro_forms_input_style_vars( isset( $attributes['inputStyles'] ) ? $attributes['inputStyles'] : array() );
 
 $blocklane_form_wrapper_args = array(
 	'class' => 'blocklane-form blf-' . $blocklane_form_id,
@@ -65,6 +68,20 @@ if ( ! $blocklane_form_availability['open'] ) {
 	<?php
 	return;
 }
+
+// The binding (_bl_bind): a token minted for this render over the
+// definition this shell renders (`<nonce>.<HMAC>`, fresh on every render so
+// two printed values can never be compared, #1986), so the submission route
+// can tell which live copy of this formId the visitor was shown. Only a form with a stored formId has one (the
+// wp_unique_id() fallback names nothing the route can find), and a
+// definition that cannot be computed prints none. The if/endif around its
+// input sit at column 0 on purpose: a template's indentation is output, and
+// the forms corpus pins every byte around the one line the binding adds.
+$blocklane_form_bind = '';
+if ( '' !== $blocklane_form_stored ) {
+	$blocklane_form_bound = blocklane_pro_forms_render_binding( $blocklane_form_stored, $block->parsed_block );
+	$blocklane_form_bind  = is_wp_error( $blocklane_form_bound ) ? '' : $blocklane_form_bound;
+}
 ?>
 <form <?php echo get_block_wrapper_attributes( $blocklane_form_wrapper_args ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core-escaped. ?>
 	method="post"
@@ -89,6 +106,9 @@ if ( ! $blocklane_form_availability['open'] ) {
 	<?php endif; ?>
 >
 	<input type="hidden" name="_bl_form_id" value="<?php echo esc_attr( $blocklane_form_id ); ?>" />
+<?php if ( '' !== $blocklane_form_bind ) : ?>
+	<input type="hidden" name="_bl_bind" value="<?php echo esc_attr( $blocklane_form_bind ); ?>" />
+<?php endif; ?>
 	<?php if ( ! empty( $attributes['requireLogin'] ) ) : ?>
 		<?php // Cookie auth on the REST route needs a nonce or WP treats the visitor as anonymous — without this, the server's login re-check would reject the very users the gate admits. Login-required pages are per-user, so the page-cache staleness concern that keeps nonces out of the public form doesn't apply here. ?>
 		<input type="hidden" name="_bl_rest" value="<?php echo esc_attr( wp_create_nonce( 'wp_rest' ) ); ?>" />

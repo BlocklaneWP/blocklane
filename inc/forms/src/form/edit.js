@@ -46,6 +46,7 @@ import { makeRequiredCapable } from '../shared/required-capable';
 import { envelope } from '@wordpress/icons';
 import useToolsPanelDropdownMenuProps from '../../../shared/use-tools-panel-dropdown-menu-props';
 import { inputStyleVars } from '../shared/input-styles';
+import { generateFormId, formIdNeedsRegenerating } from '../shared/form-id';
 
 const DEFAULT_TEMPLATE = [
 	[
@@ -156,12 +157,6 @@ function TriStateControl( { label, help, value, siteDefault, onChange } ) {
 	);
 }
 
-const generateFormId = () =>
-	'f' +
-	( window.crypto?.randomUUID?.() || Math.random().toString( 36 ).slice( 2 ) )
-		.replace( /-/g, '' )
-		.slice( 0, 8 );
-
 const hasRequiredField = ( blocks ) =>
 	blocks.some(
 		( block ) =>
@@ -220,8 +215,11 @@ export default function FormEdit( { attributes, setAttributes, clientId } ) {
 	};
 
 	/* formId: set once on insert; regenerate on the LATER copy when a
-	   same-document duplicate carries the same id (cross-document duplicates
-	   are harmless — schema derivation is source-scoped by design). */
+	   same-document duplicate carries the same id. Copies in other documents
+	   keep the id on purpose: they share the inbox group. A copy elsewhere
+	   never receives this form's submissions: a copy's own settings route a
+	   submission only when its binding (`_bl_bind`) verifies that copy, and
+	   anything else goes to the site defaults. */
 	const duplicateOfEarlier = useSelect(
 		( select ) => {
 			if ( ! formId ) {
@@ -243,7 +241,14 @@ export default function FormEdit( { attributes, setAttributes, clientId } ) {
 	);
 
 	useEffect( () => {
-		if ( ! formId || duplicateOfEarlier ) {
+		// An id the server can never find (sanitize_title() would rewrite it:
+		// spaces, punctuation, `--`) is regenerated too, so the form stops
+		// losing its submissions the next time it is loaded (F15).
+		if (
+			! formId ||
+			duplicateOfEarlier ||
+			formIdNeedsRegenerating( formId )
+		) {
 			setAttributes( { formId: generateFormId() } );
 		}
 	}, [ formId, duplicateOfEarlier, setAttributes ] );

@@ -7,8 +7,14 @@
  * with a confirm step and a success summary.
  */
 
-import { __, _n, sprintf } from '@wordpress/i18n';
-import { useState, useEffect, useRef, cloneElement } from '@wordpress/element';
+import { sprintf } from '@wordpress/i18n';
+import {
+	useState,
+	useEffect,
+	useRef,
+	cloneElement,
+	Fragment,
+} from '@wordpress/element';
 import { useInstanceId } from '@wordpress/compose';
 import {
 	Flex,
@@ -26,6 +32,7 @@ import { childTheme as childThemeApi } from '../api/client';
 import { buildRouteUrl } from '../router';
 import { HelpTab, useHelpPreference } from '../components/HelpTab';
 import { errorMessage } from '../api/errors';
+import { childThemeCopy } from './child-theme-copy';
 
 const Field = ( { label, required, help, children } ) => {
 	// Associate the label with the control inside (TextControl and
@@ -47,6 +54,28 @@ const Field = ( { label, required, help, children } ) => {
 	);
 };
 
+/*
+ * Fill the placeholders of a child-theme-copy.js string. The formats are not
+ * literals here, so the lint rule that checks sprintf() formats cannot read
+ * them; child-theme-copy.test.js pins which placeholders each carries.
+ */
+const fill = ( format, ...values ) => sprintf( format, ...values );
+
+/*
+ * One, two or three items as one phrase, through the copy's own list
+ * patterns: translators reorder the positional placeholders and choose the
+ * separators, so no English joining happens here.
+ */
+const asList = ( copy, items ) => {
+	if ( 3 === items.length ) {
+		return fill( copy.importListThree, ...items );
+	}
+	if ( 2 === items.length ) {
+		return fill( copy.importListTwo, ...items );
+	}
+	return items[ 0 ] || '';
+};
+
 const SummaryRow = ( { label, value, last } ) => (
 	<>
 		<Flex gap={ 4 } className="blocklane-pro-child-theme__summary-row">
@@ -62,10 +91,15 @@ const SummaryRow = ( { label, value, last } ) => (
 );
 
 export const ChildThemeScreen = () => {
+	// Every string this screen shows comes from child-theme-copy.js.
+	const copy = childThemeCopy();
 	const settings = window.blocklaneProAdmin || {};
-	// Server-resolved fallbacks (what generation writes when a field is left
-	// blank) — shown as placeholders so the form previews the actual output.
 	const defaults = settings.childTheme || {};
+	// What generation writes for each field left blank, keyed by field name
+	// and localized from Helper::child_theme_fallbacks(), the one source the
+	// generator reads too. Each is shown verbatim as its field's placeholder,
+	// so a placeholder is the header a blank field writes, in any language.
+	const placeholders = defaults.placeholders || {};
 	// The bundled branded child screenshot — the same file generation copies
 	// into every child (server-localized with a cache-buster).
 	const screenshot =
@@ -92,7 +126,9 @@ export const ChildThemeScreen = () => {
 	const [ description, setDescription ] = useState( '' );
 	const [ author, setAuthor ] = useState( '' );
 	const [ authorUrl, setAuthorUrl ] = useState( '' );
-	const [ version, setVersion ] = useState( '1.0.0' );
+	// Empty, like every field, so the placeholder shows the version a blank
+	// field writes (Helper::child_theme_fallbacks()).
+	const [ version, setVersion ] = useState( '' );
 	const [ textDomain, setTextDomain ] = useState( '' );
 
 	const [ childThemeCreated, setChildThemeCreated ] = useState( false );
@@ -128,11 +164,7 @@ export const ChildThemeScreen = () => {
 				// prefer the server's own message over the generic copy: a
 				// capability error is actionable, "could not check" is not.
 				setError(
-					err?.message ||
-						__(
-							'Could not check the parent theme for Site Editor customizations — the import option is unavailable.',
-							'blocklane'
-						)
+					err?.message || childThemeCopy().customizationsError
 				);
 			} );
 	}, [ toolEnabled ] );
@@ -144,39 +176,20 @@ export const ChildThemeScreen = () => {
 			!! customizations.parts?.length );
 
 	const importSummary = () => {
+		const templates = customizations?.templates?.length || 0;
+		const parts = customizations?.parts?.length || 0;
+		const counted = childThemeCopy( { templates, parts } );
 		const bits = [];
 		if ( customizations?.hasGlobalStyles ) {
-			bits.push( __( 'your global styles', 'blocklane' ) );
+			bits.push( counted.importGlobalStyles );
 		}
-		if ( customizations?.templates?.length ) {
-			bits.push(
-				sprintf(
-					/* translators: %d: number of edited templates */
-					_n(
-						'%d edited template',
-						'%d edited templates',
-						customizations.templates.length,
-						'blocklane'
-					),
-					customizations.templates.length
-				)
-			);
+		if ( templates ) {
+			bits.push( fill( counted.importTemplates, templates ) );
 		}
-		if ( customizations?.parts?.length ) {
-			bits.push(
-				sprintf(
-					/* translators: %d: number of edited template parts */
-					_n(
-						'%d template part',
-						'%d template parts',
-						customizations.parts.length,
-						'blocklane'
-					),
-					customizations.parts.length
-				)
-			);
+		if ( parts ) {
+			bits.push( fill( counted.importParts, parts ) );
 		}
-		return bits.join( ', ' );
+		return asList( counted, bits );
 	};
 
 	// Summary values: prefer the header the server actually wrote (blank
@@ -227,24 +240,21 @@ export const ChildThemeScreen = () => {
 								ref={ pageStart }
 								tabIndex={ -1 }
 							>
-								{ __( 'Create a Child Theme', 'blocklane' ) }
+								{ copy.pageTitle }
 							</h1>
 						</header>
 						<Notice status="info" isDismissible={ false }>
-							{ __( 'This tool is turned off.', 'blocklane' ) }
+							{ copy.offNotice }
 						</Notice>
 						<p className="blocklane-pro-child-theme__help">
-							{ __(
-								'The Child Theme Generator is hidden and its endpoints are disabled. Turn it back on from the Advanced screen whenever you need to generate another child theme.',
-								'blocklane'
-							) }
+							{ copy.offBody }
 						</p>
 						<Button
 							variant="primary"
 							__next40pxDefaultSize
 							href={ advancedUrl }
 						>
-							{ __( 'Open Advanced settings', 'blocklane' ) }
+							{ copy.offButton }
 						</Button>
 					</section>
 				</FlexItem>
@@ -270,7 +280,7 @@ export const ChildThemeScreen = () => {
 							ref={ pageStart }
 							tabIndex={ -1 }
 						>
-							{ __( 'Create a Child Theme', 'blocklane' ) }
+							{ copy.pageTitle }
 						</h1>
 					</header>
 
@@ -291,26 +301,17 @@ export const ChildThemeScreen = () => {
 							className="blocklane-pro-child-theme__result"
 						>
 							<Notice status="success" isDismissible={ false }>
-								{ __(
-									'Child theme created and activated.',
-									'blocklane'
-								) }
+								{ copy.successNotice }
 							</Notice>
 
 							{ importResult === true ? (
 								<p className="blocklane-pro-child-theme__help">
-									{ __(
-										'Your customizations were copied into the child theme’s files.',
-										'blocklane'
-									) }
+									{ copy.importDoneNote }
 								</p>
 							) : null }
 							{ importResult === false ? (
 								<p className="blocklane-pro-child-theme__help">
-									{ __(
-										'Some customizations could not be copied — check the child theme’s files.',
-										'blocklane'
-									) }
+									{ copy.importPartialNote }
 								</p>
 							) : null }
 
@@ -325,55 +326,43 @@ export const ChildThemeScreen = () => {
 									style={ { width: '100%' } }
 								>
 									<SummaryRow
-										label={ __(
-											'Theme Name',
-											'blocklane'
-										) }
+										label={ copy.summaryThemeName }
 										value={ written(
 											'Theme Name',
 											themeName
 										) }
 									/>
 									<SummaryRow
-										label={ __( 'Theme URL', 'blocklane' ) }
+										label={ copy.summaryThemeUrl }
 										value={ written(
 											'Theme URI',
 											themeUrl
 										) }
 									/>
 									<SummaryRow
-										label={ __(
-											'Description',
-											'blocklane'
-										) }
+										label={ copy.summaryDescription }
 										value={ written(
 											'Description',
 											description
 										) }
 									/>
 									<SummaryRow
-										label={ __( 'Author', 'blocklane' ) }
+										label={ copy.summaryAuthor }
 										value={ written( 'Author', author ) }
 									/>
 									<SummaryRow
-										label={ __(
-											'Author URL',
-											'blocklane'
-										) }
+										label={ copy.summaryAuthorUrl }
 										value={ written(
 											'Author URI',
 											authorUrl
 										) }
 									/>
 									<SummaryRow
-										label={ __( 'Version', 'blocklane' ) }
+										label={ copy.summaryVersion }
 										value={ written( 'Version', version ) }
 									/>
 									<SummaryRow
-										label={ __(
-											'Text Domain',
-											'blocklane'
-										) }
+										label={ copy.summaryTextDomain }
 										value={ written(
 											'Text Domain',
 											textDomain
@@ -383,68 +372,36 @@ export const ChildThemeScreen = () => {
 								</Flex>
 								<img
 									src={ screenshot }
-									alt={ __(
-										'Child theme preview',
-										'blocklane'
-									) }
+									alt={ copy.screenshotAlt }
 									className="blocklane-pro-child-theme__screenshot"
 								/>
 							</Flex>
 
 							<p className="blocklane-pro-child-theme__help">
-								{ __(
-									'Done with this tool? You can hide it from the menu — flip “Child Theme Generator” off under Advanced, and back on whenever you need it again.',
-									'blocklane'
-								) }{ ' ' }
+								{ copy.hideToolNote }{ ' ' }
 								<a href={ advancedUrl }>
-									{ __( 'Open Advanced', 'blocklane' ) }
+									{ copy.hideToolLink }
 								</a>
 							</p>
 						</Flex>
 					) : (
 						<div className="blocklane-pro-child-theme__fields">
 							<Field
-								label={ __(
-									'Theme Name (optional)',
-									'blocklane'
-								) }
-								help={ __(
-									'The name of your child theme as it appears in the WordPress admin.',
-									'blocklane'
-								) }
+								label={ copy.fieldThemeNameLabel }
+								help={ copy.fieldThemeNameHelp }
 							>
 								<TextControl
 									__next40pxDefaultSize
 									__nextHasNoMarginBottom
 									value={ themeName }
 									onChange={ setThemeName }
-									placeholder={
-										defaults.parentName
-											? sprintf(
-													/* translators: %s: parent theme name. */
-													__(
-														'%s Child',
-														'blocklane'
-													),
-													defaults.parentName
-												)
-											: __(
-													'My Child Theme',
-													'blocklane'
-												)
-									}
+									placeholder={ placeholders.themeName }
 								/>
 							</Field>
 
 							<Field
-								label={ __(
-									'Theme URL (optional)',
-									'blocklane'
-								) }
-								help={ __(
-									'The URL where users can learn more about your theme.',
-									'blocklane'
-								) }
+								label={ copy.fieldThemeUrlLabel }
+								help={ copy.fieldThemeUrlHelp }
 							>
 								<TextControl
 									__next40pxDefaultSize
@@ -452,70 +409,38 @@ export const ChildThemeScreen = () => {
 									type="url"
 									value={ themeUrl }
 									onChange={ setThemeUrl }
-									placeholder="https://example.com"
+									placeholder={ placeholders.themeUrl }
 								/>
 							</Field>
 
 							<Field
-								label={ __(
-									'Description (optional)',
-									'blocklane'
-								) }
-								help={ __(
-									'A brief description of your child theme.',
-									'blocklane'
-								) }
+								label={ copy.fieldDescriptionLabel }
+								help={ copy.fieldDescriptionHelp }
 							>
 								<TextareaControl
 									__nextHasNoMarginBottom
 									value={ description }
 									onChange={ setDescription }
-									placeholder={
-										defaults.parentName
-											? sprintf(
-													/* translators: %s: parent theme name. */
-													__(
-														'A child theme of %s.',
-														'blocklane'
-													),
-													defaults.parentName
-												)
-											: __(
-													'A child theme.',
-													'blocklane'
-												)
-									}
+									placeholder={ placeholders.description }
 								/>
 							</Field>
 
 							<Field
-								label={ __( 'Author (optional)', 'blocklane' ) }
-								help={ __(
-									'The name of the theme author.',
-									'blocklane'
-								) }
+								label={ copy.fieldAuthorLabel }
+								help={ copy.fieldAuthorHelp }
 							>
 								<TextControl
 									__next40pxDefaultSize
 									__nextHasNoMarginBottom
 									value={ author }
 									onChange={ setAuthor }
-									placeholder={ __(
-										'Your name',
-										'blocklane'
-									) }
+									placeholder={ placeholders.author }
 								/>
 							</Field>
 
 							<Field
-								label={ __(
-									'Author URL (optional)',
-									'blocklane'
-								) }
-								help={ __(
-									"The URL of the theme author's website.",
-									'blocklane'
-								) }
+								label={ copy.fieldAuthorUrlLabel }
+								help={ copy.fieldAuthorUrlHelp }
 							>
 								<TextControl
 									__next40pxDefaultSize
@@ -523,47 +448,33 @@ export const ChildThemeScreen = () => {
 									type="url"
 									value={ authorUrl }
 									onChange={ setAuthorUrl }
-									placeholder="https://example.com"
+									placeholder={ placeholders.authorUrl }
 								/>
 							</Field>
 
 							<Field
-								label={ __(
-									'Version (optional)',
-									'blocklane'
-								) }
-								help={ __(
-									'The version number of your child theme.',
-									'blocklane'
-								) }
+								label={ copy.fieldVersionLabel }
+								help={ copy.fieldVersionHelp }
 							>
 								<TextControl
 									__next40pxDefaultSize
 									__nextHasNoMarginBottom
 									value={ version }
 									onChange={ setVersion }
-									placeholder="1.0.0"
+									placeholder={ placeholders.version }
 								/>
 							</Field>
 
 							<Field
-								label={ __(
-									'Text Domain (optional)',
-									'blocklane'
-								) }
-								help={ __(
-									'The text domain used for theme translations.',
-									'blocklane'
-								) }
+								label={ copy.fieldTextDomainLabel }
+								help={ copy.fieldTextDomainHelp }
 							>
 								<TextControl
 									__next40pxDefaultSize
 									__nextHasNoMarginBottom
 									value={ textDomain }
 									onChange={ setTextDomain }
-									placeholder={
-										defaults.textDomain || 'blocklane-child'
-									}
+									placeholder={ placeholders.textDomain }
 								/>
 							</Field>
 
@@ -571,28 +482,17 @@ export const ChildThemeScreen = () => {
 								<div className="blocklane-pro-child-theme__import">
 									<CheckboxControl
 										__nextHasNoMarginBottom
-										label={ sprintf(
-											/* translators: %s: name of the theme being imported from */
-											__(
-												'Import customizations from %s',
-												'blocklane'
-											),
+										label={ fill(
+											copy.importLabel,
 											customizations.themeName ||
-												__(
-													'the parent theme',
-													'blocklane'
-												)
+												copy.importSourceFallback
 										) }
 										checked={ importCustomizations }
 										onChange={ setImportCustomizations }
 									/>
 									<p className="blocklane-pro-child-theme__help">
-										{ sprintf(
-											/* translators: %s: list of customizations, e.g. "your global styles, 2 edited templates" */
-											__(
-												'Bakes %s into the child theme’s files so it keeps the look you’ve built. Your current theme is left unchanged.',
-												'blocklane'
-											),
+										{ fill(
+											copy.importHelp,
 											importSummary()
 										) }
 									</p>
@@ -610,10 +510,7 @@ export const ChildThemeScreen = () => {
 									isBusy={ isBusy }
 									onClick={ () => setIsModalOpen( true ) }
 								>
-									{ __(
-										'Create and Activate Child Theme',
-										'blocklane'
-									) }
+									{ copy.createButton }
 								</Button>
 							</Flex>
 						</div>
@@ -633,71 +530,34 @@ export const ChildThemeScreen = () => {
 			>
 				<section className="blocklane-pro-extensions__preview-content">
 					<p>
-						<strong>{ __( 'Overview', 'blocklane' ) }</strong>
+						<strong>{ copy.helpOverviewHeading }</strong>
 					</p>
-					<p>
-						{ __(
-							'Create and activate a child theme based on your active theme so your customizations survive parent-theme updates.',
-							'blocklane'
-						) }
-					</p>
-					<Divider />
-					<p>
-						<strong>
-							{ __( 'What is a child theme?', 'blocklane' ) }
-						</strong>
-					</p>
-					<p>
-						{ __(
-							'A child theme inherits the functionality and styling of another theme (the parent) while letting you make customizations that survive parent-theme updates.',
-							'blocklane'
-						) }
-					</p>
-					<Divider />
-					<p>
-						<strong>
-							{ __( 'Do I need a child theme?', 'blocklane' ) }
-						</strong>
-					</p>
-					<p>
-						{ __(
-							'These days most users don’t — many customizations can be done directly in the block and site editor.',
-							'blocklane'
-						) }
-					</p>
-					<Divider />
-					<p>
-						<strong>
-							{ __( 'I lost my customizations!', 'blocklane' ) }
-						</strong>
-					</p>
-					<p>
-						{ __(
-							'Global style changes are tied to your active theme. Activate your child theme first, then make customizations.',
-							'blocklane'
-						) }
-					</p>
+					<p>{ copy.helpOverviewBody }</p>
+					{ copy.faq.map( ( entry ) => (
+						<Fragment key={ entry.question }>
+							<Divider />
+							<p>
+								<strong>{ entry.question }</strong>
+							</p>
+							<p>{ entry.answer }</p>
+						</Fragment>
+					) ) }
 				</section>
 			</FlexItem>
 
 			{ isModalOpen && (
 				<Modal
-					title={ __( 'Heads up!', 'blocklane' ) }
+					title={ copy.confirmTitle }
 					onRequestClose={ () => setIsModalOpen( false ) }
 					className="blocklane-pro-child-theme-modal"
 				>
-					<p>
-						{ __(
-							"Global style changes (colors, typography, etc.) are tied to your active theme. If you activate a child theme after making customizations, those changes won't appear — you'd need to re-activate the previous theme to see them again.",
-							'blocklane'
-						) }
-					</p>
+					<p>{ copy.confirmBody }</p>
 					<Flex justify="flex-end" gap={ 2 }>
 						<Button
 							variant="tertiary"
 							onClick={ () => setIsModalOpen( false ) }
 						>
-							{ __( 'Cancel', 'blocklane' ) }
+							{ copy.confirmCancel }
 						</Button>
 						<Button
 							variant="primary"
@@ -706,7 +566,7 @@ export const ChildThemeScreen = () => {
 								createChildTheme();
 							} }
 						>
-							{ __( 'Create and Activate', 'blocklane' ) }
+							{ copy.confirmSubmit }
 						</Button>
 					</Flex>
 				</Modal>

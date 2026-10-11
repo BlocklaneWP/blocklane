@@ -97,6 +97,10 @@ final class Advanced implements Bootable {
 	/** Post types never offered for manual ordering. */
 	const REORDER_EXCLUDED = array( 'attachment', 'wp_block', 'wp_template', 'wp_template_part', 'wp_navigation', 'wp_global_styles', 'wp_font_face', 'wp_font_family' );
 
+	/** The range of wp_posts.menu_order (a signed 32-bit int): reorder_plan() never writes outside it. */
+	const MENU_ORDER_MIN = -2147483648;
+	const MENU_ORDER_MAX = 2147483647;
+
 	private static $instance = null;
 
 	public static function get_instance() {
@@ -108,6 +112,19 @@ final class Advanced implements Bootable {
 
 	private function __construct() {
 		$this->apply();
+	}
+
+	/**
+	 * Whether the Advanced row exists at all: the witness Svg_Cleanup reads.
+	 * Turning Safe SVG Uploads on is a save of this row (nothing seeds it),
+	 * so a site with no row never had the feature on — unless an uninstall
+	 * removed the row since. It reads through get_option(), so it is not
+	 * raw: a pre_option_ or default_option_ filter on this option (Blocklane
+	 * adds none; the review battery's force filter is one, which is why WC2
+	 * removes it) makes a site with no row read as configured.
+	 */
+	public static function configured(): bool {
+		return null !== get_option( self::OPTION, null );
 	}
 
 	/**
@@ -353,22 +370,7 @@ final class Advanced implements Bootable {
 			add_action( 'pre_get_posts', array( $this, 'apply_front_order' ) );
 		}
 
-		if ( self::is_on( 'safe-svg-upload' ) ) {
-			require_once BLOCKLANE_PRO_PATH . '/inc/advanced/vendor/svg-sanitize/load.php';
-			add_filter( 'upload_mimes', array( $this, 'allow_svg_mime' ) );
-			add_filter( 'wp_check_filetype_and_ext', array( $this, 'fix_svg_filetype' ), 10, 4 );
-			add_filter( 'wp_handle_upload_prefilter', array( $this, 'sanitize_svg_upload' ) );
-			// The sideload path (media_sideload_image, importers, the REST
-			// attachments controller's raw-body uploads) fires a DIFFERENT
-			// prefilter hook, so without this an SVG that arrives that way would
-			// be stored unsanitized.
-			add_filter( 'wp_handle_sideload_prefilter', array( $this, 'sanitize_svg_upload' ) );
-			add_filter( 'wp_image_editors', array( $this, 'register_svg_editor' ) );
-			add_filter( 'wp_generate_attachment_metadata', array( $this, 'svg_attachment_metadata' ), 10, 2 );
-			add_filter( 'wp_get_attachment_metadata', array( $this, 'svg_attachment_metadata' ), 10, 2 );
-			add_filter( 'wp_insert_attachment_data', array( $this, 'fix_svg_attachment_mime' ), 10, 2 );
-			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_svg_admin_styles' ) );
-		}
+		$this->boot_safe_svg();
 
 		if ( self::is_on( 'media-replacement' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_media_replace_assets' ) );
@@ -701,84 +703,139 @@ final class Advanced implements Bootable {
 	}
 
 	/**
-	 * The write set of a reorder: what save_order() will write, computed
-	 * before anything is written. Only IDs that exist and are of $post_type
-	 * take a position; of those, only the ones whose menu_order differs from
-	 * their new position are written (a drag shifts a window of rows).
+	 * The plan of a reorder: the ONE definition of what the request writes
+	 * (spec 2026-10-06-reorder-locked-rows). Post ID => the menu_order it
+	 * will be given, holding only rows whose value changes. The route's
+	 * permission callback computes it once and the callback hands that same
+	 * map to write_order(), so what is written is what was authorized
+	 * (review F03: the set was computed twice, around save_parent()'s hooks).
+	 *
+	 * A row the user cannot edit_post is LOCKED: a fixed point that is never
+	 * in the plan (review F01: numbering the whole payload 1..N put the
+	 * Privacy Policy page, which only manage_privacy_options may edit, in
+	 * every Editor's write set). Rows are compared within the groups that
+	 * sort together: siblings of one parent for a hierarchical type (the
+	 * moved item under its new $parent), the whole list for a flat one. In
+	 * each group, in the dragged order, the editable rows between two
+	 * consecutive locked rows form a run bounded by those rows' values. A
+	 * run keeps its payload positions (the 1..N numbering, so an
+	 * Administrator's plan is exactly that) when they fit strictly inside
+	 * its bounds, and is otherwise packed against the finite bound. Every
+	 * group comes out STRICTLY increasing: no consumer's tie-break decides
+	 * an order (the front end sorts by menu_order alone), and no tie is left
+	 * but one between two locked rows, which predates the request. Values
+	 * may be negative or exceed N; they stay inside the signed 32-bit column.
+	 *
+	 * Refused, nothing written (decision D6: never leave an order the user
+	 * did not ask for): two locked rows of one group out of order, or a run
+	 * with no room between its bounds. Either needs a locked row to move,
+	 * and the 403 names it. A role with one locked row per group cannot
+	 * reach either; it takes two locked siblings.
 	 *
 	 * @param string    $post_type The type being reordered.
-	 * @param list<int> $ids       The order the request asks for.
-	 * @return array<int, int> Post ID => the menu_order it will be given.
+	 * @param list<int> $ids       The order the request asks for, flat.
+	 * @param int       $moved     The re-parented item, 0 for none.
+	 * @param int       $parent    The moved item's new parent, 0 for top level.
+	 * @return array<int, int>|\WP_Error The plan, or a 403 naming the locked row that would have to move.
 	 */
-	public static function order_changes( string $post_type, array $ids ): array {
-		$ids = array_values( array_filter( array_map( 'absint', $ids ) ) );
+	public static function reorder_plan( string $post_type, array $ids, int $moved, int $parent ): array|\WP_Error {
+		$ids = array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) );
 		_prime_post_caches( $ids, false, false );
 
-		$position = 1;
-		$changes  = array();
+		$hierarchical = is_post_type_hierarchical( $post_type );
+		$groups       = array();
+		$position     = 0;
 		foreach ( $ids as $id ) {
 			$post = get_post( $id );
 			if ( ! $post || $post->post_type !== $post_type ) {
 				continue;
 			}
-			if ( (int) $post->menu_order !== $position ) {
-				$changes[ $id ] = $position;
-			}
 			++$position;
+			$group              = ! $hierarchical ? 0 : ( $id === $moved ? $parent : (int) $post->post_parent );
+			$groups[ $group ][] = array(
+				'post'     => $post,
+				'position' => $position,
+				'locked'   => ! current_user_can( 'edit_post', $id ),
+			);
 		}
-		return $changes;
+
+		$plan = array();
+		foreach ( $groups as $rows ) {
+			$lo  = null; // The last locked row before the run, null at the start.
+			$run = array();
+			foreach ( array_merge( $rows, array( null ) ) as $row ) {
+				if ( null !== $row && ! $row['locked'] ) {
+					$run[] = $row;
+					continue;
+				}
+				$hi     = null === $row ? null : $row['post'];
+				$values = self::run_values( $run, $lo, $hi );
+				if ( is_wp_error( $values ) ) {
+					return $values;
+				}
+				foreach ( $run as $i => $member ) {
+					if ( (int) $member['post']->menu_order !== $values[ $i ] ) {
+						$plan[ $member['post']->ID ] = $values[ $i ];
+					}
+				}
+				$lo  = $hi;
+				$run = array();
+			}
+		}
+		return $plan;
 	}
 
 	/**
-	 * The reorder door's per-item authorization (spec 2026-10-06 §4.4: review
-	 * item 6 — the route checked the TYPE's edit_others_posts while the write
-	 * is per item, so a role lacking edit_post on one listed item, a private
-	 * post it cannot read for instance, still had its menu_order rewritten).
-	 * Context-free: the caller passes what the request asks to write.
+	 * The values one run of editable rows takes between two locked bounds.
+	 * With no rows it only checks the bounds' own order (two adjacent locked
+	 * rows may tie: that tie predates the request).
 	 *
-	 * It judges exactly what the request WRITES: the order_changes() set and
-	 * the re-parented item. A listed row whose position does not change is
-	 * not written, so it is not judged (review F34: judging the whole table
-	 * refused every Editor on a default install, whose Privacy Policy page
-	 * only manage_privacy_options may edit). Every written item must pass
-	 * current_user_can( 'edit_post' ). The refusal is all-or-nothing
-	 * (decision D6): skipping the items the user cannot edit would still
-	 * renumber the rest around them and leave colliding menu_order values.
-	 *
-	 * @param string    $post_type The type being reordered.
-	 * @param list<int> $ids       The order the request asks to write.
-	 * @param int       $moved     The re-parented item, 0 for none.
-	 * The refusal names that item by title so the user knows which row
-	 * blocks the move and who can make it (review 2026-10-06 F01): any move
-	 * that shifts a row the user cannot edit is refused, at any time — on a
-	 * default install an Editor cannot make a move that shifts the Privacy
-	 * Policy page. That residual is kept on purpose for 1.0.1 (spec §17).
-	 *
-	 * @return \WP_Error|null A 403 naming the first item the user cannot edit, or null.
+	 * @param list<array{post: \WP_Post, position: int, locked: bool}> $run The run, in the dragged order.
+	 * @param \WP_Post|null                                            $lo  The locked row before it, null for none.
+	 * @param \WP_Post|null                                            $hi  The locked row after it, null for none.
+	 * @return list<int>|\WP_Error One strictly increasing value per row, or the refusal naming the locked row that would have to move.
 	 */
-	public static function reorder_refusal( string $post_type, array $ids, int $moved ): ?\WP_Error {
-		$ids = array_keys( self::order_changes( $post_type, $ids ) );
-		if ( $moved > 0 ) {
-			$ids[] = $moved;
+	private static function run_values( array $run, ?\WP_Post $lo, ?\WP_Post $hi ): array|\WP_Error {
+		$k  = count( $run );
+		$lv = null !== $lo ? (int) $lo->menu_order : 0;
+		$hv = null !== $hi ? (int) $hi->menu_order : 0;
+		if ( null !== $lo && null !== $hi && ( 0 === $k ? $lv > $hv : $hv - $lv - 1 < $k ) ) {
+			return self::locked_refusal( $hi );
 		}
-		foreach ( $ids as $id ) {
-			$post = get_post( $id );
-			if ( ! $post || $post->post_type !== $post_type ) {
-				continue;
-			}
-			if ( ! current_user_can( 'edit_post', $id ) ) {
-				return new \WP_Error(
-					'rest_forbidden',
-					sprintf(
-						/* translators: %s: the title of the item the move would shift, in quotation marks, or "item #123". */
-						__( 'This move would shift %s, which you are not allowed to edit, so the new order was not saved. An Administrator, or another user who can edit it, has to make any move that shifts it.', 'blocklane' ),
-						self::refusal_name( $post )
-					),
-					array( 'status' => rest_authorization_required_code() )
-				);
-			}
+		if ( 0 === $k ) {
+			return array();
 		}
-		return null;
+		$positions = array_column( $run, 'position' );
+		if ( null !== $lo && ( $positions[0] <= $lv || ( null !== $hi && $positions[ $k - 1 ] >= $hv ) ) ) {
+			// Packed up from the locked row before the run (the check above
+			// left room below the one after it).
+			return $lv + $k > self::MENU_ORDER_MAX ? self::locked_refusal( $lo ) : range( $lv + 1, $lv + $k );
+		}
+		if ( null !== $hi && $positions[ $k - 1 ] >= $hv ) {
+			// No locked row before the run: packed down below the one after it.
+			return $hv - $k < self::MENU_ORDER_MIN ? self::locked_refusal( $hi ) : range( $hv - $k, $hv - 1 );
+		}
+		return $positions;
+	}
+
+	/**
+	 * The refusal of a plan that would move a locked row: option A's honest
+	 * 403 (PR #1940), naming the row through refusal_name() (its title only
+	 * where the list table already shows it).
+	 *
+	 * @param \WP_Post $post The locked row.
+	 * @return \WP_Error A 403 rest_forbidden.
+	 */
+	private static function locked_refusal( \WP_Post $post ): \WP_Error {
+		return new \WP_Error(
+			'rest_forbidden',
+			sprintf(
+				/* translators: %s: the title of the item the move would shift, in quotation marks, or "item #123". */
+				__( 'This move would shift %s, which you are not allowed to edit, so the new order was not saved. An Administrator, or another user who can edit it, has to make any move that shifts it.', 'blocklane' ),
+				self::refusal_name( $post )
+			),
+			array( 'status' => rest_authorization_required_code() )
+		);
 	}
 
 	/**
@@ -815,28 +872,24 @@ final class Advanced implements Bootable {
 	}
 
 	/**
-	 * Persist a new manual order: writes the order_changes() set, skipping
-	 * revisions for the bulk change. Caller has already verified the type
-	 * capability, that the type is enabled, AND edit_post on every item of
-	 * that same set through reorder_refusal() — the route's permission
-	 * callback runs it, all-or-nothing.
+	 * Write a reorder_plan(): exactly the rows it names, nothing recomputed.
+	 * Skips revisions for the bulk change. The route's permission callback
+	 * computed the plan with edit_post on every row in it; this method takes
+	 * the plan, never the request's IDs, so it cannot write anything else.
 	 *
-	 * @param string    $post_type
-	 * @param list<int> $ordered_ids
+	 * @param array<int, int> $plan Post ID => menu_order, from reorder_plan().
 	 * @return int Number of items whose menu_order was written.
 	 */
-	public static function save_order( string $post_type, array $ordered_ids ): int {
+	public static function write_order( array $plan ): int {
 		global $wpdb;
 
-		$changes = self::order_changes( $post_type, $ordered_ids );
-
-		if ( $changes ) {
+		if ( $plan ) {
 			// One UPDATE for the whole re-sequence. A move-to-top renumbers
 			// every row below it, and a wp_update_post per row runs the full
 			// save pipeline each time — multi-second on big lists. menu_order
 			// carries no revisions and a pure re-sequence has no meaningful
 			// save_post semantics, so a direct write + cache clean is the
-			// right weight. Every value is absint()-clean.
+			// right weight. Every key and value is an int.
 			/*
 			 * ONE prepare(), not a loop of them concatenated into a string.
 			 * The old form was safe — each arm was prepared — but it built
@@ -846,27 +899,27 @@ final class Advanced implements Bootable {
 			 * and the arguments interleave id/menu_order for the CASE and then
 			 * repeat the ids for the IN.
 			 */
-			$ids  = array_keys( $changes );
+			$ids  = array_map( 'intval', array_keys( $plan ) );
 			$args = array();
-			foreach ( $changes as $id => $menu_order ) {
-				$args[] = $id;
-				$args[] = $menu_order;
+			foreach ( $plan as $id => $menu_order ) {
+				$args[] = (int) $id;
+				$args[] = (int) $menu_order;
 			}
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- a bulk re-sequence that deliberately bypasses the per-post save pipeline; clean_post_cache() below is the cache write.
 			$wpdb->query(
 				$wpdb->prepare(
 					"UPDATE {$wpdb->posts} SET menu_order = CASE ID "
-						. implode( ' ', array_fill( 0, count( $changes ), 'WHEN %d THEN %d' ) )
+						. implode( ' ', array_fill( 0, count( $plan ), 'WHEN %d THEN %d' ) )
 						. ' END WHERE ID IN (' . implode( ',', array_fill( 0, count( $ids ), '%d' ) ) . ')',
 					array_merge( $args, $ids )
 				)
 			);
-			foreach ( array_keys( $changes ) as $id ) {
+			foreach ( $ids as $id ) {
 				clean_post_cache( $id );
 			}
 		}
 
-		return count( $changes );
+		return count( $plan );
 	}
 
 	/**
@@ -1154,9 +1207,387 @@ final class Advanced implements Bootable {
 
 	/* ---- safe SVG upload --------------------------------------------------- */
 
+	/*
+	 * The markup bound — what the sanitizer may be handed — is not defined
+	 * here: blocklane_pro_svg_markup_bound() and its three limits
+	 * (BLOCKLANE_PRO_SVG_MAX_BYTES, _TAGS, _ATTRS) live in
+	 * inc/svg-css-policy.php, the one definition this class and the
+	 * clean-room sanitizer both read (spec 2026-10-07-free-security-followup
+	 * §18.13, S18-F3). clean_svg() checks it after decompression and before
+	 * parsing, so every door reads the same bound.
+	 */
+
+	/**
+	 * Compressed bytes handed to zlib per step while decompressing an .svgz:
+	 * deflate expands at most about 1032:1, so a step that passes
+	 * BLOCKLANE_PRO_SVG_MAX_BYTES overshoots it by about a megabyte at most.
+	 */
+	const SVGZ_STEP_BYTES = 1024;
+
+	/**
+	 * Every hook Safe SVG uploads attaches, as [hook, method, priority,
+	 * accepted args]. register_safe_svg() attaches exactly these, and the
+	 * review battery reads the same table to take the feature on and off
+	 * (WU0–WU11), so the rows judge the wiring the plugin boots, not a copy.
+	 *
+	 * The doors. allow_svg_mime() admits SVG to every core path that reads
+	 * the allowed types, so every core path that writes a new file under
+	 * uploads must pass through one of these, each a row below:
+	 *
+	 * 1. pre_move_uploaded_file (clean_svg_before_move()): THE door.
+	 *    _wp_handle_upload() fires it for EVERY action — wp_handle_upload()
+	 *    (the media modal, async-upload.php, the REST controller's multipart
+	 *    upload, media replacement, custom header and background uploads),
+	 *    wp_handle_sideload() (media_sideload_image(), media_handle_sideload(),
+	 *    the REST controller's raw-body upload) and a caller's own
+	 *    overrides['action'] — after core's own checks and before it moves
+	 *    the file. The temp file is cleaned in place, so the bytes that reach
+	 *    the public path are already judged, and a refused upload moves no
+	 *    part of itself there. It replaced the two prefilters, which only the
+	 *    two core actions fire.
+	 * 2. wp_handle_upload, the result filter (sanitize_stored_svg()): the
+	 *    backstop. Core applies it to the file it has just stored, for every
+	 *    action and after wp_upload_bits() writes. It answers the move door's
+	 *    refusal, and judges a file another pre_move_uploaded_file filter
+	 *    moved itself (an offload plugin's shape) — the one case where an SVG
+	 *    is parsed at its public path.
+	 * 3. wp_upload_bits (refuse_svg_upload_bits()): XML-RPC's wp.uploadFile
+	 *    and metaWeblog.newMediaObject, the WordPress importer. It fires
+	 *    no move filter and cannot be handed sanitized bytes, so every SVG on
+	 *    it is refused before anything is written.
+	 * 4. The SVG image editor's save() (Svg_Image_Editor): it writes a new
+	 *    file from an attachment's bytes, through clean_svg(), so it writes
+	 *    only judged bytes whatever the source is — including a raw file the
+	 *    wp_upload_bits hole stored before 1.0.2. A source the sanitizer
+	 *    refuses is an error and nothing is written. Its stream() sends the
+	 *    source unchanged, to the editing user's own preview only.
+	 *
+	 * A core path that reads the allowed types and is none of these is a
+	 * hole: the review battery's WU6 lists every core function that reads
+	 * them and fails on one it has not classified. A plugin's own writer
+	 * (the icon library's mirror) is outside that census.
+	 *
+	 * @return list<array{0: string, 1: string, 2: int, 3: int}>
+	 */
+	public static function safe_svg_hooks(): array {
+		return array(
+			array( 'upload_mimes', 'allow_svg_mime', 10, 1 ),
+			array( 'wp_check_filetype_and_ext', 'fix_svg_filetype', 10, 4 ),
+			// First, so the bytes every later move filter sees (and an
+			// offload plugin may copy elsewhere) are already judged.
+			array( 'pre_move_uploaded_file', 'clean_svg_before_move', PHP_INT_MIN, 4 ),
+			// First, so no other filter reads (or copies elsewhere) a stored
+			// file before it is judged.
+			array( 'wp_handle_upload', 'sanitize_stored_svg', PHP_INT_MIN, 1 ),
+			array( 'wp_upload_bits', 'refuse_svg_upload_bits', 10, 1 ),
+			array( 'wp_image_editors', 'register_svg_editor', 10, 1 ),
+			array( 'wp_generate_attachment_metadata', 'svg_attachment_metadata', 10, 2 ),
+			array( 'wp_get_attachment_metadata', 'svg_attachment_metadata', 10, 2 ),
+			array( 'wp_insert_attachment_data', 'fix_svg_attachment_mime', 10, 2 ),
+			// An action: add_action() is add_filter(), so one loop attaches both.
+			array( 'admin_enqueue_scripts', 'enqueue_svg_admin_styles', 10, 1 ),
+		);
+	}
+
+	/**
+	 * The boot's Safe SVG step: the hook table attached exactly when the
+	 * toggle is on, and nothing when it is off. The review battery's WU0
+	 * drives it under both settings.
+	 */
+	public function boot_safe_svg(): void {
+		if ( self::is_on( 'safe-svg-upload' ) ) {
+			$this->register_safe_svg();
+		}
+	}
+
+	/**
+	 * Turn Safe SVG uploads on for this request: attach every hook in
+	 * safe_svg_hooks(). The sanitizer itself loads when clean_svg() first
+	 * needs it, and a missing copy fails every door closed.
+	 */
+	public function register_safe_svg(): void {
+		foreach ( self::safe_svg_hooks() as $hook ) {
+			add_filter( $hook[0], array( $this, $hook[1] ), $hook[2], $hook[3] );
+		}
+	}
+
+	/**
+	 * The SVG extension a file name is stored under — 'svg', 'svgz' or ''
+	 * for anything else — judged on the name as given AND as
+	 * sanitize_file_name() rewrites it, because wp_unique_filename() runs
+	 * that before the file is written ("x.svg." is stored as "x.svg"). Any
+	 * letter case. A name whose last extension is something else
+	 * ("x.svg.png") is not an SVG: it is stored, and served, under that other
+	 * extension. The one name grammar: is_svg_name() reads it for every door
+	 * that judges bytes, and fix_svg_filetype() for the one extension the
+	 * allowed list admits.
+	 *
+	 * @param string $name A client-supplied or stored file name.
+	 */
+	public static function svg_name_extension( string $name ): string {
+		foreach ( array( $name, sanitize_file_name( $name ) ) as $candidate ) {
+			if ( 1 === preg_match( '/\.(svgz?)\z/i', $candidate, $m ) ) {
+				return strtolower( $m[1] );
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * Whether a file name is an SVG under any spelling core could store it
+	 * as (.svg or .svgz; see svg_name_extension()). Every door that judges an
+	 * SVG's bytes, the editor that claims one and the attachment type fix
+	 * read this one answer.
+	 *
+	 * @param string $name A client-supplied or stored file name.
+	 */
+	public static function is_svg_name( string $name ): bool {
+		return '' !== self::svg_name_extension( $name );
+	}
+
+	/**
+	 * Load the bundled sanitizer's autoloader and the CSS verdict its output
+	 * is judged by, with the markup bound its input is held to
+	 * (inc/svg-css-policy.php), once.
+	 *
+	 * @return bool Whether both are available: without the verdict the
+	 *              sanitizer is not the whole door, so neither runs.
+	 */
+	private static function svg_sanitizer_loaded(): bool {
+		$load = BLOCKLANE_PRO_PATH . '/inc/advanced/vendor/svg-sanitize/load.php';
+		if ( is_file( $load ) ) {
+			require_once $load; // Registers the library's own class autoloader.
+		}
+		$policy = BLOCKLANE_PRO_PATH . '/inc/svg-css-policy.php';
+		if ( is_file( $policy ) ) {
+			require_once $policy;
+		}
+		return class_exists( '\enshrined\svgSanitize\Sanitizer' ) && function_exists( 'blocklane_pro_svg_css_verdict' ) && function_exists( 'blocklane_pro_svg_markup_bound' );
+	}
+
+	/**
+	 * THE SVG sanitizer: the bytes of an SVG in, the bytes to store out.
+	 * Every path that cleans an SVG — the move door, the stored-file door
+	 * and the consented library check (Svg_Cleanup) — reaches it through
+	 * clean_svg_file(), so a file is the same bytes whichever door judged it.
+	 *
+	 * Markup past the bound (blocklane_pro_svg_markup_bound(), shared with
+	 * the clean-room sanitizer) is refused before it is parsed, so no door can be made to parse a file
+	 * that exhausts the request: the sanitizer owns its input bound, and
+	 * every door reads it here. Scripts, event handlers and off-site
+	 * references are stripped by the bundled enshrined/svg-sanitize library
+	 * (the remote references so a stored SVG cannot phone home or leak the
+	 * viewer's IP; rare legitimately-remote SVGs lose them), the markup is
+	 * minified, and a viewBox-only root gains a size
+	 * (svg_ensure_intrinsic_size()). The output is a fixed point: cleaning it
+	 * again returns the same bytes, which is how a file stored clean is told
+	 * apart from one that was not.
+	 *
+	 * Then the exact bytes it is about to return are judged by the one CSS
+	 * verdict (svg_upload_verdict()): the library recognizes remote
+	 * references by spelling and misses an escaped fill, a CR LF after an
+	 * escape in a style attribute, a tab inside a URL's scheme and `/\host`
+	 * (spec 2026-10-07-free-security-followup, V1–V4, each proved fetching in
+	 * a real browser), so its output is not stored on its own word. A file
+	 * that fails is refused whole (blocklane_svg_css_refused), never stripped:
+	 * removing a `<style>` silently changes the image (decision D2). The
+	 * library itself is left unmodified.
+	 *
+	 * Gzip bytes (an .svgz) are decompressed (svgz_markup(), which stops
+	 * once the markup passes the byte bound), cleaned the same way, and
+	 * compressed again, so a compressed SVG stays one. Anything the
+	 * sanitizer cannot read is an error, never a pass.
+	 *
+	 * @param string $bytes The file's bytes.
+	 * @return string|\WP_Error The bytes to store, or why there are none.
+	 */
+	public static function clean_svg( string $bytes ): string|\WP_Error {
+		if ( ! self::svg_sanitizer_loaded() ) {
+			return new \WP_Error( 'blocklane_svg_sanitizer_missing', __( 'The SVG sanitizer is unavailable, so this file was not saved.', 'blocklane' ) );
+		}
+
+		$gzip   = str_starts_with( $bytes, "\x1f\x8b" );
+		$markup = $gzip ? self::svgz_markup( $bytes ) : $bytes;
+		if ( is_wp_error( $markup ) ) {
+			return $markup;
+		}
+		$bound = blocklane_pro_svg_markup_bound( $markup );
+		if ( is_wp_error( $bound ) ) {
+			return $bound;
+		}
+		if ( '' === trim( $markup ) ) {
+			return self::unsafe_svg();
+		}
+
+		$sanitizer = new \enshrined\svgSanitize\Sanitizer();
+		$sanitizer->minify( true );
+		$sanitizer->removeRemoteReferences( true );
+		$clean = $sanitizer->sanitize( $markup );
+		if ( false === $clean || '' === trim( (string) $clean ) ) {
+			return self::unsafe_svg();
+		}
+
+		$clean   = self::svg_ensure_intrinsic_size( (string) $clean );
+		$verdict = self::svg_upload_verdict( $clean );
+		if ( is_wp_error( $verdict ) ) {
+			return $verdict;
+		}
+		if ( ! $gzip ) {
+			return $clean;
+		}
+
+		$packed = gzencode( $clean, 9 );
+		return false === $packed ? self::unsafe_svg() : $packed;
+	}
+
+	/**
+	 * The CSS verdict over the bytes clean_svg() is about to return: every
+	 * attribute value of every element, whatever its name (namespace
+	 * declarations are not attributes here), and the text of every element
+	 * whose local name is `style` in any letter case goes through
+	 * blocklane_pro_svg_css_verdict(). Markup this
+	 * parser cannot read is refused too: fail closed. Text outside `<style>`
+	 * is not CSS and is not judged.
+	 *
+	 * @param string $svg The sanitizer's output, before any compression.
+	 * @return bool|\WP_Error True when every value is admitted; blocklane_svg_css_refused, or unsafe when it cannot be parsed.
+	 */
+	public static function svg_upload_verdict( string $svg ): bool|\WP_Error {
+		$dom   = new \DOMDocument();
+		$quiet = libxml_use_internal_errors( true );
+		// NONET only: no entity substitution, no DTD, no recovery.
+		$parsed = '' !== $svg && $dom->loadXML( $svg, LIBXML_NONET );
+		libxml_clear_errors();
+		libxml_use_internal_errors( $quiet );
+		if ( ! $parsed ) {
+			return self::unsafe_svg();
+		}
+		foreach ( $dom->getElementsByTagName( '*' ) as $element ) {
+			foreach ( $element->attributes as $attribute ) {
+				if ( true !== blocklane_pro_svg_css_verdict( $attribute->value ) ) {
+					return self::css_refused();
+				}
+			}
+			// Whatever its case (#2089): the library admits `<STYLE>` because it
+			// lowercases a tag before its allow-list test, and an HTML page
+			// that inlines the file lowercases it too, so a sheet the verdict
+			// skipped for its case would be a live sheet there.
+			if ( 'style' === strtolower( (string) $element->localName ) && true !== blocklane_pro_svg_css_verdict( (string) $element->textContent ) ) {
+				return self::css_refused();
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * The refusal for a file whose CSS the verdict will not admit.
+	 */
+	private static function css_refused(): \WP_Error {
+		return new \WP_Error( 'blocklane_svg_css_refused', __( 'This SVG\'s styles use escape sequences or load something from outside the file, which cannot be checked safely, so it was not saved.', 'blocklane' ) );
+	}
+
+	/**
+	 * The refusal for markup the sanitizer cannot read, built only when a
+	 * file is refused.
+	 */
+	private static function unsafe_svg(): \WP_Error {
+		return new \WP_Error( 'blocklane_svg_unsafe', __( 'This SVG could not be sanitized safely, so it was not saved.', 'blocklane' ) );
+	}
+
+	/**
+	 * An .svgz's markup: the gzip stream inflated SVGZ_STEP_BYTES of input
+	 * at a time, stopping as soon as the output passes
+	 * BLOCKLANE_PRO_SVG_MAX_BYTES. A
+	 * stopped stream is returned as far as it got, so clean_svg()'s one byte
+	 * bound refuses it as too large; the bound is not checked a second time
+	 * here. gzdecode() cannot do this: past its length limit it answers
+	 * false or the whole overshoot, depending on where zlib's rounds end
+	 * (spec §13 A3), which is neither the exact bound nor the right refusal.
+	 *
+	 * @param string $bytes Gzip bytes.
+	 * @return string|\WP_Error The markup (past the bound when stopped), or unsafe when the stream is corrupt or cut short.
+	 */
+	private static function svgz_markup( string $bytes ): string|\WP_Error {
+		if ( ! function_exists( 'inflate_init' ) || ! function_exists( 'gzencode' ) ) {
+			return self::unsafe_svg();
+		}
+		$stream = inflate_init( ZLIB_ENCODING_GZIP );
+		if ( false === $stream ) {
+			return self::unsafe_svg();
+		}
+		$markup = '';
+		// inflate_add() warns on corrupt input; its false is the verdict, so
+		// the warning is not printed.
+		set_error_handler( static fn(): bool => true ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- silences inflate_add()'s warning; its false return is handled.
+		try {
+			foreach ( str_split( $bytes, self::SVGZ_STEP_BYTES ) as $step ) {
+				$out = inflate_add( $stream, $step, ZLIB_SYNC_FLUSH );
+				if ( false === $out ) {
+					return self::unsafe_svg();
+				}
+				$markup .= $out;
+				if ( strlen( $markup ) > BLOCKLANE_PRO_SVG_MAX_BYTES ) {
+					return $markup;
+				}
+			}
+		} finally {
+			restore_error_handler();
+		}
+		return ZLIB_STREAM_END === inflate_get_status( $stream ) ? $markup : self::unsafe_svg();
+	}
+
+	/**
+	 * Clean an SVG file in place: read it, run clean_svg(), and write the
+	 * result back only when it differs from what is there.
+	 *
+	 * @param string $path The file.
+	 * @return bool|\WP_Error True when the file was rewritten, false when it
+	 *                        was already clean, or why it could not be judged.
+	 */
+	public static function clean_svg_file( string $path ): bool|\WP_Error {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local upload or temp file.
+		$dirty = ( '' !== $path && is_file( $path ) && is_readable( $path ) ) ? file_get_contents( $path ) : false;
+		if ( false === $dirty ) {
+			return new \WP_Error( 'blocklane_svg_unreadable', __( 'The SVG file could not be read.', 'blocklane' ) );
+		}
+
+		$clean = self::clean_svg( $dirty );
+		if ( is_wp_error( $clean ) ) {
+			return $clean;
+		}
+		if ( $clean === $dirty ) {
+			return false;
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_put_contents_file_put_contents -- writing the sanitized markup over the file it came from.
+		if ( false === file_put_contents( $path, $clean ) ) {
+			return new \WP_Error( 'blocklane_svg_unwritable', __( 'The sanitized SVG could not be saved.', 'blocklane' ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Write cleaned SVG bytes to a path core chose: the SVG editor's output
+	 * file (a crop, a Site Icon), whose folder core may not have made yet.
+	 * file_put_contents() is called in this file only (PHPStan
+	 * blocklane.chokepointCall): the uploads writes the plugin chooses go
+	 * through File_Ops, and these three — the file a cleaned upload came
+	 * from, the move door's own temp file, the editor's output — are the
+	 * paths core hands the SVG doors (spec 2026-10-07 §3.B, ND4).
+	 *
+	 * @param string $path  Absolute path core supplied.
+	 * @param string $bytes clean_svg()'s output.
+	 * @return bool Whether the file now holds the bytes.
+	 */
+	public static function write_svg_file( string $path, string $bytes ): bool {
+		wp_mkdir_p( dirname( $path ) );
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_put_contents_file_put_contents -- the SVG editor's own output file, at the path core chose.
+		return false !== file_put_contents( $path, $bytes );
+	}
+
 	/**
 	 * Allow the SVG mime type for users who can upload. Uploads are still
-	 * sanitized on the way in (see sanitize_svg_upload).
+	 * sanitized on the way in (the doors: see safe_svg_hooks()).
 	 *
 	 * @param array $mimes
 	 * @return array
@@ -1172,6 +1603,11 @@ final class Advanced implements Bootable {
 	 * WordPress' finfo check frequently misreads SVG, so a .svg upload gets
 	 * blocked as "not permitted." Re-assert the type/ext for .svg files.
 	 *
+	 * Only the .svg extension, never .svgz: allow_svg_mime() admits that one
+	 * extension, and asserting a type here for .svgz would admit a type the
+	 * allowed list does not carry. An .svgz still reaches the doors from a
+	 * user core lets store any type (unfiltered_upload), and is cleaned there.
+	 *
 	 * @param array  $data     ext/type/proper_filename.
 	 * @param string $file     Full path to the file.
 	 * @param string $filename The name of the file.
@@ -1180,7 +1616,7 @@ final class Advanced implements Bootable {
 	 */
 	public function fix_svg_filetype( $data, $file, $filename, $mimes ) {
 		unset( $file, $mimes );
-		if ( preg_match( '/\.svg$/i', (string) $filename ) && current_user_can( 'upload_files' ) ) {
+		if ( 'svg' === self::svg_name_extension( (string) $filename ) && current_user_can( 'upload_files' ) ) {
 			$data['ext']  = 'svg';
 			$data['type'] = 'image/svg+xml';
 		}
@@ -1188,59 +1624,138 @@ final class Advanced implements Bootable {
 	}
 
 	/**
-	 * Sanitize an SVG before it's stored — strips scripts, event handlers,
-	 * external references, etc. via the bundled enshrined/svg-sanitize library.
-	 * Anything that can't be sanitized is rejected (the upload fails) rather than
-	 * stored unsafely.
+	 * "Is this upload an SVG": its stored name, or the type core gave it.
+	 * The one answer the move door and the stored-file door read, so the two
+	 * cannot disagree about a file.
 	 *
-	 * @param array $file The $_FILES entry being handled.
-	 * @return array
+	 * @param string $path The stored path (or the path core is about to move the file to).
+	 * @param string $type The type core resolved for it.
 	 */
-	public function sanitize_svg_upload( $file ) {
-		$is_svg = ( isset( $file['type'] ) && 'image/svg+xml' === $file['type'] )
-			|| ( isset( $file['name'] ) && preg_match( '/\.svg$/i', $file['name'] ) );
+	private static function is_svg_upload( string $path, string $type ): bool {
+		return 'image/svg+xml' === $type || self::is_svg_name( wp_basename( $path ) );
+	}
 
-		if ( ! $is_svg ) {
-			return $file;
+	/**
+	 * Refusals the move door made in this request, by destination path, for
+	 * the stored-file door to answer.
+	 *
+	 * @var array<string, \WP_Error>
+	 */
+	private static array $refused_moves = array();
+
+	/**
+	 * Door 1 (see safe_svg_hooks()): the bytes core is about to move into
+	 * uploads, for every _wp_handle_upload() action. An SVG's temp file is
+	 * cleaned in place, so what core moves is already judged.
+	 *
+	 * Refusing here cannot be done by returning false: core reads any
+	 * non-null value as "this filter moved the file" and goes on to the
+	 * result filter with nothing at the path. So a refused file's temp copy
+	 * is emptied — core moves zero bytes, and no part of the upload reaches
+	 * the public path — and the verdict is kept for the stored-file door,
+	 * which deletes the empty file and answers this refusal's message. One
+	 * case keeps a window: a temp file this request can read but not write
+	 * (only a caller of its own action or of sideload can hand core one; the
+	 * form action's PHP temp file is always writable) cannot be emptied, so
+	 * core copies its raw bytes to the public path and they sit there until
+	 * the stored-file door, holding the carried refusal, deletes them in the
+	 * same request. Fail-closed holds; zero-window does not, there. A
+	 * non-null value from an earlier filter means that filter moved the file
+	 * itself; the stored-file door judges it where it landed.
+	 *
+	 * @param mixed $move     Null, or what an earlier filter did instead of the move.
+	 * @param mixed $file     The $_FILES-shaped entry (name, type, tmp_name, …).
+	 * @param mixed $new_file The path core moves the file to.
+	 * @param mixed $type     The type core resolved for it.
+	 * @return mixed $move, unchanged.
+	 */
+	public function clean_svg_before_move( mixed $move, mixed $file, mixed $new_file, mixed $type ): mixed {
+		$path = (string) $new_file;
+		unset( self::$refused_moves[ $path ] );
+		if ( null !== $move || ! is_array( $file ) || ! self::is_svg_upload( $path, (string) $type ) ) {
+			return $move;
+		}
+		$tmp     = (string) ( $file['tmp_name'] ?? '' );
+		$verdict = self::clean_svg_file( $tmp );
+		if ( is_wp_error( $verdict ) ) {
+			self::$refused_moves[ $path ] = $verdict;
+			if ( is_file( $tmp ) ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_put_contents_file_put_contents -- emptying the upload's own temp file.
+				file_put_contents( $tmp, '' );
+			}
+		}
+		return $move;
+	}
+
+	/**
+	 * Door 2 (see safe_svg_hooks()): the stored file, after core wrote it,
+	 * for every action. It answers the move door's refusal for this path
+	 * (deleting the empty file core moved), and otherwise cleans an SVG in
+	 * place by the same clean_svg_file() the move door uses, so a file the
+	 * move door already cleaned is a fixed point and is not rewritten. A file
+	 * that cannot be cleaned, or is not there to read (a
+	 * pre_move_uploaded_file filter put it elsewhere), is deleted if present
+	 * and the upload answers an error: fail closed.
+	 *
+	 * The window (S8): when an earlier pre_move_uploaded_file filter moved
+	 * the raw file itself, it sits at its public URL while this door parses
+	 * it. The markup bound (clean_svg()) limits that to about a second; the
+	 * move door and the wp_upload_bits refusal have no such window.
+	 *
+	 * @param mixed $upload Core's array( file, url, type[, error] ).
+	 * @return mixed The input unchanged, or array( 'error' => … ).
+	 */
+	public function sanitize_stored_svg( mixed $upload ): mixed {
+		if ( ! is_array( $upload ) || ! empty( $upload['error'] ) || ! isset( $upload['file'] ) ) {
+			return $upload;
+		}
+		$path = (string) $upload['file'];
+		if ( ! self::is_svg_upload( $path, (string) ( $upload['type'] ?? '' ) ) ) {
+			return $upload;
 		}
 
-		if ( empty( $file['tmp_name'] ) || ! is_readable( $file['tmp_name'] ) || ! class_exists( '\enshrined\svgSanitize\Sanitizer' ) ) {
-			// Fail closed: never store a raw, unsanitized SVG. If the sanitizer is
-			// unavailable (lib stripped by a deploy exclude, unreadable temp file),
-			// reject rather than pass the upload through untouched.
-			$file['error'] = __( 'The SVG sanitizer is unavailable, so this file was not uploaded.', 'blocklane' );
-			return $file;
+		$verdict = self::$refused_moves[ $path ] ?? self::clean_svg_file( $path );
+		unset( self::$refused_moves[ $path ] );
+		if ( ! is_wp_error( $verdict ) ) {
+			return $upload;
 		}
-
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- reading the temp upload before it's moved.
-		$dirty = file_get_contents( $file['tmp_name'] );
-		if ( false === $dirty ) {
-			$file['error'] = __( 'The SVG file could not be read.', 'blocklane' );
-			return $file;
+		if ( is_file( $path ) ) {
+			wp_delete_file( $path );
 		}
+		return array( 'error' => $verdict->get_error_message() );
+	}
 
-		$sanitizer = new \enshrined\svgSanitize\Sanitizer();
-		$sanitizer->minify( true );
-		// Strip references to off-site resources (remote xlink:href, url() to
-		// another origin) so a stored SVG can't phone home or leak the viewer's
-		// IP — the "external references" this method's docblock promises to
-		// remove. Rare legitimately-remote SVGs lose those references.
-		$sanitizer->removeRemoteReferences( true );
-		$clean = $sanitizer->sanitize( $dirty );
-
-		if ( false === $clean || '' === trim( (string) $clean ) ) {
-			$file['error'] = __( 'This SVG could not be sanitized safely, so it was not uploaded.', 'blocklane' );
-			return $file;
+	/**
+	 * Door 3 (see safe_svg_hooks()): refuse every SVG on wp_upload_bits,
+	 * pass everything else through.
+	 *
+	 * wp_upload_bits() fires no move filter. Sanitizing here is not
+	 * possible: core writes the $bits it was called with and reads only
+	 * whether this filter returned a non-array, which becomes the error. The
+	 * returned array's bits are discarded, and the WordPress importer calls
+	 * with EMPTY bits and streams the remote file in afterwards, so there is
+	 * nothing to judge. Refusing before anything is written is the only way
+	 * not to store a raw SVG even for a moment; door 2 still judges the file
+	 * if this row is ever gone. The sentence names no remedy, because the
+	 * callers differ: an XML-RPC client and an import cannot "upload it
+	 * elsewhere" file by file.
+	 *
+	 * @param mixed $upload_bits Core's array( name, bits, time ), or the error string an earlier filter returned.
+	 * @return mixed The input unchanged, or this refusal for an SVG.
+	 */
+	public function refuse_svg_upload_bits( mixed $upload_bits ): mixed {
+		if ( ! is_array( $upload_bits ) || ! self::is_svg_name( (string) ( $upload_bits['name'] ?? '' ) ) ) {
+			return $upload_bits;
 		}
+		return self::upload_bits_refusal();
+	}
 
-		$clean = self::svg_ensure_intrinsic_size( $clean );
-
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_put_contents_file_put_contents -- writing the sanitized markup back to the temp upload.
-		if ( false === file_put_contents( $file['tmp_name'], $clean ) ) {
-			$file['error'] = __( 'The sanitized SVG could not be saved.', 'blocklane' );
-		}
-
-		return $file;
+	/**
+	 * The sentence door 3 answers with: one place, so the battery asserts the
+	 * refusal it sees is this door's and not another's.
+	 */
+	public static function upload_bits_refusal(): string {
+		return __( 'SVG files cannot be added this way while Safe SVG Uploads is on, so this file was not saved.', 'blocklane' );
 	}
 
 	/**
@@ -1249,15 +1764,21 @@ final class Advanced implements Bootable {
 	 * erroring. It claims only SVGs (see Svg_Image_Editor::test()), so raster
 	 * types still pick a real editor.
 	 *
+	 * Our editor class extends WP_Image_Editor, which WordPress loads itself:
+	 * _wp_image_editor_choose(), the only place core applies this filter,
+	 * requires the base class right before it does (wp-includes/media.php).
+	 * A caller that applies the filter without that class loaded is not
+	 * choosing an editor, so nothing is registered for it and no core file is
+	 * loaded on its behalf.
+	 *
 	 * @param string[] $editors Image editor class names, in priority order.
 	 * @return string[]
 	 */
-	public function register_svg_editor( $editors ) {
-		// Loaded here, not at boot: the WP_Image_Editor parent class doesn't
-		// exist until core requires it in _wp_image_editor_choose(), right
-		// before this filter fires. The guard covers any other call order.
+	public function register_svg_editor( $editors ): array {
+		if ( ! class_exists( 'WP_Image_Editor', false ) ) {
+			return (array) $editors;
+		}
 		if ( ! class_exists( __NAMESPACE__ . '\\Svg_Image_Editor', false ) ) {
-			require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 			require_once BLOCKLANE_PRO_PATH . '/inc/advanced/class-blocklane-pro-svg-editor.php';
 		}
 		array_unshift( $editors, __NAMESPACE__ . '\\Svg_Image_Editor' );
@@ -1364,7 +1885,7 @@ final class Advanced implements Bootable {
 		$file = isset( $postarr['file'] ) ? (string) $postarr['file'] : '';
 		$mime = isset( $data['post_mime_type'] ) ? $data['post_mime_type'] : '';
 
-		if ( $file && 'image/svg+xml' !== $mime && preg_match( '/\.svg$/i', $file ) ) {
+		if ( $file && 'image/svg+xml' !== $mime && self::is_svg_name( wp_basename( $file ) ) ) {
 			$data['post_mime_type'] = 'image/svg+xml';
 		}
 
@@ -1468,10 +1989,10 @@ final class Advanced implements Bootable {
 	 * @return array|\WP_Error { url } (cache-busted) on success.
 	 */
 	public function replace_media_file( $id, $file ) {
-		require_once ABSPATH . 'wp-admin/includes/file.php';
-
 		$old_mime = get_post_mime_type( $id );
-		$upload   = wp_handle_upload( $file, array( 'test_form' => false ) );
+		// A REST request does not load the admin file functions.
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		$upload = wp_handle_upload( $file, array( 'test_form' => false ) );
 
 		if ( ! is_array( $upload ) || isset( $upload['error'] ) ) {
 			return new \WP_Error(
@@ -1541,8 +2062,6 @@ final class Advanced implements Bootable {
 			return new \WP_Error( 'blocklane_pro_replace_no_file', 'Attachment ' . $id . ' has no file path.' );
 		}
 
-		require_once ABSPATH . 'wp-admin/includes/image.php';
-
 		$meta = wp_get_attachment_metadata( $id );
 		$dir  = trailingslashit( dirname( $old_path ) );
 
@@ -1568,6 +2087,13 @@ final class Advanced implements Bootable {
 			wp_delete_file( $dir . $meta['original_image'] );
 		}
 
+		// A REST request loads neither admin file. image.php declares the
+		// call; media.php declares wp_read_video_metadata() and
+		// wp_read_audio_metadata(), which it makes for a video or audio file
+		// (wp-admin/includes/image.php). The same pair, in the same order, as
+		// core's REST attachments controller.
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
 		$new_meta = wp_generate_attachment_metadata( $id, $old_path );
 		if ( $new_meta && ! is_wp_error( $new_meta ) ) {
 			wp_update_attachment_metadata( $id, $new_meta );

@@ -33,7 +33,8 @@ class Helper {
 	 *
 	 * @param array $data themeName (required), themeUrl, description, author,
 	 *                    authorUrl, version, textDomain.
-	 * @return true|\WP_Error True on success, WP_Error (with a status) on failure.
+	 * @return array{imported: bool|null, headers: array<string, string>}|\WP_Error The import result and the
+	 *         style.css header values as written on success, WP_Error (with a status) on failure.
 	 */
 	public static function create_child_theme( $data ) {
 		$template_dir = BLOCKLANE_PRO_PATH . '/inc/child-theme';
@@ -63,15 +64,13 @@ class Helper {
 		// Use the WP Filesystem API rather than raw file calls. Force the
 		// 'direct' transport: this is a server-side REST action with no UI to
 		// collect FTP/SSH credentials, so direct is the only workable method.
-		if ( ! function_exists( 'WP_Filesystem' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-		}
-
 		global $wp_filesystem;
 		$force_direct = static function () {
 			return 'direct';
 		};
 		add_filter( 'filesystem_method', $force_direct );
+		// A REST request does not load the admin file functions.
+		require_once ABSPATH . 'wp-admin/includes/file.php';
 		$fs_ready = WP_Filesystem();
 		remove_filter( 'filesystem_method', $force_direct );
 
@@ -118,35 +117,27 @@ class Helper {
 
 		// Rewrite each header line. Values are inserted via a callback so they're
 		// treated literally — never as preg_replace backreferences ($1, \1, …).
-		// Blank optional fields fall back to THIS SITE — its name and URL — plus a
-		// description derived from the active parent and a {parent}-child text
-		// domain. They used to fall back to Blocklane's own name and URLs, which
-		// put the plugin vendor's authorship on a customer's theme.
-		$parent_theme = wp_get_theme( get_template() );
-		$headers      = array(
+		// A blank optional field takes its value from child_theme_fallbacks(),
+		// the one source the form's placeholders are localized from too.
+		$fallback = self::child_theme_fallbacks();
+		$headers  = array(
 			'Theme Name'  => $data['themeName'],
 			'Template'    => get_template(),
-			// Blank fields fall back to THIS SITE, never to Blocklane. The child
-			// theme belongs to whoever generated it: shipping a customer a theme
-			// whose style.css credits the plugin vendor is wrong on any theme,
-			// and reads as a mistake now that Pro runs on themes we did not write.
-			'Theme URI'   => ! empty( $data['themeUrl'] ) ? $data['themeUrl'] : home_url(),
-			'Description' => ! empty( $data['description'] ) ? $data['description'] : sprintf( 'A child theme of %s.', $parent_theme->get( 'Name' ) ),
-			'Author'      => ! empty( $data['author'] ) ? $data['author'] : ( get_bloginfo( 'name' ) ? get_bloginfo( 'name' ) : (string) $parent_theme->get( 'Author' ) ),
-			'Author URI'  => ! empty( $data['authorUrl'] ) ? $data['authorUrl'] : home_url(),
-			'Version'     => ! empty( $data['version'] ) ? $data['version'] : '1.0.0',
-			'Text Domain' => ! empty( $data['textDomain'] ) ? $data['textDomain'] : get_template() . '-child',
+			'Theme URI'   => ! empty( $data['themeUrl'] ) ? $data['themeUrl'] : $fallback['Theme URI'],
+			'Description' => ! empty( $data['description'] ) ? $data['description'] : $fallback['Description'],
+			'Author'      => ! empty( $data['author'] ) ? $data['author'] : $fallback['Author'],
+			'Author URI'  => ! empty( $data['authorUrl'] ) ? $data['authorUrl'] : $fallback['Author URI'],
+			'Version'     => ! empty( $data['version'] ) ? $data['version'] : $fallback['Version'],
+			'Text Domain' => ! empty( $data['textDomain'] ) ? $data['textDomain'] : $fallback['Text Domain'],
 		);
 
 		foreach ( $headers as $label => $value ) {
-			// Header values live inside the style.css `/* … */` comment, so a stray
-			// `*/` would close it early and corrupt the file. Loop until clean — a
-			// single str_replace pass can re-form `*/` (e.g. `**//` -> `*/`). Values
-			// are already newline-free, so this only guards the comment terminator.
-			$value = (string) $value;
-			while ( false !== strpos( $value, '*/' ) ) {
-				$value = str_replace( '*/', '', $value );
-			}
+			// Every value, typed or fallback, goes through style_header_value()
+			// here, the one door between a value and the file: it makes the
+			// value one line and closes no comment. The cleaned value is what
+			// the response reports, so the summary shows what was written.
+			$value             = self::style_header_value( (string) $value );
+			$headers[ $label ] = $value;
 			// Anchor to the start of the header line (^…$/m) so a value that happens
 			// to contain another header label can't hijack a later replacement.
 			$style = preg_replace_callback(
@@ -204,6 +195,91 @@ class Helper {
 	}
 
 	/**
+	 * What generation writes for each style.css header the form leaves blank.
+	 *
+	 * The one source for those values: create_child_theme() falls back to
+	 * them, the REST controller takes a blank theme name from here, and the
+	 * dashboard localizes them as the form's placeholders, so a placeholder
+	 * always shows the header that will be written, in any admin language.
+	 * They are plain literals on purpose: the header is written in English
+	 * whatever the admin's locale, so the placeholder is too (#2146).
+	 *
+	 * Blank fields fall back to THIS SITE and the active parent, never to
+	 * Blocklane: the child theme belongs to whoever generated it, and a
+	 * style.css that credits the plugin vendor is wrong on any theme.
+	 *
+	 * Every value built from stored or display text is decoded once, here:
+	 * core saves the site title through esc_html(), and WP_Theme reads its
+	 * headers through wp_kses(), which writes a bare & as &amp;. Undecoded,
+	 * "Joe's Pizza" reached the placeholder (a nested localized value, which
+	 * wp_localize_script() does not decode) and the header as "Joe&#039;s
+	 * Pizza". wp_specialchars_decode() undoes exactly what esc_html() encodes
+	 * (& < > " '), never a numeric entity such as a newline. The decoded text
+	 * stays text in the form, where the screen sets it as an attribute value.
+	 * It is not yet safe to write: a stored site title can hold a raw line
+	 * break, which esc_html() keeps. create_child_theme()'s header loop makes
+	 * every value one line through style_header_value(), and the dashboard
+	 * localizes the placeholders through the same function, so a placeholder
+	 * still shows what is written. WP_Theme sanitizes a header VALUE when it
+	 * reads one; it never sees a line boundary, so it is no guard against a
+	 * planted line.
+	 *
+	 * @return array{'Theme Name': string, 'Theme URI': string, Description: string, Author: string, 'Author URI': string, Version: string, 'Text Domain': string}
+	 */
+	public static function child_theme_fallbacks(): array {
+		$parent = wp_get_theme( get_template() );
+		$name   = self::theme_display_name( get_template() );
+		$site   = wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES );
+		$author = wp_specialchars_decode( (string) $parent->get( 'Author' ), ENT_QUOTES );
+
+		return array(
+			'Theme Name'  => $name . ' Child',
+			'Theme URI'   => home_url(),
+			'Description' => sprintf( 'A child theme of %s.', $name ),
+			'Author'      => '' !== $site ? $site : $author,
+			'Author URI'  => home_url(),
+			'Version'     => '1.0.0',
+			'Text Domain' => get_template() . '-child',
+		);
+	}
+
+	/**
+	 * A theme's name as plain text: the one reader of a theme's display name
+	 * for the Child Theme tool. WP_Theme reads the Name header through
+	 * wp_kses(), which writes a bare & as &amp;; this undoes exactly that, so
+	 * the fallbacks and the customizations endpoint name a theme alike.
+	 *
+	 * @param string $stylesheet The theme's directory name.
+	 */
+	public static function theme_display_name( string $stylesheet ): string {
+		return wp_specialchars_decode( (string) wp_get_theme( $stylesheet )->get( 'Name' ), ENT_QUOTES );
+	}
+
+	/**
+	 * A style.css header value as the generator writes it: one line that
+	 * cannot close the header comment.
+	 *
+	 * Header values live on one line each inside the style.css comment, and
+	 * get_file_data() reads the FIRST line that starts with a label, so a
+	 * value carrying a line break could plant a header above the real one
+	 * ("Acme" LF "Template: other" names another parent). Every run of CR
+	 * and LF, with the spaces and tabs around it, becomes one space, the way
+	 * _sanitize_text_fields() collapses whitespace. The comment terminator
+	 * (an asterisk, then a slash) would end the comment early, so it is
+	 * removed until none is left: one str_replace() pass can re-form it from
+	 * two asterisks and two slashes.
+	 *
+	 * @param string $value A header value, typed or fallback.
+	 */
+	public static function style_header_value( string $value ): string {
+		$value = (string) preg_replace( '/[\t ]*[\r\n]+[\t ]*/', ' ', $value );
+		while ( false !== strpos( $value, '*/' ) ) {
+			$value = str_replace( '*/', '', $value );
+		}
+		return $value;
+	}
+
+	/**
 	 * Best-effort cleanup of a directory created during child-theme generation.
 	 * Only ever called for a directory this run just created (generation bails
 	 * earlier if the directory already existed).
@@ -246,6 +322,68 @@ class Helper {
 	}
 
 	/**
+	 * The doors that count attempts per client, each with the filter name it
+	 * read before the shared one (deprecated in 1.0.2, applied after the
+	 * shared filter for its own door only), or '' for none. A door is named
+	 * here once; client_address() refuses any other.
+	 */
+	private const CLIENT_DOORS = array(
+		'forms'     => 'blocklane_pro_forms_client_ip',
+		'site-lock' => '',
+		'login'     => 'blocklane_pro_login_client_ip',
+	);
+
+	/**
+	 * The ONE reading of a client's address (#1953), for every public door
+	 * that counts attempts per client — the forms rate limiter and
+	 * Turnstile's remoteip, the site-lock unlock throttle, the login
+	 * throttle — and the only read of REMOTE_ADDR in the shipped code
+	 * (PHPStan blocklane.chokepointMember on $_SERVER['REMOTE_ADDR']; the
+	 * forwarding headers, which a client can spoof, may be read nowhere).
+	 *
+	 * REMOTE_ADDR, then the `blocklane_pro_client_ip` filter, ALWAYS, with
+	 * the door's name: a site behind a CDN or reverse proxy returns the real
+	 * visitor address there once, for every door. Before 1.0.2 each door
+	 * passed its own filter name and the site-lock door passed none, so a
+	 * site behind a proxy could not fix that door at all; a per-caller filter
+	 * argument that a caller may omit is a second door, so there is no such
+	 * argument now. A door's own older filter (forms, login) still applies,
+	 * after the shared one, through apply_filters_deprecated().
+	 *
+	 * @param string $door 'forms', 'site-lock' or 'login'.
+	 * @return string The address, '' when the request carries none.
+	 * @throws \LogicException For a door CLIENT_DOORS does not name.
+	 */
+	public static function client_address( string $door ): string {
+		if ( ! array_key_exists( $door, self::CLIENT_DOORS ) ) {
+			// esc_html + brackets, as Edition::has(): a door name is a slug,
+			// so the escape changes nothing a developer reads.
+			throw new \LogicException(
+				esc_html( 'Blocklane: unknown client-address door [' . $door . ']; the doors are ' . implode( ', ', array_keys( self::CLIENT_DOORS ) ) . '.' )
+			);
+		}
+		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+		/**
+		 * Filters the visitor address the plugin's per-client limits key on:
+		 * the contact form limit (and the address sent to Turnstile), the
+		 * Coming Soon password limit and the login limit. Behind a CDN or a
+		 * reverse proxy, return the real visitor address from the header
+		 * that proxy sets and you trust; X-Forwarded-For is never read here.
+		 *
+		 * @since 1.0.2
+		 *
+		 * @param string $ip   REMOTE_ADDR, sanitized.
+		 * @param string $door 'forms', 'site-lock' or 'login'.
+		 */
+		$ip     = (string) apply_filters( 'blocklane_pro_client_ip', $ip, $door );
+		$legacy = self::CLIENT_DOORS[ $door ];
+		if ( '' !== $legacy ) {
+			$ip = (string) apply_filters_deprecated( $legacy, array( $ip ), '1.0.2', 'blocklane_pro_client_ip' );
+		}
+		return $ip;
+	}
+
+	/**
 	 * The ONE derivation of a per-client throttle key (spec 2026-10-06 §4.3,
 	 * F3), for every public door that counts attempts per client: the forms
 	 * rate limiter, the site-lock unlock throttle and the login throttle.
@@ -254,31 +392,21 @@ class Helper {
 	 * sidestepped by rotating addresses inside one routed prefix, and each
 	 * rotation wrote an options row.
 	 *
-	 * REMOTE_ADDR, then the door's filter (a trusted proxy or CDN supplies
-	 * the real client address there — X-Forwarded-For is spoofable and never
-	 * read here), then IPv6 collapsed to its /64 network, then an HMAC with
-	 * the auth salt, so the key names no address and cannot be guessed.
+	 * The door's client_address() (REMOTE_ADDR and the shared filter), then
+	 * IPv6 collapsed to its /64 network, then an HMAC with the auth salt, so
+	 * the key names no address and cannot be guessed.
 	 *
 	 * With no address: null, which the forms limiter reads as "cannot count,
 	 * allow" (unchanged); a door that must keep counting passes
 	 * $count_unknown and gets one fixed bucket every address-less request
 	 * shares, so its lockout still engages.
 	 *
-	 * @param string      $prefix        The door's transient prefix.
-	 * @param string|null $ip_filter     The door's client-address filter, or null for none.
-	 * @param bool        $count_unknown Whether a request with no address shares one bucket (true) or gets no key (false).
+	 * @param string $prefix        The door's transient prefix.
+	 * @param string $door          The door's name in client_address().
+	 * @param bool   $count_unknown Whether a request with no address shares one bucket (true) or gets no key (false).
 	 */
-	public static function client_key( string $prefix, ?string $ip_filter = null, bool $count_unknown = false ): ?string {
-		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
-		if ( null !== $ip_filter ) {
-			/**
-			 * Filters the client address a throttle keys on (the door names
-			 * which filter; see Helper::client_key()).
-			 *
-			 * @param string $ip The REMOTE_ADDR value.
-			 */
-			$ip = (string) apply_filters( $ip_filter, $ip );
-		}
+	public static function client_key( string $prefix, string $door, bool $count_unknown = false ): ?string {
+		$ip = self::client_address( $door );
 		if ( '' === $ip ) {
 			return $count_unknown ? $prefix . hash_hmac( 'sha256', 'no-address', wp_salt( 'auth' ) ) : null;
 		}

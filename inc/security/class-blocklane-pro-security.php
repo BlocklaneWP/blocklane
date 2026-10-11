@@ -402,13 +402,14 @@ final class Security implements Bootable {
 
 	/**
 	 * Per-client login throttle key, through the one derivation every public
-	 * throttle shares (Helper::client_key(): REMOTE_ADDR, the
-	 * `blocklane_pro_login_client_ip` filter for trusted-proxy and CDN setups,
-	 * IPv6 collapsed to its /64, HMAC with the auth salt). A request with no
-	 * address shares one bucket, so the lockout still engages (F3).
+	 * throttle shares (Helper::client_key(): REMOTE_ADDR, the shared
+	 * `blocklane_pro_client_ip` filter for trusted-proxy and CDN setups, for
+	 * the 'login' door, IPv6 collapsed to its /64, HMAC with the auth salt).
+	 * A request with no address shares one bucket, so the lockout still
+	 * engages (F3).
 	 */
 	private function login_throttle_key(): string {
-		return (string) Helper::client_key( self::LOGIN_FAIL_PREFIX, 'blocklane_pro_login_client_ip', true );
+		return (string) Helper::client_key( self::LOGIN_FAIL_PREFIX, 'login', true );
 	}
 
 	private function is_login_locked() {

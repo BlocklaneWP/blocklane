@@ -25,7 +25,7 @@ export {
 
 export { errorMessage } from '../../api/errors';
 
-// Section status chip, Jetpack-dashboard style ("2 of 5 set", "Not set").
+// A small status chip, for section intros and table cells.
 export const StatusChip = ( { children, tone = 'neutral' } ) => (
 	<span className={ `blocklane-pro-seo-screen__chip is-${ tone }` }>
 		{ children }

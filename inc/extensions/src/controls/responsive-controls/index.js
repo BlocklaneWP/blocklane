@@ -66,11 +66,9 @@ import {
 } from '@wordpress/element';
 import { useDeviceType, useBreakpoint } from './use-device-type';
 import { RESPONSIVE_STORE } from './store';
-import {
-	updateResponsiveValue,
-	resolvePresetValue,
-	migrateResponsiveAttributes,
-} from './responsive-utils';
+import { updateResponsiveValue } from './update-responsive-value';
+import { migrateResponsiveAttributes } from './responsive-utils';
+import { previewCssValue } from './preview-css-value';
 import schema from './attributes.json';
 
 // Check if extension is enabled.
@@ -84,13 +82,6 @@ const SETTINGS_URL = window.blocklaneProExtensions?.settingsUrl || '';
 // Only admins (manage_options) may change the site-wide breakpoints inline.
 const CAN_MANAGE_BREAKPOINTS =
 	!! window.blocklaneProExtensions?.canManageBreakpoints;
-
-// Reject CSS values that could inject extra declarations or break out of the
-// editor <style> / inline style (mirrors the PHP $as_length guard). Anything
-// with ; { } < > or quotes is dropped; var()/calc()/clamp()/<number><unit> pass.
-const CSS_VALUE_UNSAFE = /[;{}<>"']/;
-const safeCssValue = ( value ) =>
-	typeof value === 'string' && ! CSS_VALUE_UNSAFE.test( value ) ? value : '';
 
 /**
  * A virtual popover anchor at the enclosing ToolsPanel's left edge,
@@ -1030,99 +1021,162 @@ if ( isEnabled ) {
 		return null;
 	}
 
-	function ResponsivePreviewStyle( { clientId, responsive } ) {
-		const deviceType = useDeviceType();
-		let breakpoint = null;
-		if ( deviceType === 'Tablet' ) {
-			breakpoint = 'tablet';
-		} else if ( deviceType === 'Mobile' ) {
-			breakpoint = 'mobile';
+	/**
+	 * Finds the head of the document that holds a block's element in the
+	 * editor. The editor's own document is searched first, then the document
+	 * of the editor canvas iframe, when that iframe exists and can be reached.
+	 *
+	 * @param {string} clientId The block's client id.
+	 * @return {?HTMLHeadElement} The head of the block's document, or null when the block is not found.
+	 */
+	function devicePreviewFindHead( clientId ) {
+		const elementId = `block-${ clientId }`;
+		const inEditor = document.getElementById( elementId );
+		if ( inEditor ) {
+			return inEditor.ownerDocument.head;
 		}
-		const [ headEl, setHeadEl ] = useState( null );
-
-		// Find the correct document head (handles editor iframe).
-		useEffect( () => {
-			const find = () => {
-				const el =
-					document.getElementById( `block-${ clientId }` ) ??
-					document
-						.querySelector( 'iframe[name="editor-canvas"]' )
-						?.contentDocument?.getElementById(
-							`block-${ clientId }`
-						);
-				if ( el ) {
-					setHeadEl( el.ownerDocument.head );
-				}
-			};
-			find();
-			// Re-check after a frame in case the iframe hasn't loaded yet.
-			const raf = requestAnimationFrame( find );
-			return () => cancelAnimationFrame( raf );
-		}, [ clientId ] );
-
-		if ( ! headEl || ! breakpoint ) {
+		const canvasFrame = document.querySelector(
+			'iframe[name="editor-canvas"]'
+		);
+		if ( ! canvasFrame ) {
 			return null;
 		}
-
-		// Resolve presets, then drop anything that isn't a safe CSS value so a
-		// crafted attribute can't inject declarations into this <style>.
-		const r = ( value ) => safeCssValue( resolvePresetValue( value ) );
-		const rules = [];
-
-		// Max width — cascade.
-		const mw = cascadeValue( responsive, 'maxWidth', breakpoint );
-		if ( mw ) {
-			rules.push( `max-width: ${ r( mw ) } !important` );
+		let canvasDocument = null;
+		try {
+			canvasDocument = canvasFrame.contentDocument;
+		} catch {
+			return null;
 		}
+		if ( ! canvasDocument ) {
+			return null;
+		}
+		const inCanvas = canvasDocument.getElementById( elementId );
+		return inCanvas ? inCanvas.ownerDocument.head : null;
+	}
 
-		// Order — cascade. Applies to this block as a flex item of its row.
-		const order = cascadeValue( responsive, 'order', breakpoint );
+	/**
+	 * Builds the CSS rule that previews a block's settings at one breakpoint.
+	 * Each property's value comes from cascadeValue(); a falsy value adds no
+	 * declaration. The max width goes through previewCssValue(), and the order
+	 * is written as the base-10 integer parseInt() reads from it.
+	 *
+	 * @param {string} clientId The block's client id.
+	 * @param {Object} settings The block's per-breakpoint settings.
+	 * @param {string} screen   The breakpoint, 'tablet' or 'mobile'.
+	 * @return {string} The rule, or an empty string when there is nothing to preview.
+	 */
+	function devicePreviewRule( clientId, settings, screen ) {
+		const declarations = [];
+		const maxWidth = cascadeValue( settings, 'maxWidth', screen );
+		if ( maxWidth ) {
+			declarations.push(
+				`max-width: ${ previewCssValue( maxWidth ) } !important;`
+			);
+		}
+		const order = cascadeValue( settings, 'order', screen );
 		if ( order ) {
-			rules.push( `order: ${ parseInt( order, 10 ) } !important` );
+			declarations.push(
+				`order: ${ parseInt( order, 10 ) } !important;`
+			);
 		}
-
-		if ( ! rules.length ) {
-			return null;
+		if ( ! declarations.length ) {
+			return '';
 		}
+		return `#block-${ clientId } { ${ declarations.join( ' ' ) } }`;
+	}
 
-		return createPortal(
-			<style data-blocklane-pro-preview={ clientId }>
-				{ `#block-${ clientId } { ${ rules.join( '; ' ) }; }` }
-			</style>,
-			headEl
+	/**
+	 * Tells whether a block has settings the preview should show: its name is
+	 * one of the responsive blocks, and its settings object holds at least one
+	 * key.
+	 *
+	 * @param {string} name       The block's name.
+	 * @param {Object} attributes The block's attributes.
+	 * @return {boolean} Whether the block needs a preview.
+	 */
+	function devicePreviewWanted( name, attributes ) {
+		if ( ! RESPONSIVE_BLOCKS.includes( name ) ) {
+			return false;
+		}
+		const settings = attributes ? attributes.blocklaneProResponsive : null;
+		return (
+			!! settings &&
+			typeof settings === 'object' &&
+			Object.keys( settings ).length > 0
 		);
 	}
 
-	const withResponsivePreview = createHigherOrderComponent(
-		( BlockListBlock ) => {
-			return ( props ) => {
-				if ( ! RESPONSIVE_BLOCKS.includes( props.name ) ) {
-					return <BlockListBlock { ...props } />;
+	/**
+	 * Adds a style element to the head of the block's document while the
+	 * editor previews the Tablet or Mobile device, applying the block's max
+	 * width and order at that breakpoint. The block is looked up when this
+	 * component mounts and whenever the client id changes: once at once, and
+	 * once more on the next animation frame, for a canvas that is still loading.
+	 *
+	 * @param {Object} props          The component's props.
+	 * @param {string} props.clientId The block's client id.
+	 * @param {Object} props.settings The block's per-breakpoint settings.
+	 * @return {?Object} A portal holding the style element, or null.
+	 */
+	function DevicePreviewStyle( { clientId, settings } ) {
+		const [ head, setHead ] = useState( null );
+		const screen = useBreakpoint();
+
+		useEffect( () => {
+			setHead( devicePreviewFindHead( clientId ) );
+			const frameId = requestAnimationFrame( () => {
+				const later = devicePreviewFindHead( clientId );
+				if ( later ) {
+					setHead( later );
 				}
+			} );
+			return () => cancelAnimationFrame( frameId );
+		}, [ clientId ] );
 
-				const responsive = props.attributes.blocklaneProResponsive;
+		if ( ! head || ( screen !== 'tablet' && screen !== 'mobile' ) ) {
+			return null;
+		}
+		const rule = devicePreviewRule( clientId, settings, screen );
+		if ( ! rule ) {
+			return null;
+		}
+		return createPortal(
+			<style data-blocklane-pro-preview={ clientId }>{ rule }</style>,
+			head
+		);
+	}
 
-				if ( ! responsive || Object.keys( responsive ).length === 0 ) {
-					return <BlockListBlock { ...props } />;
-				}
-
+	/**
+	 * Wraps the editor's block list item so a block with per-breakpoint
+	 * settings also renders its preview. Any other block is rendered as it is,
+	 * with no extra work.
+	 *
+	 * @param {import('react').ComponentType<Object>} BlockListBlock The block list item component.
+	 * @return {import('react').ComponentType<Object>} The wrapped component.
+	 */
+	const withDevicePreview = createHigherOrderComponent(
+		( BlockListBlock ) =>
+			function DevicePreviewBlock( props ) {
+				const { name, clientId, attributes } = props;
+				const wanted = devicePreviewWanted( name, attributes );
 				return (
 					<>
-						<ResponsivePreviewStyle
-							clientId={ props.clientId }
-							responsive={ responsive }
-						/>
 						<BlockListBlock { ...props } />
+						{ wanted && (
+							<DevicePreviewStyle
+								clientId={ clientId }
+								settings={ attributes.blocklaneProResponsive }
+							/>
+						) }
 					</>
 				);
-			};
-		},
-		'withResponsivePreview'
+			},
+		'withDevicePreview'
 	);
 
 	addFilter(
 		'editor.BlockListBlock',
 		'blocklane-pro/responsive/add-preview',
-		withResponsivePreview
+		withDevicePreview
 	);
 }

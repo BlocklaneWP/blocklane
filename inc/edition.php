@@ -101,7 +101,7 @@ return array(
 		'module:security' => array( 'lifecycle', 'boot' ),
 		'security:auto-update-plugins' => false,
 		'security:auto-update-themes' => false,
-		'module:advanced' => array( 'boot' ),
+		'module:advanced' => array( 'lifecycle', 'boot' ),
 		'service:textdomain' => false,
 		'service:bake-leftovers' => false,
 		'service:scripts' => false,

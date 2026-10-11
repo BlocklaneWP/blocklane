@@ -3,8 +3,8 @@
  * Filesystem work, routed through WordPress instead of PHP primitives.
  *
  * Two jobs: remove a directory tree the plugin owns (once hand-rolled by
- * uninstall.php), and write inside uploads (uploads_put(), uploads_swap()),
- * refusing any path outside it.
+ * uninstall.php), and write inside uploads (uploads_dir(), uploads_ensure(),
+ * uploads_put(), uploads_swap()), refusing any path outside it.
  *
  * WHY THE WORDPRESS LAYER AND NOT PHP's own rmdir()/unlink(). Not to satisfy
  * a sniff. A raw call is performed by the web server user, and on a host whose
@@ -123,6 +123,83 @@ final class File_Ops {
 	}
 
 	/**
+	 * A folder inside uploads the plugin owns, one level under a folder that
+	 * is already there: the path when it is a real directory resolving
+	 * inside wp_upload_dir()'s basedir, created through the direct transport
+	 * when absent. A link at the path, dangling or not, is refused, and so
+	 * is anything there that is not a directory: the folder the plugin's
+	 * files go into must be the folder it names, not one a link points at.
+	 *
+	 * The uploads basedir itself is made first when it does not exist yet
+	 * (#2091: core creates it only on demand, so a fresh install or a new
+	 * multisite subsite has none, and every folder below it was refused).
+	 * It is core's own path, made the way core's wp_upload_dir() makes it,
+	 * with wp_mkdir_p(); it is the containment root, so the levels above it
+	 * are outside what this door judges, and a basedir that is itself a link
+	 * stays acceptable, as it always was. The one level this door then makes
+	 * under it keeps every check above.
+	 *
+	 * @param string $dir Absolute path; its parent must be the uploads basedir or exist inside it.
+	 * @return true|\WP_Error True when the folder is there; a typed refusal otherwise.
+	 */
+	public static function uploads_dir( string $dir ): bool|\WP_Error {
+		$dir   = untrailingslashit( $dir );
+		$ready = self::uploads_base();
+		if ( is_wp_error( $ready ) ) {
+			return $ready;
+		}
+		$outside = self::uploads_refusal( $dir );
+		if ( null !== $outside ) {
+			return $outside;
+		}
+		if ( file_exists( $dir ) ) {
+			return is_dir( $dir ) ? true : new \WP_Error( 'blocklane_pro_uploads_not_dir', 'Refusing a path that is not a folder: ' . $dir . '.' );
+		}
+		$fs = self::uploads_direct(); // Defines FS_CHMOD_DIR when nothing has.
+		if ( ! $fs->mkdir( $dir, FS_CHMOD_DIR ) || ! is_dir( $dir ) || is_link( $dir ) ) {
+			return new \WP_Error( 'blocklane_pro_uploads_mkdir', 'Could not create ' . $dir . '.' );
+		}
+		return true;
+	}
+
+	/**
+	 * Make a file inside uploads hold exactly $contents: written when absent,
+	 * rewritten when it holds other bytes (it is the plugin's file, and the
+	 * bytes are the guarantee), left alone when it already holds them. The
+	 * uploads door's refusals apply first (a path outside uploads, a link at
+	 * the name); anything there that is not a regular file, a directory
+	 * say, is refused rather than replaced.
+ *
+ * THE DOOR DECIDES PRESENCE TOO (#1860). A caller that asks file_exists()
+ * before it writes has put the decision outside the door: a link at the
+ * name to any existing file, a directory, or a file with other bytes all
+ * answer "present", and the door's refusal of a link is never consulted.
+ * So a file the plugin needs to hold given bytes is asked for here, and a
+ * folder it needs through uploads_dir(); each judges what is already there.
+	 *
+	 * @param string $path     Absolute path; its directory must exist inside uploads.
+	 * @param string $contents The bytes the file must hold.
+	 * @return true|\WP_Error True when the file holds them; a typed refusal otherwise.
+	 */
+	public static function uploads_ensure( string $path, string $contents ): bool|\WP_Error {
+		$outside = self::uploads_refusal( $path );
+		if ( null !== $outside ) {
+			return $outside;
+		}
+		if ( file_exists( $path ) && ! is_file( $path ) ) {
+			return new \WP_Error( 'blocklane_pro_uploads_not_file', 'Refusing a path that is not a regular file: ' . $path . '.' );
+		}
+		$fs = self::uploads_direct();
+		if ( is_file( $path ) && $fs->get_contents( $path ) === $contents ) {
+			return true;
+		}
+		if ( ! $fs->put_contents( $path, $contents, FS_CHMOD_FILE ) ) {
+			return new \WP_Error( 'blocklane_pro_uploads_write', 'Could not write ' . $path . '.' );
+		}
+		return true;
+	}
+
+	/**
 	 * Put a new file in place of an existing one inside uploads, keeping the
 	 * original until the new file is in place (media replace: same name, same
 	 * URL). Three moves: the original steps aside, the new file takes its
@@ -187,6 +264,24 @@ final class File_Ops {
 	}
 
 	/**
+	 * The uploads basedir, made when it does not exist yet (see
+	 * uploads_dir()): true when it is a folder now, or why it is not.
+	 *
+	 * @return true|\WP_Error
+	 */
+	private static function uploads_base(): bool|\WP_Error {
+		$uploads = wp_upload_dir( null, false );
+		if ( ! empty( $uploads['error'] ) ) {
+			return new \WP_Error( 'blocklane_pro_uploads_unavailable', 'The uploads folder is not available: ' . (string) $uploads['error'] );
+		}
+		$basedir = (string) $uploads['basedir'];
+		if ( '' === $basedir || ( ! is_dir( $basedir ) && ! wp_mkdir_p( $basedir ) ) || ! is_dir( $basedir ) ) {
+			return new \WP_Error( 'blocklane_pro_uploads_unavailable', 'The uploads folder ' . $basedir . ' does not exist and could not be created.' );
+		}
+		return true;
+	}
+
+	/**
 	 * Why a path may not be written through the uploads methods, or null
 	 * when it may. Judged on the directory AND on the final path (#1846):
 	 *
@@ -204,7 +299,12 @@ final class File_Ops {
 	private static function uploads_refusal( string $path ): ?\WP_Error {
 		$uploads = wp_upload_dir( null, false );
 		$base    = empty( $uploads['error'] ) ? realpath( (string) $uploads['basedir'] ) : false;
-		$inside  = static fn( string|false $real ): bool => false !== $base && false !== $real && str_starts_with( $real . '/', rtrim( $base, '/' ) . '/' );
+		if ( false === $base ) {
+			// Nothing can be judged inside a folder that is not there; say so
+			// instead of calling the path "outside" (#2091).
+			return new \WP_Error( 'blocklane_pro_uploads_unavailable', 'The uploads folder is not available, so nothing can be written in it: ' . ( empty( $uploads['error'] ) ? (string) $uploads['basedir'] . ' does not exist.' : (string) $uploads['error'] ) );
+		}
+		$inside = static fn( string|false $real ): bool => false !== $real && str_starts_with( $real . '/', rtrim( $base, '/' ) . '/' );
 		if ( ! $inside( realpath( dirname( $path ) ) ) ) {
 			return new \WP_Error( 'blocklane_pro_uploads_outside', 'Refusing a path outside the uploads directory: ' . $path . '.' );
 		}
@@ -230,8 +330,11 @@ final class File_Ops {
 	 * @return \WP_Filesystem_Direct
 	 */
 	private static function uploads_direct(): \WP_Filesystem_Direct {
+		// Core loads these two only inside WP_Filesystem(), which this door
+		// never calls.
 		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
 		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+		$fs = new \WP_Filesystem_Direct( null );
 		// put_contents() and mkdir() chmod with these; WP_Filesystem() defines
 		// them, which this door never calls. The same expressions core uses.
 		if ( ! defined( 'FS_CHMOD_DIR' ) ) {
@@ -240,7 +343,7 @@ final class File_Ops {
 		if ( ! defined( 'FS_CHMOD_FILE' ) ) {
 			define( 'FS_CHMOD_FILE', ( fileperms( ABSPATH . 'index.php' ) & 0777 | 0644 ) ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- core's own constant, defined exactly as WP_Filesystem() defines it.
 		}
-		return new \WP_Filesystem_Direct( null );
+		return $fs;
 	}
 
 	/**

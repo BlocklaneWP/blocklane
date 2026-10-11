@@ -166,9 +166,10 @@ class Seo_Controller implements Rest_Registrable {
 	}
 
 	/**
-	 * Overview: factual coverage counts (state, not a score) plus the
-	 * visibility and verification flags the cards render. Mirrors what the
-	 * Settings tab manages so the two can't drift.
+	 * Overview: how many published items have each SEO field filled in,
+	 * plus the visibility and verification flags the Overview cards show.
+	 * The flags are read from the same settings the Settings tab writes, so
+	 * the two can't drift.
 	 */
 	public function get_overview( \WP_REST_Request $request ) {
 		unset( $request );
@@ -187,9 +188,9 @@ class Seo_Controller implements Rest_Registrable {
 		return rest_ensure_response(
 			array(
 				'visibility' => array(
-					'search_engines_visible' => 1 === (int) get_option( 'blog_public', 1 ),
-					'sitemap_active'         => $settings['sitemap'],
-					'site_locked'            => class_exists( __NAMESPACE__ . '\Site_Lock', false ) && Site_Lock::is_enabled(),
+					'indexing_allowed' => 1 === (int) get_option( 'blog_public', 1 ),
+					'sitemap_enabled'  => $settings['sitemap'],
+					'site_locked'      => class_exists( __NAMESPACE__ . '\Site_Lock', false ) && Site_Lock::is_enabled(),
 				),
 				'verification' => array_map(
 					static function ( $code ) {
@@ -197,12 +198,14 @@ class Seo_Controller implements Rest_Registrable {
 					},
 					$settings['verification']
 				),
-				'coverage'   => array(
-					'total'               => $total,
-					'with_schema'         => $counts[ BLOCKLANE_PRO_SEO_META_SCHEMA_TYPE ],
-					'with_title'          => $counts[ BLOCKLANE_PRO_SEO_META_TITLE ],
-					'with_description'    => $counts[ BLOCKLANE_PRO_SEO_META_DESCRIPTION ],
-					'with_search_visible' => max( 0, $total - $counts[ BLOCKLANE_PRO_SEO_META_NOINDEX ] ),
+				// Field counts out of `published`. `indexable` is every
+				// published item not marked noindex, never below zero.
+				'counts'       => array(
+					'published'   => $total,
+					'schema'      => $counts[ BLOCKLANE_PRO_SEO_META_SCHEMA_TYPE ],
+					'title'       => $counts[ BLOCKLANE_PRO_SEO_META_TITLE ],
+					'description' => $counts[ BLOCKLANE_PRO_SEO_META_DESCRIPTION ],
+					'indexable'   => $total - min( $total, $counts[ BLOCKLANE_PRO_SEO_META_NOINDEX ] ),
 				),
 			)
 		);

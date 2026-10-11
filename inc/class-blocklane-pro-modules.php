@@ -477,6 +477,7 @@ class Modules {
 			'extension:animation-designer' => 'extensions/loader/animation/lifecycle.php',
 			'module:extensions'          => 'extensions/lifecycle.php',
 			'module:security'            => 'security/lifecycle.php',
+			'module:advanced'            => 'advanced/lifecycle.php',
 			'module:site-lock'           => 'site-lock/lifecycle.php',
 			'service:scripts'            => 'scripts/lifecycle.php',
 			'service:child-theme'        => 'child-theme-tool/lifecycle.php',

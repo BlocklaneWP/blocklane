@@ -163,11 +163,14 @@ if ( ! $blocklane_pro_plan['shared'] ) {
  * Deliberately kept: blocklane_pro_custom_icons — the user's uploaded SVG
  * icons, which render icons already placed in saved content. Icons are
  * content, not plugin state; deleting the row would blank them. Their
- * uploads mirror (uploads/blocklane-icons/) is kept for the same reason:
- * reinstalling EITHER edition registers those icons again from the row and
- * the mirror. Nothing else registers the collection — the companion theme
- * stopped in its 1.0.0, when the registrar moved into this plugin. Both go
- * only with the clean-uninstall opt-in below.
+ * uploads mirror (uploads/blocklane-icons/) is a CACHE of the reader's
+ * verdict, each file named by the SVG policy and the row's bytes
+ * (<slug>.<tag>.svg), and it is kept with the row: reinstalling EITHER
+ * edition registers those icons again from the row, judged, and reuses a
+ * mirror file only when its name matches the row and the policy in force.
+ * Nothing else registers the collection — the companion theme stopped in
+ * its 1.0.0, when the registrar moved into this plugin. Both go only with
+ * the clean-uninstall opt-in below.
  *
  * Deliberately kept for the same reason: blocklane_pro_scripts — the header,
  * body and footer code the USER wrote. Since 2026-08 this row is the ONLY
@@ -305,6 +308,8 @@ $blocklane_pro_options = array(
 	'blocklane_pro_ct_stale_forks_rescan',   // theme-switch rescan flag for the scan above
 	'blocklane_pro_security',          // Security toggles
 	'blocklane_pro_advanced',          // Advanced toggles + settings
+	'blocklane_pro_svg_check',         // Safe SVG's consented library check: its scope, cursor and lists (Svg_Cleanup)
+	'blocklane_pro_svg_check_lock',    // …and the lock a Clean batch holds, if a request died holding it
 	// SEO settings: org identity, street address, phone, GPS coordinates,
 	// verification tokens, IndexNow key — the most personally-identifying row
 	// the plugin stores. Like the site-lock and auth rows it belongs on this
@@ -373,7 +378,9 @@ $blocklane_pro_prefixes = array(
 	// them — they are the only dynamically-named forms option not covered
 	// here, so without this line a fatal could strand rows forever.
 	'blocklane_pro_forms_ulock_',
-	// Forms: per-form location caches + per-IP submission rate counters.
+	// Forms: per-form location caches, written by 1.0.0-1.0.1 (1.0.2
+	// resolves without them; a site that ran those versions keeps rows for up
+	// to a day) + per-IP submission rate counters.
 	'_transient_blocklane_pro_forms_loc_',
 	'_transient_timeout_blocklane_pro_forms_loc_',
 	'_transient_blocklane_pro_forms_rl_',
@@ -401,6 +408,8 @@ foreach ( $blocklane_pro_prefixes as $blocklane_pro_prefix ) {
 
 // Last-login user meta (Advanced » Last login column), across all users.
 delete_metadata( 'user', 0, 'blocklane_pro_last_login', '', true );
+// Who dismissed Safe SVG's library-check notice (Svg_Cleanup::DISMISSED_META).
+delete_metadata( 'user', 0, 'blocklane_pro_svg_check_dismissed', '', true );
 
 // Menu Designer per-user preview tokens (hashed) + their expiry, across all users.
 delete_metadata( 'user', 0, 'blocklane_pro_md_preview_token', '', true );

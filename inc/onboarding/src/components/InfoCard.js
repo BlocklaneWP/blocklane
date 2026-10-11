@@ -1,7 +1,6 @@
 /**
- * Generic info card with title + body + outbound link button. Mirrors BlocklanePro
- * Pro's InfoCard partial: used for the Documentation grid and Changelog
- * sections on the dashboard home.
+ * Generic info card with title + body + outbound link button, used for the
+ * Documentation grid and Changelog sections on the dashboard home.
  *
  * `badge` renders a small pill beside the title (e.g. "Coming soon");
  * `disabled` keeps the footer button visible but inert — for destinations

@@ -2,11 +2,12 @@
 /**
  * Extensions Handler: loads enabled block-editor extensions and enqueues their assets.
  *
- * The activation model mirrors BlocklanePro Pro v2.5.4's Extensions_Handler 1:1 — the
- * slug list, the (non-1:1) slug -> loader map, the always-loaded set, and the
- * data localized to JS — so behavior matches BlocklanePro exactly. Storage/REST stay on
- * blocklane_pro's per-slug option scheme. BlocklanePro-specific toggles we don't ship
- * (menu-designer auto-install, pattern-library, abilities/AI) are omitted.
+ * The activation model: a canonical slug list with shipped defaults
+ * (KNOWN_SLUGS), the plugin-side halves each slug loads (ADMIN_RUNTIMES; the
+ * front-end halves are mapped in loader/frontend-loader.php, whose file names
+ * are not always the slugs), and the enabled map localized to the editor.
+ * Each slug's state is its own option (OPTION_PREFIX + slug); the dashboard
+ * reads and writes it through the extensions REST controller.
  *
  * @package blocklane_pro
  */
@@ -22,10 +23,9 @@ class Extensions_Handler implements Bootable {
 
 	/**
 	 * Canonical extension slugs + defaults. Source of truth for REST validation
-	 * and the localized enabled map. Mirrors BlocklanePro's get_enabled_extensions()
-	 * defaults (class-manager OFF), minus BlocklanePro-only toggles. The hidden default-on
-	 * one (advanced-paragraph) loads but is not surfaced in the admin toggle
-	 * list, matching BlocklanePro.
+	 * and the localized enabled map. Every slug defaults on except
+	 * class-manager. The hidden default-on one (advanced-paragraph) loads but
+	 * is not surfaced in the admin toggle list.
 	 */
 	const KNOWN_SLUGS = array(
 		'animation-designer'  => true,
@@ -64,11 +64,13 @@ class Extensions_Handler implements Bootable {
 		// Class Manager REST + editor styles + usage tracking; its front-end
 		// CSS output is in class-manager-frontend.php, loaded by the runtime.
 		'class-manager'      => 'extensions/loader/class-manager/class-manager.php',
-		// Icon Library picker REST (custom-icon save, delete and usage; the
-		// uploads mirror). Its RENDER half is inc/icon-collection/
-		// runtime.php, booted from Modules::content() in BOTH editions, so
+		// Icon Library picker REST (custom-icon save, delete and usage) and
+		// the uploads mirror's cache filler. Its RENDER half is
+		// inc/icon-collection/runtime.php, booted from Modules::content() in
+		// BOTH editions, and it owns the verdict on what a saved icon renders
+		// (it judges the row, or trusts a mirror only by its derived name), so
 		// neither a switched-off picker nor the free edition blanks icons
-		// already placed in saved content.
+		// already placed in saved content, or renders one unjudged.
 		'icon-library'       => 'extensions/loader/icon-library/icon-library-api.php',
 	);
 
@@ -642,7 +644,11 @@ class Extensions_Handler implements Bootable {
 						: null,
 				// Popup Bindings picker (popup-bindings.md). enabled mirrors
 				// the popups runtime's gate outcome; the admin links are
-				// manage_options-only, like the CPT itself.
+				// manage_options-only, like the CPT itself. canManage is also
+				// the CPT's read_post mapping (manage_options), so it says
+				// whether the picker's list holds every status or published
+				// popups only (blocklane_pro\Post_Access): it picks the
+				// sentence for a bound popup missing from the list.
 				'popups'               => array(
 					'enabled'     => $popups_on,
 					'listPath'    => '/' . Branding::rest_namespace() . '/popups',

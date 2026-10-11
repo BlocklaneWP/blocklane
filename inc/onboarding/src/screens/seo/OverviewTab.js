@@ -1,9 +1,9 @@
 /**
  * SEO screen — Overview tab.
  *
- * Status cards mirroring the state the other two tabs manage: site
- * visibility, verification, and per-post content coverage (factual counts,
- * never a score). Each card links to where the state is managed.
+ * Status cards for the state the other two tabs manage: site visibility,
+ * verification, and how many published items have each SEO field filled
+ * in. Each card links to where the state is managed.
  */
 
 import { __, sprintf } from '@wordpress/i18n';
@@ -13,6 +13,7 @@ import { Button, Notice, Spinner } from '@wordpress/components';
 import { seo as seoApi } from '../../api/client';
 import { buildRouteUrl } from '../../router';
 import { errorMessage, StatusRow, VERIFICATION_SERVICES } from './shared';
+import { seoCopy } from '../../../../shared/seo-copy';
 
 // The last fetched overview, kept across tab flips (tabs mount/unmount):
 // render it immediately, refresh in the background — the counts endpoint is
@@ -60,6 +61,8 @@ const Ring = ( { count, total, label } ) => {
 };
 
 export const OverviewTab = ( { onNavigate } ) => {
+	// The strings shared/seo-copy.js owns (a clean-room rewrite).
+	const copy = seoCopy();
 	const [ loading, setLoading ] = useState( ! lastOverview );
 	const [ error, setError ] = useState( '' );
 	const [ data, setData ] = useState( lastOverview );
@@ -93,7 +96,7 @@ export const OverviewTab = ( { onNavigate } ) => {
 		);
 	}
 
-	const { visibility, verification, coverage } = data;
+	const { visibility, verification, counts } = data;
 	const advancedUrl = buildRouteUrl( { screen: 'advanced', adv: 'seo' } );
 
 	return (
@@ -102,7 +105,7 @@ export const OverviewTab = ( { onNavigate } ) => {
 				{ /* Content SEO leads on its own full-width row (is-wide);
 				     the other cards pair up in two columns below. */ }
 				<div className="blocklane-pro-seo-screen__overview-card is-wide">
-					<h2>{ __( 'Content SEO', 'blocklane' ) }</h2>
+					<h2>{ copy.overviewContentHeading }</h2>
 					<p className="blocklane-pro-seo-screen__section-intro">
 						{ sprintf(
 							/* translators: %d: number of published posts and pages. */
@@ -110,35 +113,29 @@ export const OverviewTab = ( { onNavigate } ) => {
 								'Across %d published items — what has each SEO field set.',
 								'blocklane'
 							),
-							coverage.total
+							counts.published
 						) }
 					</p>
 					<div className="blocklane-pro-seo-screen__rings">
 						<Ring
-							count={ coverage.with_schema }
-							total={ coverage.total }
-							label={ __( 'Schema applied', 'blocklane' ) }
+							count={ counts.schema }
+							total={ counts.published }
+							label={ copy.ringSchema }
 						/>
 						<Ring
-							count={ coverage.with_title }
-							total={ coverage.total }
-							label={ __( 'SEO title set', 'blocklane' ) }
+							count={ counts.title }
+							total={ counts.published }
+							label={ copy.ringTitle }
 						/>
 						<Ring
-							count={ coverage.with_description }
-							total={ coverage.total }
-							label={ __(
-								'Meta description added',
-								'blocklane'
-							) }
+							count={ counts.description }
+							total={ counts.published }
+							label={ copy.ringDescription }
 						/>
 						<Ring
-							count={ coverage.with_search_visible }
-							total={ coverage.total }
-							label={ __(
-								'Visible to search engines',
-								'blocklane'
-							) }
+							count={ counts.indexable }
+							total={ counts.published }
+							label={ copy.ringIndexable }
 						/>
 					</div>
 					<Button
@@ -146,26 +143,26 @@ export const OverviewTab = ( { onNavigate } ) => {
 						__next40pxDefaultSize
 						onClick={ () => onNavigate( 'content' ) }
 					>
-						{ __( 'Manage content', 'blocklane' ) }
+						{ copy.overviewManageContent }
 					</Button>
 				</div>
 
 				<div className="blocklane-pro-seo-screen__overview-card">
-					<h2>{ __( 'Site visibility', 'blocklane' ) }</h2>
+					<h2>{ copy.siteVisibilityHeading }</h2>
 					<ul>
 						<StatusRow
-							on={ visibility.search_engines_visible }
+							on={ visibility.indexing_allowed }
 							offTone="warning"
 						>
-							{ visibility.search_engines_visible
+							{ visibility.indexing_allowed
 								? __( 'Search engines allowed', 'blocklane' )
 								: __(
 										'Search engines discouraged',
 										'blocklane'
 									) }
 						</StatusRow>
-						<StatusRow on={ visibility.sitemap_active }>
-							{ visibility.sitemap_active
+						<StatusRow on={ visibility.sitemap_enabled }>
+							{ visibility.sitemap_enabled
 								? __( 'Sitemap active', 'blocklane' )
 								: __( 'Sitemap off', 'blocklane' ) }
 						</StatusRow>
@@ -183,12 +180,12 @@ export const OverviewTab = ( { onNavigate } ) => {
 						__next40pxDefaultSize
 						onClick={ () => onNavigate( 'settings', 'visibility' ) }
 					>
-						{ __( 'Manage visibility', 'blocklane' ) }
+						{ copy.overviewManageVisibility }
 					</Button>
 				</div>
 
 				<div className="blocklane-pro-seo-screen__overview-card">
-					<h2>{ __( 'Site verification', 'blocklane' ) }</h2>
+					<h2>{ copy.siteVerificationHeading }</h2>
 					<ul>
 						{ VERIFICATION_SERVICES.map( ( { key, label } ) => (
 							<StatusRow
@@ -198,8 +195,8 @@ export const OverviewTab = ( { onNavigate } ) => {
 								{ label }
 								<span className="blocklane-pro-seo-screen__status-value">
 									{ verification[ key ]
-										? __( 'Set', 'blocklane' )
-										: __( 'Not set', 'blocklane' ) }
+										? copy.verificationAdded
+										: copy.verificationMissing }
 								</span>
 							</StatusRow>
 						) ) }
@@ -211,16 +208,14 @@ export const OverviewTab = ( { onNavigate } ) => {
 							onNavigate( 'settings', 'verification' )
 						}
 					>
-						{ __( 'Manage verification', 'blocklane' ) }
+						{ copy.overviewManageVerification }
 					</Button>
 				</div>
 			</div>
 
 			<p className="blocklane-pro-seo-screen__disable-hint">
-				{ __( 'Using a different SEO solution?', 'blocklane' ) }{ ' ' }
-				<a href={ advancedUrl }>
-					{ __( 'Disable Blocklane SEO', 'blocklane' ) }
-				</a>
+				{ copy.disableLead }{ ' ' }
+				<a href={ advancedUrl }>{ copy.disableLink }</a>
 			</p>
 		</div>
 	);

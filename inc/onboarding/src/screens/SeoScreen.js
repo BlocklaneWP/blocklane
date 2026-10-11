@@ -1,9 +1,9 @@
 /**
  * SEO screen — the shell.
  *
- * Three tabs, Jetpack-SEO-dashboard shaped: Overview (status cards +
- * content coverage), Settings (site-level SEO settings), and Content
- * (per-page SEO across the whole site). Each tab is self-contained in
+ * Three tabs: Overview (status cards + content coverage), Settings
+ * (site-level SEO settings), and Content (per-page SEO across the whole
+ * site). Each tab is self-contained in
  * ./seo/ and fetches its own data; this shell owns tab state, the disabled
  * notice, and the help panel. Per-page SEO also lives in the editor's SEO
  * sidebar — the Content tab edits the same post meta.

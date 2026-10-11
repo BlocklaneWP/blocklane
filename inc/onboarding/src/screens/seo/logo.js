@@ -1,8 +1,8 @@
 /**
  * The Blocklane logomark — the same path as the wp-admin menu icon
- * (Settings::MENU_ICON_B64), inlined so the SEO screen header can brand
- * itself the way the Jetpack SEO header does. fill=currentColor so the
- * stylesheet decides the color.
+ * (Settings::MENU_ICON_B64), inlined so the SEO screen's header can carry
+ * the Blocklane mark. fill=currentColor so the stylesheet decides the
+ * color.
  */
 
 export const BlocklaneMark = ( { size = 26 } ) => (

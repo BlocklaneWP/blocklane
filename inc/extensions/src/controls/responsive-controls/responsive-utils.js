@@ -1,64 +1,12 @@
 /**
- * Shared utilities for responsive controls.
+ * The editor half of the move to core 7.1's own formats:
+ * migrateResponsiveAttributes() takes the keys core now stores itself out of
+ * a block's blocklaneProResponsive attribute and writes them in core's
+ * formats. (Writing one breakpoint's value into that attribute lives in
+ * update-responsive-value.js.)
  *
  * @package
  */
-
-/**
- * Update a property inside blocklaneProResponsive for a given breakpoint.
- *
- * @param {Object}                       attributes    Current block attributes.
- * @param {(attributes: Object) => void} setAttributes Block setAttributes function.
- * @param {string}                       property      The responsive property key (e.g. 'fontSize', 'padding').
- * @param {string}                       breakpoint    The breakpoint key ('tablet' or 'mobile').
- * @param {unknown}                      value         The new value, or undefined to clear.
- */
-export function updateResponsiveValue(
-	attributes,
-	setAttributes,
-	property,
-	breakpoint,
-	value
-) {
-	const currentProp = {
-		...( attributes.blocklaneProResponsive?.[ property ] ?? {} ),
-	};
-
-	if ( value !== undefined && value !== null && value !== '' ) {
-		currentProp[ breakpoint ] = value;
-	} else {
-		delete currentProp[ breakpoint ];
-	}
-
-	const newResponsive = { ...( attributes.blocklaneProResponsive ?? {} ) };
-
-	if ( Object.keys( currentProp ).length > 0 ) {
-		newResponsive[ property ] = currentProp;
-	} else {
-		delete newResponsive[ property ];
-	}
-
-	setAttributes( {
-		blocklaneProResponsive:
-			Object.keys( newResponsive ).length > 0 ? newResponsive : {},
-	} );
-}
-
-/**
- * Convert a WP preset shorthand to a CSS custom property.
- * e.g. "var:preset|spacing|60" → "var(--wp--preset--spacing--60)"
- * Plain CSS values pass through unchanged.
- *
- * @param {string} value Raw value.
- * @return {string} CSS-safe value.
- */
-export function resolvePresetValue( value ) {
-	if ( typeof value !== 'string' || ! value.startsWith( 'var:preset|' ) ) {
-		return value;
-	}
-	const path = value.slice( 4 ).replaceAll( '|', '--' );
-	return `var(--wp--${ path })`;
-}
 
 // ─── Legacy-bag → core 7.1 idiom migration ──────────────────────────────
 

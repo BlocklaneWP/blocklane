@@ -44,6 +44,14 @@ import {
 	SearchPreview,
 	VERIFICATION_SERVICES,
 } from './shared';
+import { seoCopy } from '../../../../shared/seo-copy';
+
+/*
+ * Fill the placeholders of a shared/seo-copy.js string. The formats are not
+ * literals here, so the lint rule that checks sprintf() formats cannot read
+ * them; seo-copy.test.js pins which placeholder each carries.
+ */
+const fill = ( format, ...values ) => sprintf( format, ...values );
 
 const WEEK_DAYS = [
 	{ key: 'monday', label: __( 'Monday', 'blocklane' ) },
@@ -128,6 +136,8 @@ const ImageField = ( {
 // shown is the tagline — the fallback a posts homepage emits; a static front
 // page's own SEO description is set per-page in the Content tab.
 const HomePreviews = ( { site } ) => {
+	// The strings shared/seo-copy.js owns (a clean-room rewrite).
+	const copy = seoCopy();
 	const host = ( () => {
 		try {
 			return new URL( site.url ).host;
@@ -147,7 +157,7 @@ const HomePreviews = ( { site } ) => {
 		<div className="blocklane-pro-seo-screen__previews">
 			<div className="blocklane-pro-seo-screen__preview-block">
 				<div className="blocklane-pro-seo-screen__preview-caption">
-					{ __( 'Google search result', 'blocklane' ) }
+					{ copy.previewSearchCaption }
 				</div>
 				<SearchPreview
 					title={ site.title }
@@ -160,7 +170,7 @@ const HomePreviews = ( { site } ) => {
 
 			<div className="blocklane-pro-seo-screen__preview-block">
 				<div className="blocklane-pro-seo-screen__preview-caption">
-					{ __( 'Social share card', 'blocklane' ) }
+					{ copy.previewSocialCaption }
 				</div>
 				<div className="blocklane-pro-seo-screen__card">
 					<div className="blocklane-pro-seo-screen__card-image">
@@ -199,6 +209,8 @@ const HomePreviews = ( { site } ) => {
  *                                         a specific section.
  */
 export const SettingsTab = ( { initialPanel = null } ) => {
+	// The strings shared/seo-copy.js owns (a clean-room rewrite).
+	const copy = seoCopy();
 	const [ loading, setLoading ] = useState( true );
 	const [ isBusy, setIsBusy ] = useState( false );
 	const [ error, setError ] = useState( '' );
@@ -388,7 +400,7 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 			     it. siteLocked is settled before the panels first render
 			     (same fetch that ends `loading`), so initialOpen is safe. */ }
 			<PanelBody
-				title={ __( 'Site visibility', 'blocklane' ) }
+				title={ copy.siteVisibilityHeading }
 				className="blocklane-pro-seo-screen__panel-visibility"
 				initialOpen={ siteLocked || initialPanel === 'visibility' }
 			>
@@ -406,23 +418,14 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 						'Allow search engines to index this site',
 						'blocklane'
 					) }
-					help={ __(
-						'The same switch as Settings → Reading and the Site Visibility screen. Turning it off asks search engines to skip the whole site — use only for staging or pre-launch.',
-						'blocklane'
-					) }
+					help={ copy.indexingToggleHelp }
 					checked={ searchVisible }
 					onChange={ setSearchVisible }
 				/>
 				<ToggleControl
 					__nextHasNoMarginBottom
-					label={ __(
-						'Add canonical URLs on archives',
-						'blocklane'
-					) }
-					help={ __(
-						'Points search engines at the clean URL for category, tag, author, and date pages (paginated pages keep their own). Posts and pages already get one from WordPress.',
-						'blocklane'
-					) }
+					label={ copy.archiveCanonicalsLabel }
+					help={ copy.archiveCanonicalsHelp }
 					checked={ settings.archive_canonicals !== false }
 					onChange={ setField( 'archive_canonicals' ) }
 				/>
@@ -460,17 +463,14 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 			>
 				<ToggleControl
 					__nextHasNoMarginBottom
-					label={ __( 'Generate an XML sitemap', 'blocklane' ) }
+					label={ copy.sitemapToggleLabel }
 					help={
 						settings.sitemap !== false && site.sitemapUrl ? (
 							<ExternalLink href={ site.sitemapUrl }>
 								{ __( 'View the sitemap', 'blocklane' ) }
 							</ExternalLink>
 						) : (
-							__(
-								'WordPress builds the sitemap (wp-sitemap.xml) automatically from your published content.',
-								'blocklane'
-							)
+							copy.sitemapToggleHelp
 						)
 					}
 					checked={ settings.sitemap !== false }
@@ -482,9 +482,9 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 							{ __( 'Include in the sitemap', 'blocklane' ) }
 						</span>
 						<p className="blocklane-pro-seo-screen__section-intro">
-							{ __(
-								'Anything unchecked stays out of the XML sitemap. Individual items are hidden per page with “Hide from search engines”.',
-								'blocklane'
+							{ fill(
+								copy.sitemapIncludeNote,
+								copy.fieldNoindexLabel
 							) }
 						</p>
 						{ sitemapTypes.map( ( { slug, label } ) => (
@@ -693,7 +693,7 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 				/>
 				<p className="blocklane-pro-seo-screen__title-preview">
 					<span className="blocklane-pro-seo-screen__preview-caption">
-						{ __( 'Preview', 'blocklane' ) }
+						{ copy.titlePreviewCaption }
 					</span>
 					<span className="blocklane-pro-seo-screen__serp-title">
 						{ ( settings.title_format || '%title% %sep% %site%' )
@@ -713,10 +713,7 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 				</p>
 			</PanelBody>
 
-			<PanelBody
-				title={ __( 'Search & social previews', 'blocklane' ) }
-				initialOpen={ false }
-			>
+			<PanelBody title={ copy.previewsHeading } initialOpen={ false }>
 				<div className="blocklane-pro-seo-screen__logo">
 					<span className="blocklane-pro-seo-screen__profiles-label">
 						{ __( 'Default share image', 'blocklane' ) }
@@ -769,7 +766,7 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 				<TextControl
 					__nextHasNoMarginBottom
 					__next40pxDefaultSize
-					label={ __( 'Organization name', 'blocklane' ) }
+					label={ copy.orgNameLabel }
 					placeholder={ site.title }
 					value={ settings.org_name || '' }
 					onChange={ setField( 'org_name' ) }
@@ -806,13 +803,10 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 				</div>
 				<div className="blocklane-pro-seo-screen__profiles">
 					<span className="blocklane-pro-seo-screen__profiles-label">
-						{ __( 'Social profiles', 'blocklane' ) }
+						{ copy.socialProfilesLabel }
 					</span>
 					<p className="blocklane-pro-seo-screen__section-intro">
-						{ __(
-							'Links to this organization’s official profiles (Facebook, X, LinkedIn, …).',
-							'blocklane'
-						) }
+						{ copy.socialProfilesHelp }
 					</p>
 					{ orgProfiles.map( ( url, i ) => (
 						<Flex
@@ -824,7 +818,7 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 								<TextControl
 									__nextHasNoMarginBottom
 									__next40pxDefaultSize
-									label={ __( 'Profile URL', 'blocklane' ) }
+									label={ copy.profileUrlLabel }
 									hideLabelFromVision
 									placeholder="https://"
 									value={ url }
@@ -861,17 +855,14 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 							setField( 'org_profiles' )( [ ...orgProfiles, '' ] )
 						}
 					>
-						{ __( 'Add profile', 'blocklane' ) }
+						{ copy.addProfile }
 					</Button>
 				</div>
 				<div className="blocklane-pro-seo-screen__local">
 					<ToggleControl
 						__nextHasNoMarginBottom
-						label={ __( 'This is a local business', 'blocklane' ) }
-						help={ __(
-							'Adds the address, phone number, and opening hours to your structured data — the details search engines can show in local and map results.',
-							'blocklane'
-						) }
+						label={ copy.localBusinessLabel }
+						help={ copy.localBusinessHelp }
 						checked={ !! settings.local_business }
 						onChange={ setField( 'local_business' ) }
 					/>
@@ -880,7 +871,7 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 							<TextControl
 								__nextHasNoMarginBottom
 								__next40pxDefaultSize
-								label={ __( 'Street address', 'blocklane' ) }
+								label={ copy.streetAddressLabel }
 								value={ settings.local_address || '' }
 								onChange={ setField( 'local_address' ) }
 							/>
@@ -902,10 +893,7 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 									<TextControl
 										__nextHasNoMarginBottom
 										__next40pxDefaultSize
-										label={ __(
-											'State / Region',
-											'blocklane'
-										) }
+										label={ copy.regionLabel }
 										value={ settings.local_region || '' }
 										onChange={ setField( 'local_region' ) }
 									/>
@@ -920,10 +908,7 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 									<TextControl
 										__nextHasNoMarginBottom
 										__next40pxDefaultSize
-										label={ __(
-											'Postal code',
-											'blocklane'
-										) }
+										label={ copy.postalCodeLabel }
 										value={
 											settings.local_postal_code || ''
 										}
@@ -952,13 +937,10 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 							/>
 							<div className="blocklane-pro-seo-screen__hours">
 								<span className="blocklane-pro-seo-screen__profiles-label">
-									{ __( 'Opening hours', 'blocklane' ) }
+									{ copy.openingHoursLabel }
 								</span>
 								<p className="blocklane-pro-seo-screen__section-intro">
-									{ __(
-										'Leave a day blank if you’re closed.',
-										'blocklane'
-									) }
+									{ copy.openingHoursHelp }
 								</p>
 								{ WEEK_DAYS.map( ( { key, label } ) => (
 									<Flex
@@ -975,12 +957,8 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 											<TextControl
 												__nextHasNoMarginBottom
 												type="time"
-												label={ sprintf(
-													/* translators: %s: weekday name. */
-													__(
-														'%s opens at',
-														'blocklane'
-													),
+												label={ fill(
+													copy.opensAt,
 													label
 												) }
 												hideLabelFromVision
@@ -999,12 +977,8 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 											<TextControl
 												__nextHasNoMarginBottom
 												type="time"
-												label={ sprintf(
-													/* translators: %s: weekday name. */
-													__(
-														'%s closes at',
-														'blocklane'
-													),
+												label={ fill(
+													copy.closesAt,
 													label
 												) }
 												hideLabelFromVision
@@ -1063,7 +1037,7 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 			</PanelBody>
 
 			<PanelBody
-				title={ __( 'Site verification', 'blocklane' ) }
+				title={ copy.siteVerificationHeading }
 				className="blocklane-pro-seo-screen__panel-verification"
 				initialOpen={ initialPanel === 'verification' }
 			>
@@ -1077,7 +1051,7 @@ export const SettingsTab = ( { initialPanel = null } ) => {
 					>
 						{ verificationSet
 							? `${ verificationSet } / ${ VERIFICATION_SERVICES.length }`
-							: __( 'Not set', 'blocklane' ) }
+							: copy.verificationMissing }
 					</StatusChip>
 				</p>
 				{ VERIFICATION_SERVICES.map( ( { key, label } ) => (

@@ -991,7 +991,8 @@
 
 		/* ---- dragging ------------------------------------------------------ */
 
-		// Pre-drag state, captured on start so a failed save can roll back.
+		// Pre-drag state, captured on start so a failed save can roll back:
+		// the table's own rows, in order, never jQuery UI's placeholder.
 		let snapshot = null;
 		let dragModel = null;
 		let dragBlock = null;
@@ -1114,7 +1115,14 @@
 			},
 			start( event, ui ) {
 				ui.placeholder.height( ui.item.height() );
-				snapshot = list.children( 'tr' ).toArray();
+				// jQuery UI inserts its placeholder row before start() runs. It
+				// is not a row of the table: a refused save's rollback
+				// re-appends the snapshot, and a placeholder in it stays behind
+				// as an empty gap row until the page reloads (#1981).
+				snapshot = list
+					.children( 'tr' )
+					.not( '.ui-sortable-placeholder' )
+					.toArray();
 				if ( hierarchical ) {
 					dragModel = buildModel();
 					const item = dragModel.byId[ idOf( ui.item[ 0 ] ) ];

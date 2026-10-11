@@ -69,9 +69,9 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 	 * is by each plugin's own stable constant/class so it works from
 	 * plugins_loaded on the front end (is_plugin_active() is admin-only).
 	 *
-	 * Jetpack's SEO Tools are handled the other way around: this module is the
-	 * site's primary, so blocklane_pro_seo_boot() asks Jetpack to yield via its
-	 * own `jetpack_disable_seo_tools` filter rather than yielding to it.
+	 * Jetpack SEO Tools are handled the other way around: this module is the
+	 * site's primary, so blocklane_pro_seo_boot() asks Jetpack to yield through
+	 * the `jetpack_disable_seo_tools` filter rather than yielding to it.
 	 *
 	 * @return bool
 	 */
@@ -99,6 +99,11 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 	/**
 	 * Register the SEO post meta for every post type (REST-exposed so the
 	 * editor panel reads/writes them as entity props).
+	 *
+	 * A label or description marked `seo-copy:<key>` (here and in the list
+	 * columns below) holds the text of that key in inc/shared/seo-copy.js,
+	 * which the editor and the SEO screen show; seo-copy.test.js holds each
+	 * pair equal.
 	 */
 	function blocklane_pro_seo_register_meta() {
 		$auth = static function ( $allowed, $meta_key, $post_id ) {
@@ -110,8 +115,8 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 			BLOCKLANE_PRO_SEO_META_TITLE,
 			array(
 				'type'              => 'string',
-				'label'             => __( 'Search title', 'blocklane' ),
-				'description'       => __( 'Replaces the page title in search results and the browser tab.', 'blocklane' ),
+				'label'             => /* seo-copy:fieldTitleLabel */ __( 'Custom search title', 'blocklane' ),
+				'description'       => /* seo-copy:fieldTitleHelp */ __( 'This replaces the whole page title in search results, on the browser tab and in shared links. When it is blank, the site\'s title pattern is used, or else WordPress\'s usual title.', 'blocklane' ),
 				'single'            => true,
 				'default'           => '',
 				'sanitize_callback' => 'sanitize_text_field',
@@ -125,8 +130,8 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 			BLOCKLANE_PRO_SEO_META_DESCRIPTION,
 			array(
 				'type'              => 'string',
-				'label'             => __( 'Search description', 'blocklane' ),
-				'description'       => __( 'The summary search engines may show under the title.', 'blocklane' ),
+				'label'             => /* seo-copy:fieldDescriptionLabel */ __( 'Custom search description', 'blocklane' ),
+				'description'       => /* seo-copy:fieldDescriptionHelp */ __( 'The short summary a search listing can show under the title, also sent with shared links. When it is blank, the excerpt is used, or else the opening words of the content.', 'blocklane' ),
 				'single'            => true,
 				'default'           => '',
 				'sanitize_callback' => static function ( $value ) {
@@ -142,7 +147,7 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 			BLOCKLANE_PRO_SEO_META_NOINDEX,
 			array(
 				'type'              => 'boolean',
-				'label'             => __( 'Hide from search engines', 'blocklane' ),
+				'label'             => /* seo-copy:fieldNoindexLabel */ __( 'Keep out of search engines', 'blocklane' ),
 				'single'            => true,
 				'default'           => false,
 				'sanitize_callback' => 'rest_sanitize_boolean',
@@ -156,15 +161,12 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 			BLOCKLANE_PRO_SEO_META_SCHEMA_TYPE,
 			array(
 				'type'              => 'string',
-				'label'             => __( 'Schema type', 'blocklane' ),
+				'label'             => /* seo-copy:fieldSchemaLabel */ __( 'Structured data type', 'blocklane' ),
 				'single'            => true,
 				'default'           => '',
 				'sanitize_callback' => 'blocklane_pro_seo_sanitize_schema_type',
 				'auth_callback'     => $auth,
 				'show_in_rest'      => array(
-					// Enum so core REST rejects unknown types with a proper
-					// rest_invalid_param; the sanitize_callback covers
-					// non-REST writes.
 					'schema' => array(
 						'type' => 'string',
 						'enum' => BLOCKLANE_PRO_SEO_SCHEMA_TYPES,
@@ -175,20 +177,34 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 	}
 
 	/**
-	 * Sanitize a schema type to the allowed list; unknown values become ''.
+	 * Decides which structured data kind a post may store, read or display.
+	 * Anything other than a PHP string yields the empty key right away. A string
+	 * goes through sanitize_key() one time, and the cleaned key survives only
+	 * when it matches an entry of BLOCKLANE_PRO_SEO_SCHEMA_TYPES with identical
+	 * type and characters. The allowed set is looked up on every call, so a
+	 * change to that constant takes effect immediately. Every other outcome is
+	 * the empty key, which means no structured data at all.
 	 *
-	 * @param mixed $value Submitted value.
-	 * @return string One of BLOCKLANE_PRO_SEO_SCHEMA_TYPES.
+	 * @param mixed $value Raw input from a meta write, a stored read or a list column.
+	 * @return string An allowed schema key, or '' when the input is not accepted.
 	 */
-	function blocklane_pro_seo_sanitize_schema_type( $value ) {
-		$value = is_string( $value ) ? sanitize_key( $value ) : '';
-		return in_array( $value, BLOCKLANE_PRO_SEO_SCHEMA_TYPES, true ) ? $value : '';
+	function blocklane_pro_seo_sanitize_schema_type( mixed $value ): string {
+		if ( is_string( $value ) ) {
+			$candidate = sanitize_key( $value );
+			foreach ( BLOCKLANE_PRO_SEO_SCHEMA_TYPES as $allowed ) {
+				// Identity comparison: '1e1' must never stand in for '10'.
+				if ( is_string( $allowed ) && $allowed === $candidate ) {
+					return $candidate;
+				}
+			}
+		}
+		return '';
 	}
 
 	/**
 	 * Registered meta only reaches the REST post object (and so the editor
 	 * panel) on post types that support custom-fields — quietly add it to
-	 * public UI types that lack it, the way Jetpack's SEO Tools do.
+	 * public UI types that lack it.
 	 */
 	function blocklane_pro_seo_add_custom_fields_support() {
 		$types = get_post_types(
@@ -2167,8 +2183,8 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 		add_action( 'wp_trash_post', 'blocklane_pro_seo_indexnow_removed' );
 		add_action( 'before_delete_post', 'blocklane_pro_seo_indexnow_removed' );
 
-		// This module is the site's SEO surface — ask Jetpack's SEO Tools to
-		// yield (its own supported filter for exactly this case). Dedicated
+		// This module is the site's SEO surface — ask Jetpack SEO Tools to
+		// yield (the filter Jetpack provides for exactly this case). Dedicated
 		// SEO plugins are the opposite: blocklane_pro_seo_disabled() yields
 		// to them.
 		add_filter( 'jetpack_disable_seo_tools', '__return_true' );
@@ -2211,12 +2227,12 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 
 	/**
 	 * List-table columns: each post's SEO title, description, schema type,
-	 * and search visibility on every public type's edit.php — the Rank Math
-	 * arrangement. Registered columns automatically get a Screen Options
-	 * checkbox, so users toggle them per screen; the meta cache is primed by
-	 * the list query, so cells cost no extra queries. A management surface
-	 * like the editor sidebar, so it stays available even while a dedicated
-	 * SEO plugin owns emission.
+	 * and search visibility on every public type's edit.php, so the four
+	 * fields can be read without opening a post. Registered columns get a
+	 * Screen Options checkbox, so users toggle them per screen; the meta
+	 * cache is primed by the list query, so cells cost no extra queries. A
+	 * management surface like the editor sidebar, so it stays available
+	 * even while a dedicated SEO plugin owns emission.
 	 */
 	function blocklane_pro_seo_register_admin_columns() {
 		foreach ( blocklane_pro_seo_admin_types() as $type ) {
@@ -2241,10 +2257,10 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 		$date   = isset( $columns['date'] ) ? $columns['date'] : null;
 		unset( $columns['author'], $columns['date'] );
 
-		$columns[ BLOCKLANE_PRO_SEO_META_TITLE ]       = __( 'SEO title', 'blocklane' );
-		$columns[ BLOCKLANE_PRO_SEO_META_DESCRIPTION ] = __( 'SEO description', 'blocklane' );
-		$columns[ BLOCKLANE_PRO_SEO_META_SCHEMA_TYPE ] = __( 'Schema', 'blocklane' );
-		$columns[ BLOCKLANE_PRO_SEO_META_NOINDEX ]     = __( 'Search', 'blocklane' );
+		$columns[ BLOCKLANE_PRO_SEO_META_TITLE ]       = /* seo-copy:columnSearchTitle */ __( 'Title in search', 'blocklane' );
+		$columns[ BLOCKLANE_PRO_SEO_META_DESCRIPTION ] = /* seo-copy:columnSearchDescription */ __( 'Description in search', 'blocklane' );
+		$columns[ BLOCKLANE_PRO_SEO_META_SCHEMA_TYPE ] = /* seo-copy:columnSchema */ __( 'Structured data', 'blocklane' );
+		$columns[ BLOCKLANE_PRO_SEO_META_NOINDEX ]     = /* seo-copy:columnIndexing */ __( 'Search indexing', 'blocklane' );
 
 		if ( null !== $author ) {
 			$columns['author'] = $author;
@@ -2300,9 +2316,9 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 
 		if ( BLOCKLANE_PRO_SEO_META_NOINDEX === $column ) {
 			if ( get_post_meta( $post_id, $column, true ) ) {
-				echo '<span class="blocklane-pro-seo-column-hidden">' . esc_html__( 'Hidden', 'blocklane' ) . '</span>';
+				echo '<span class="blocklane-pro-seo-column-hidden">' . /* seo-copy:indexingHidden */ esc_html__( 'Kept out of indexes', 'blocklane' ) . '</span>';
 			} else {
-				echo esc_html__( 'Visible', 'blocklane' );
+				echo /* seo-copy:indexingShown */ esc_html__( 'Indexing allowed', 'blocklane' );
 			}
 			return;
 		}

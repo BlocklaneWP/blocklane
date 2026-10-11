@@ -35,8 +35,11 @@ import {
 	TITLE_LIMIT,
 	DESCRIPTION_LIMIT,
 } from './shared';
+import { seoCopy } from '../../../../shared/seo-copy';
 
 export const EditSeoPanel = ( { item, onClose, onSaved, stepper, site } ) => {
+	// The strings shared/seo-copy.js owns (a clean-room rewrite).
+	const copy = seoCopy();
 	const [ seoTitle, setSeoTitle ] = useState( item.seo_title );
 	const [ seoDescription, setSeoDescription ] = useState(
 		item.seo_description
@@ -83,7 +86,7 @@ export const EditSeoPanel = ( { item, onClose, onSaved, stepper, site } ) => {
 
 	return (
 		<Panel>
-			<PanelHeader label={ __( 'Edit SEO', 'blocklane' ) }>
+			<PanelHeader label={ copy.editSeo }>
 				{ /* The media modal's Attachment-details nav: prev/next/close
 				     as full-height cells separated by hairlines, flush to the
 				     header's right edge. */ }
@@ -135,11 +138,8 @@ export const EditSeoPanel = ( { item, onClose, onSaved, stepper, site } ) => {
 							__nextHasNoMarginBottom
 							__next40pxDefaultSize
 							label={ labelWithTip(
-								__( 'Search title', 'blocklane' ),
-								__(
-									'Replaces the title in search results and the browser tab. Leave blank to use the page title.',
-									'blocklane'
-								)
+								copy.fieldTitleLabel,
+								copy.fieldTitleHelp
 							) }
 							value={ seoTitle }
 							onChange={ setSeoTitle }
@@ -152,11 +152,8 @@ export const EditSeoPanel = ( { item, onClose, onSaved, stepper, site } ) => {
 							__nextHasNoMarginBottom
 							rows={ 3 }
 							label={ labelWithTip(
-								__( 'Search description', 'blocklane' ),
-								__(
-									'The summary search engines may show under the title. Leave blank to use the excerpt or page content.',
-									'blocklane'
-								)
+								copy.fieldDescriptionLabel,
+								copy.fieldDescriptionHelp
 							) }
 							value={ seoDescription }
 							onChange={ setSeoDescription }
@@ -171,11 +168,8 @@ export const EditSeoPanel = ( { item, onClose, onSaved, stepper, site } ) => {
 						__nextHasNoMarginBottom
 						__next40pxDefaultSize
 						label={ labelWithTip(
-							__( 'Schema type', 'blocklane' ),
-							__(
-								'Structured data that helps search engines understand the page. For FAQ, questions and answers are read from the Accordion and Details blocks on the page.',
-								'blocklane'
-							)
+							copy.fieldSchemaLabel,
+							copy.fieldSchemaHelp
 						) }
 						value={ schemaType }
 						options={ SCHEMA_OPTIONS }
@@ -185,11 +179,8 @@ export const EditSeoPanel = ( { item, onClose, onSaved, stepper, site } ) => {
 					<ToggleControl
 						__nextHasNoMarginBottom
 						label={ labelWithTip(
-							__( 'Hide from search engines', 'blocklane' ),
-							__(
-								'Adds a noindex directive and leaves this content out of the sitemap.',
-								'blocklane'
-							)
+							copy.fieldNoindexLabel,
+							copy.fieldNoindexHelp
 						) }
 						checked={ noindex }
 						onChange={ setNoindex }

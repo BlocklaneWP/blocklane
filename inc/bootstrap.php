@@ -520,15 +520,19 @@ function blocklane_pro_boot_content() {
 /**
  * Whether an admin notice may show here (spec 2026-10-06 §4.6, decision D7;
  * guideline 11): only to a user holding the capability that can act on it,
- * and only on the Dashboard, Plugins and Themes screens (their network-admin
- * twins on multisite) — never on every admin screen.
+ * and only on the screens where acting on it makes sense — the Dashboard,
+ * Plugins and Themes by default, each with its network-admin twin on
+ * multisite — never on every admin screen.
+ *
+ * @param string       $capability The capability that can act on the notice.
+ * @param list<string> $screens    Screen IDs; each also admits its "-network" twin.
  */
-function blocklane_pro_notice_where_actionable( string $capability ): bool {
+function blocklane_pro_notice_where_actionable( string $capability, array $screens = array( 'dashboard', 'plugins', 'themes' ) ): bool {
 	if ( ! current_user_can( $capability ) || ! function_exists( 'get_current_screen' ) ) {
 		return false;
 	}
 	$screen = get_current_screen();
-	return null !== $screen && in_array( $screen->id, array( 'dashboard', 'plugins', 'themes', 'dashboard-network', 'plugins-network', 'themes-network' ), true );
+	return null !== $screen && in_array( preg_replace( '/-network\z/', '', $screen->id ), $screens, true );
 }
 
 /**

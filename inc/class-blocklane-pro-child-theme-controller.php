@@ -65,7 +65,8 @@ class Child_Theme_Controller implements Rest_Registrable {
 
 		$source               = Child_Theme_Import::resolve_source();
 		$summary              = Child_Theme_Import::summary( $source );
-		$summary['themeName'] = wp_get_theme( $source )->get( 'Name' );
+		// Plain text, through the one display-name reader the fallbacks use.
+		$summary['themeName'] = Helper::theme_display_name( $source );
 
 		return rest_ensure_response( $summary );
 	}
@@ -96,18 +97,20 @@ class Child_Theme_Controller implements Rest_Registrable {
 
 		$theme_name = isset( $params['themeName'] ) ? sanitize_text_field( $params['themeName'] ) : '';
 		if ( '' === $theme_name ) {
-			// Blank falls back to "{Parent} Child" — the same value the form
-			// shows as the field's placeholder.
-			$theme_name = wp_get_theme( get_template() )->get( 'Name' ) . ' Child';
+			// Blank takes the generator's own fallback, the value the form
+			// shows as this field's placeholder (Helper::child_theme_fallbacks()).
+			$theme_name = Helper::child_theme_fallbacks()['Theme Name'];
 		}
 
+		// A field left out of the request is blank, so create_child_theme()
+		// takes the one fallback for it; no field holds a default of its own.
 		$data = array(
 			'themeName'   => $theme_name,
 			'themeUrl'    => isset( $params['themeUrl'] ) ? esc_url_raw( $params['themeUrl'] ) : '',
 			'description' => isset( $params['description'] ) ? sanitize_text_field( $params['description'] ) : '',
 			'author'      => isset( $params['author'] ) ? sanitize_text_field( $params['author'] ) : '',
 			'authorUrl'   => isset( $params['authorUrl'] ) ? esc_url_raw( $params['authorUrl'] ) : '',
-			'version'     => isset( $params['version'] ) ? sanitize_text_field( $params['version'] ) : '1.0.0',
+			'version'     => isset( $params['version'] ) ? sanitize_text_field( $params['version'] ) : '',
 			'textDomain'  => isset( $params['textDomain'] ) ? sanitize_text_field( $params['textDomain'] ) : '',
 			'importCustomizations' => ! empty( $params['importCustomizations'] ),
 		);
@@ -123,10 +126,10 @@ class Child_Theme_Controller implements Rest_Registrable {
 				'status'   => 200,
 				'slug'     => ! empty( $data['textDomain'] ) ? sanitize_title( $data['textDomain'] ) : sanitize_title( $data['themeName'] ),
 				'message'  => __( 'Child theme created and activated.', 'blocklane' ),
-				'imported' => is_array( $result ) ? $result['imported'] : null,
+				'imported' => $result['imported'],
 				// The style.css header values actually written — blank optional
 				// fields resolve server-side, so the UI summary reads from here.
-				'headers'  => is_array( $result ) && isset( $result['headers'] ) ? $result['headers'] : null,
+				'headers'  => $result['headers'],
 			)
 		);
 	}

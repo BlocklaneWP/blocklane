@@ -608,11 +608,10 @@ class Settings {
 			);
 		}
 
-		// The values the Create Child Theme form shows as placeholders — the
-		// exact fallbacks generation resolves server-side when a field is left
-		// blank (Helper::generate_child_theme) — plus the parent's screenshot,
-		// which the generated child inherits.
-		$parent_theme = wp_get_theme( get_template() );
+		// The values the Create Child Theme form shows as placeholders: what
+		// generation writes for each field left blank, read from the one
+		// source generation reads them from (Helper::child_theme_fallbacks()).
+		$child_fallbacks = Helper::child_theme_fallbacks();
 
 		// Screenshot preview: the bundled branded child screenshot — the same
 		// file generation copies into every child — cache-busted with the
@@ -674,9 +673,24 @@ class Settings {
 					'forms'          => self::tool_screen_on( 'forms' ),
 				),
 				'childTheme'   => array(
-					'parentName' => $parent_theme->get( 'Name' ),
-					'textDomain' => get_template() . '-child',
-					'screenshot' => esc_url_raw( add_query_arg( 'v', $shot_ver, $shot_url ) ),
+					// Keyed by the form's field names; the screen shows each
+					// value verbatim as that field's placeholder.
+					// Each through the header loop's own Helper::style_header_value(),
+					// so a placeholder shows the line generation writes.
+					'placeholders' => array_map(
+						array( Helper::class, 'style_header_value' ),
+						array(
+							'themeName'   => $child_fallbacks['Theme Name'],
+							'themeUrl'    => $child_fallbacks['Theme URI'],
+							'description' => $child_fallbacks['Description'],
+							'author'      => $child_fallbacks['Author'],
+							'authorUrl'   => $child_fallbacks['Author URI'],
+							'version'     => $child_fallbacks['Version'],
+							'textDomain'  => $child_fallbacks['Text Domain'],
+						)
+					),
+					// The bundled screenshot generation copies into every child.
+					'screenshot'   => esc_url_raw( add_query_arg( 'v', $shot_ver, $shot_url ) ),
 				),
 				// Pass the theme's global stylesheet (theme.json compiled to CSS,
 				// presets + element rules) into BlockPreview iframes so pattern

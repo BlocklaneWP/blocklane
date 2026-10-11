@@ -41,6 +41,7 @@ import {
 	TITLE_LIMIT,
 	DESCRIPTION_LIMIT,
 } from '../../shared/seo-ui';
+import { seoCopy } from '../../shared/seo-copy';
 
 import './editor.css';
 
@@ -107,6 +108,9 @@ const SeoPanel = () => {
 		return null;
 	}
 
+	// The strings shared/seo-copy.js owns (a clean-room rewrite).
+	const copy = seoCopy();
+
 	const seoTitle = meta[ META_TITLE ] ?? '';
 	const seoDescription = meta[ META_DESCRIPTION ] ?? '';
 	const noindex = !! meta[ META_NOINDEX ];
@@ -157,11 +161,8 @@ const SeoPanel = () => {
 								__nextHasNoMarginBottom
 								__next40pxDefaultSize
 								label={ labelWithTip(
-									__( 'Search title', 'blocklane' ),
-									__(
-										'Replaces the title in search results and the browser tab. Leave blank to use the page title.',
-										'blocklane'
-									)
+									copy.fieldTitleLabel,
+									copy.fieldTitleHelp
 								) }
 								value={ seoTitle }
 								onChange={ update( META_TITLE ) }
@@ -177,11 +178,8 @@ const SeoPanel = () => {
 								__nextHasNoMarginBottom
 								rows={ 3 }
 								label={ labelWithTip(
-									__( 'Search description', 'blocklane' ),
-									__(
-										'The summary search engines may show under the title. Leave blank to use the excerpt or page content.',
-										'blocklane'
-									)
+									copy.fieldDescriptionLabel,
+									copy.fieldDescriptionHelp
 								) }
 								value={ seoDescription }
 								onChange={ update( META_DESCRIPTION ) }
@@ -196,11 +194,8 @@ const SeoPanel = () => {
 							__nextHasNoMarginBottom
 							__next40pxDefaultSize
 							label={ labelWithTip(
-								__( 'Schema type', 'blocklane' ),
-								__(
-									'Structured data that helps search engines understand the page. For FAQ, questions and answers are read from the Accordion and Details blocks on the page.',
-									'blocklane'
-								)
+								copy.fieldSchemaLabel,
+								copy.fieldSchemaHelp
 							) }
 							value={ schemaType }
 							options={ SCHEMA_OPTIONS }
@@ -211,14 +206,8 @@ const SeoPanel = () => {
 							<ToggleControl
 								__nextHasNoMarginBottom
 								label={ labelWithTip(
-									__(
-										'Hide from search engines',
-										'blocklane'
-									),
-									__(
-										'Adds a noindex directive and leaves this content out of the sitemap.',
-										'blocklane'
-									)
+									copy.fieldNoindexLabel,
+									copy.fieldNoindexHelp
 								) }
 								checked={ noindex }
 								onChange={ update( META_NOINDEX ) }
@@ -229,10 +218,7 @@ const SeoPanel = () => {
 									isDismissible={ false }
 									className="blocklane-pro-seo__noindex-notice"
 								>
-									{ __(
-										'This page asks search engines not to index it and is left out of the sitemap.',
-										'blocklane'
-									) }
+									{ copy.noindexNotice }
 								</Notice>
 							) }
 						</div>

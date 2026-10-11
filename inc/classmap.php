@@ -36,6 +36,7 @@ return array(
 	'blocklane_pro\\Modules' => 'inc/class-blocklane-pro-modules.php',
 	'blocklane_pro\\Popups_Controller' => 'inc/popups/class-blocklane-pro-popups-controller.php',
 	'blocklane_pro\\Popups_Integration' => 'inc/popups/class-blocklane-pro-popups.php',
+	'blocklane_pro\\Post_Access' => 'inc/class-blocklane-pro-post-access.php',
 	'blocklane_pro\\Rest_Registrable' => 'inc/interface-blocklane-pro-rest-registrable.php',
 	'blocklane_pro\\Security' => 'inc/security/class-blocklane-pro-security.php',
 	'blocklane_pro\\Security_Controller' => 'inc/security/class-blocklane-pro-security-controller.php',
@@ -49,5 +50,6 @@ return array(
 	'blocklane_pro\\Site_Lock_Gate' => 'inc/site-lock/class-blocklane-pro-site-lock-gate.php',
 	'blocklane_pro\\Site_Lock_Theme_Switch' => 'inc/site-lock/class-blocklane-pro-site-lock-theme-switch.php',
 	'blocklane_pro\\Standin' => 'inc/class-blocklane-pro-standin.php',
+	'blocklane_pro\\Svg_Cleanup' => 'inc/advanced/class-blocklane-pro-svg-cleanup.php',
 	'blocklane_pro\\Version_Migration' => 'inc/class-blocklane-pro-version-migration.php',
 );

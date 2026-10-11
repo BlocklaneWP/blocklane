@@ -15,6 +15,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Advanced_Controller implements Rest_Registrable {
 
+	/**
+	 * The reorder plan each request's permission callback authorized, keyed
+	 * by the request object: the callback writes this map and nothing else
+	 * (spec 2026-10-06-reorder-locked-rows, review F03). Weak, so a request
+	 * that never reaches its callback leaves nothing behind.
+	 *
+	 * @var \WeakMap<\WP_REST_Request, array<int, int>>|null
+	 */
+	private ?\WeakMap $reorder_plans = null;
+
 	public function register_routes() {
 		register_rest_route(
 			Branding::rest_namespace(),
@@ -143,14 +153,17 @@ class Advanced_Controller implements Rest_Registrable {
 
 	/**
 	 * Permission for the reorder endpoint: the post type must be enabled for
-	 * manual ordering, the user must be able to edit others' items of it, and
-	 * — the write is per item — able to edit EVERY item the request would
-	 * write (Advanced::reorder_refusal(), all-or-nothing).
+	 * manual ordering, the user must be able to edit others' items of it and
+	 * the re-parented item, and the request's plan must exist: every row it
+	 * writes is one the user can edit_post, and rows they cannot are fixed
+	 * points it numbers around (Advanced::reorder_plan(), which refuses with
+	 * a 403 naming the row when the order needs one of those to move). The
+	 * plan is kept for the callback, which writes exactly it.
 	 *
 	 * @param \WP_REST_Request $request
 	 * @return bool|\WP_Error
 	 */
-	public function reorder_permission( \WP_REST_Request $request ) {
+	public function reorder_permission( \WP_REST_Request $request ): bool|\WP_Error {
 		$post_type = sanitize_key( (string) $request->get_param( 'post_type' ) );
 		if ( ! Advanced::is_reorder_type( $post_type ) ) {
 			return false;
@@ -164,13 +177,35 @@ class Advanced_Controller implements Rest_Registrable {
 		if ( $moved && ! current_user_can( 'edit_post', $moved ) ) {
 			return false;
 		}
-		$refusal = Advanced::reorder_refusal( $post_type, array_map( 'absint', (array) $request->get_param( 'order' ) ), $moved );
-		return null === $refusal ? true : $refusal;
+		$plan = Advanced::reorder_plan( $post_type, array_map( 'absint', (array) $request->get_param( 'order' ) ), $moved, absint( $request->get_param( 'parent' ) ) );
+		if ( is_wp_error( $plan ) ) {
+			return $plan;
+		}
+		$this->reorder_plans ??= new \WeakMap();
+		$this->reorder_plans[ $request ] = $plan;
+		return true;
 	}
 
-	public function reorder( \WP_REST_Request $request ) {
+	/**
+	 * Re-parent (when asked), then write the plan reorder_permission()
+	 * authorized for THIS request — never a plan recomputed after
+	 * save_parent()'s wp_update_post() has run other code.
+	 *
+	 * @param \WP_REST_Request $request
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function reorder( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$plan = $this->reorder_plans[ $request ] ?? null;
+		if ( null === $plan ) {
+			return new \WP_Error(
+				'rest_forbidden',
+				__( 'Sorry, you are not allowed to do that.', 'blocklane' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+		unset( $this->reorder_plans[ $request ] );
+
 		$post_type = sanitize_key( (string) $request->get_param( 'post_type' ) );
-		$order     = (array) $request->get_param( 'order' );
 		$moved     = absint( $request->get_param( 'moved' ) );
 
 		if ( $moved ) {
@@ -180,7 +215,7 @@ class Advanced_Controller implements Rest_Registrable {
 			}
 		}
 
-		$count = Advanced::save_order( $post_type, $order );
+		$count = Advanced::write_order( $plan );
 
 		return rest_ensure_response( array( 'reordered' => $count ) );
 	}

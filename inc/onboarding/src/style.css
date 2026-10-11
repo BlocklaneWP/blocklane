@@ -108,16 +108,20 @@
 	   60px top/bottom at desktop, scaling down on narrow screens. */
 	--fp-section-pad-y: clamp(2rem, 7vw, 3.75rem);
 	--fp-section-pad-x: clamp(2rem, 7vw, 3rem);
+
+	/* Elevation: a hairline ring for the edge, then a tight contact shadow
+	   and a wide, faint ambient one. The soft variant keeps the ring and
+	   only a short contact shadow. --fp-ring is the one hairline: the card
+	   token and the tool-card art read it, so the edge has one value. */
+	--fp-ring: 0 0 0 1px rgba(24, 28, 52, 0.08);
 	--fp-shadow-card:
-		0 0 0 1px rgba(67, 48, 141, 0.1),
-		0 26px 7px 0 rgba(66, 59, 104, 0),
-		0 17px 7px 0 rgba(66, 59, 104, 0),
-		0 9px 6px 0 rgba(66, 59, 104, 0.02),
-		0 4px 4px 0 rgba(66, 59, 104, 0.03),
-		0 1px 2px 0 rgba(66, 59, 104, 0.03);
+		var(--fp-ring),
+		0 1px 1px rgba(24, 28, 52, 0.04),
+		0 2px 5px -1px rgba(24, 28, 52, 0.05),
+		0 10px 24px -12px rgba(24, 28, 52, 0.12);
 	--fp-shadow-soft:
-		0 0 0 1px rgba(67, 48, 141, 0.08),
-		0 2px 4px -1px rgba(67, 48, 141, 0.08);
+		0 0 0 1px rgba(24, 28, 52, 0.07),
+		0 1px 3px rgba(24, 28, 52, 0.07);
 
 	color: var(--fp-text);
 }
@@ -389,11 +393,9 @@
 	line-height: 1.2;
 }
 
-/* Form input sizing — BlocklanePro spec: explicit 56px height, 10px 20px
-   padding,
+/* Form input sizing: explicit 56px height, 10px 20px padding,
    var(--fp-border-strong) border, 5px radius. Without this, WP component
-   defaults give us
-   ~32px inputs which read cramped vs BlocklanePro's airy form. */
+   defaults give us ~32px inputs, which read cramped in these forms. */
 .blocklane-pro-signin .components-text-control__input,
 .blocklane-pro-child-theme .components-text-control__input {
 	height: 56px;
@@ -598,7 +600,7 @@
 	height: 18px;
 	border-radius: var(--fp-radius-pill);
 	background: var(--fp-white);
-	box-shadow: 0 0 0 1px rgba(67, 48, 141, 0.1);
+	box-shadow: var(--fp-ring);
 	display: flex;
 	align-items: center;
 	padding: 0 10px;
@@ -623,7 +625,7 @@
 	height: 64px;
 	background: var(--fp-white);
 	border-radius: var(--fp-radius);
-	box-shadow: 0 0 0 1px rgba(67, 48, 141, 0.1);
+	box-shadow: var(--fp-ring);
 }
 
 .blocklane-pro-tool-card__square.is-tinted {
@@ -659,9 +661,8 @@
 	margin-top: auto;
 }
 
-/* Hero icon-notice (.blocklane-pro-icon-notice in BlocklanePro) — brand-tinted
-   background,
-   compact padding, brand-colored text. */
+/* Hero footnote: brand-tinted background, compact padding, brand-colored
+   text. */
 .blocklane-pro-hero__footnote {
 	display: flex;
 	align-items: center;
@@ -857,7 +858,7 @@
 	background: var(--fp-accent-soft);
 }
 
-/* ==== Modal overlay (BlocklanePro's tinted + blurred treatment) =========== */
+/* ==== Modal overlay (tinted + blurred) ==================================== */
 
 .blocklane-pro-root + .components-modal__screen-overlay,
 body.blocklane-pro-embedded .components-modal__screen-overlay {
@@ -1252,10 +1253,10 @@ body.blocklane-pro-embedded .components-modal__screen-overlay {
 	padding: 0 24px 24px;
 }
 
-/* ==== Extensions screen — pixel-matched to BlocklanePro Pro 2.4 =========== */
+/* ==== Extensions screen ================================================== */
 
 /* Panel background shows through the transparent preview area; sidebar
-   overlays it with white. Matches BlocklanePro's rgb(246,246,252) panel tint.
+   overlays it with white.
    Box-sizing scoped to our own BEM elements only — applying to `*` would
    leak into nested @wordpress/components which assume content-box and
    would compress toggle tracks / shift inputs. */
@@ -1623,13 +1624,8 @@ body.blocklane-pro-embedded .components-modal__screen-overlay {
 	margin-block: 1.5em;
 }
 
-/* Close X positioned outside the content area, into the preview's
-   top + right padding — matches BlocklanePro's button hugging the panel corner.
-   */
-
 /* Detail-view toggle: label acts as the heading on the left, toggle
-   on the right. Reversing the inner h-stack achieves this layout
-   (mirrors BlocklanePro's .blocklane-pro-extension-toggle treatment). */
+   on the right. Reversing the inner h-stack achieves this layout. */
 .blocklane-pro-extensions__detail-toggle {
 	padding-top: 0;
 	margin: 0 0 1em !important;

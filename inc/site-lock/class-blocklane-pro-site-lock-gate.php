@@ -506,13 +506,15 @@ class Site_Lock_Gate implements Bootable {
 
 	/**
 	 * Per-client throttle key, through the one derivation every public
-	 * throttle shares (Helper::client_key(): the remote address, IPv6
+	 * throttle shares (Helper::client_key(): the remote address and the
+	 * shared `blocklane_pro_client_ip` filter for the 'site-lock' door, IPv6
 	 * collapsed to its /64, HMAC with the auth salt). X-Forwarded-For is
-	 * intentionally not trusted — it's spoofable. A request with no address
-	 * shares one bucket, so the throttle still counts (F3).
+	 * intentionally not trusted — it's spoofable; a site behind a proxy
+	 * returns the real address from the filter (#1953). A request with no
+	 * address shares one bucket, so the throttle still counts (F3).
 	 */
 	private function throttle_key(): string {
-		return (string) Helper::client_key( self::THROTTLE_PREFIX, null, true );
+		return (string) Helper::client_key( self::THROTTLE_PREFIX, 'site-lock', true );
 	}
 
 	private function is_throttled() {
