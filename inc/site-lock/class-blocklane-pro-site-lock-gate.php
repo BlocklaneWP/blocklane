@@ -489,7 +489,7 @@ class Site_Lock_Gate implements Bootable {
 			return;
 		}
 
-		$password = wp_unslash( $_POST[ self::FIELD ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- compared against a hash, not stored/echoed.
+		$password = wp_unslash( $_POST[ self::FIELD ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- a password is checked exactly as typed, as core does on wp-login.php: any sanitizer would change the password (tags, octets, spaces) before the hash check. It is only hashed and compared, never stored or printed.
 		if ( ! is_string( $password ) || ! Site_Lock::check_password( $password ) ) {
 			$this->record_failed_attempt();
 			$this->unlock_error = 'incorrect';

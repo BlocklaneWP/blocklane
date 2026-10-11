@@ -398,7 +398,7 @@ class Settings {
 	public function highlight_active_submenu( $submenu_file ) {
 		global $plugin_page;
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only routing param.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only routing param: it picks which submenu item is highlighted; nothing is written.
 		$screen = isset( $_GET['screen'] ) ? sanitize_key( wp_unslash( $_GET['screen'] ) ) : '';
 
 		if (

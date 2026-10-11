@@ -1751,8 +1751,13 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 
 		if ( '' === $request ) {
 			// Plain permalinks leave $wp->request empty — read the raw path,
-			// minus any subdirectory the install lives in.
-			$path      = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- compared verbatim against fixed filenames, never output.
+			// minus any subdirectory the install lives in. The value is a URL,
+			// so esc_url_raw() is the sanitizer of its grammar: a path a
+			// browser sends passes through unchanged (a leading slash skips
+			// the protocol check), and only characters no URL carries are
+			// dropped. The result is compared against fixed filenames and
+			// never output.
+			$path      = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 			$request   = trim( (string) wp_parse_url( $path, PHP_URL_PATH ), '/' );
 			$home_path = trim( (string) wp_parse_url( home_url(), PHP_URL_PATH ), '/' );
 			if ( '' !== $home_path && 0 === strpos( $request, $home_path . '/' ) ) {
@@ -2386,7 +2391,7 @@ if ( ! function_exists( 'blocklane_pro_seo_boot' ) ) {
 			return;
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only list filter.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only list filter, same as core's date/category dropdowns: it narrows the query; nothing is written.
 		$filter = isset( $_GET['blocklane_seo_filter'] ) ? sanitize_key( wp_unslash( $_GET['blocklane_seo_filter'] ) ) : '';
 		if ( '' === $filter ) {
 			return;

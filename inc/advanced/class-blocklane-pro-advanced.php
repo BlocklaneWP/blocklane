@@ -481,7 +481,7 @@ final class Advanced implements Bootable {
 
 	/** Whether the current list is showing the manual (menu_order) sort. */
 	private function is_sort_view( $post_type ) {
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only view checks.
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only list-screen GET args: they decide only whether the manual-order view and its drag handles render; nothing is written here.
 		$orderby = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : '';
 
 		if ( ! is_post_type_hierarchical( $post_type ) ) {

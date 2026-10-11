@@ -676,7 +676,7 @@ if ( ! function_exists( 'blocklane_pro_popups_register' ) ) {
 	 * @return int 0 when not previewing.
 	 */
 	function blocklane_pro_popups_preview_id() {
-		$id = absint( $_GET['blocklane_popup_preview'] ?? 0 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only gate, capability-checked.
+		$id = absint( $_GET['blocklane_popup_preview'] ?? 0 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only preview flag: it force-opens a popup the current user can edit (checked below); nothing is written.
 		if ( ! $id || BLOCKLANE_PRO_POPUPS_CPT !== get_post_type( $id ) || ! current_user_can( 'edit_post', $id ) ) {
 			return 0;
 		}

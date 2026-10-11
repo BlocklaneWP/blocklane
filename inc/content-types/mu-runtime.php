@@ -1468,7 +1468,7 @@ if ( ! function_exists( 'blocklane_pro_ct_register' ) ) {
 		// Field inputs are namespaced under blocklane_pro_ct[<key>] so a field keyed
 		// e.g. "excerpt"/"status"/"action" cannot collide with WP's own form fields.
 		$posted = isset( $_POST['blocklane_pro_ct'] ) && is_array( $_POST['blocklane_pro_ct'] )
-			? wp_unslash( $_POST['blocklane_pro_ct'] ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- each field sanitized by its per-type callback below.
+			? wp_unslash( $_POST['blocklane_pro_ct'] ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- each value is sanitized below by its own field type's sanitizer (blocklane_pro_ct_field_sanitizer(): sanitize_textarea_field, sanitize_email, esc_url_raw, a number or option check), the one the REST path registers; a blanket sanitizer here would rewrite URL and multi-line values before their own sanitizer saw them.
 			: array();
 
 		foreach ( $type['fields'] as $field ) {

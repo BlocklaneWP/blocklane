@@ -463,7 +463,8 @@ final class Svg_Cleanup {
 	 * @param string $action CLEAN_ACTION or DISMISS_ACTION.
 	 */
 	public static function authorize( string $action ): bool|\WP_Error {
-		if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) {
+		$method = isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '';
+		if ( 'POST' !== $method ) {
 			return new \WP_Error( 'blocklane_svg_check_method', __( 'This action needs the form on the notice.', 'blocklane' ) );
 		}
 		if ( ! current_user_can( 'manage_options' ) ) {

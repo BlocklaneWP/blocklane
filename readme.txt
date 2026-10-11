@@ -4,7 +4,7 @@ Tags: seo, contact form, popup, coming soon, security
 Requires at least: 7.1
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -73,19 +73,19 @@ content.
 Blocklane's PHP ships as source. Its JavaScript and CSS ship compiled, and the source of every compiled file is public:
 
 * Repository: https://github.com/BlocklaneWP/blocklane
-* This version: tag v1.0.2, https://github.com/BlocklaneWP/blocklane/tree/v1.0.2
+* This version: tag v1.0.3, https://github.com/BlocklaneWP/blocklane/tree/v1.0.3
 
-Every build folder is compiled from the src folder beside it: inc/forms/src builds inc/forms/build, inc/onboarding/src builds inc/onboarding/build, and so on for each folder. A build file whose name is a number, such as 452.js, is a chunk webpack split out of that same src folder. The THIRD-PARTY-NOTICES.txt in each build folder names the npm packages in every file, with their versions and license texts.
+Every build folder is compiled from the src folder beside it in the repository: inc/forms/src builds inc/forms/build, inc/onboarding/src builds inc/onboarding/build, and so on for each folder. The plugin's zip ships the build folders; the src folders are in the repository. A build file whose name is a number, such as 452.js, is a chunk webpack split out of that same src folder. The THIRD-PARTY-NOTICES.txt in each build folder names the npm packages in every file, with their versions and license texts.
 
 To build it yourself with Node.js 22 and npm 10:
 
 1. `git clone https://github.com/BlocklaneWP/blocklane.git`
 2. `cd blocklane`
-3. `git checkout v1.0.2`
+3. `git checkout v1.0.3`
 4. `npm ci`
 5. `npm run build`
 
-The build uses @wordpress/scripts (webpack) and writes the same build folders this plugin ships. We build the tagged source and check that every file matches this plugin's files byte for byte.
+The build uses @wordpress/scripts (webpack) and writes the same build folders this plugin ships. We build the tagged source and check that every compiled file matches this plugin's files byte for byte.
 
 Bundled npm packages, by name and version. Each one's source is linked from its page on npm (`https://www.npmjs.com/package/<name>`):
 
@@ -232,6 +232,11 @@ From WordPress.org, like any other plugin here. Blocklane contains no updater of
 its own and never contacts any other server for updates.
 
 == Changelog ==
+
+= 1.0.3 =
+* Safer input handling: the request details the plugin reads for the SVG cleanup form, and for llms.txt and the IndexNow key file on sites without pretty permalinks, are now cleaned before use. Both work as before.
+* The translation template names this plugin's support forum, and its creation date is the date of the release it was made from.
+* The readme's Source Code section says the src folders are in the repository, beside each build folder, and that every compiled file built from the tagged source matches this plugin's files.
 
 = 1.0.2 =
 * Security: with Safe SVG Uploads on, an SVG file sent through XML-RPC (the wp.uploadFile and metaWeblog.newMediaObject methods that blog clients use) or the WordPress importer is now refused. That path stored the file without cleaning it, so a user who can upload files could store an SVG that runs scripts. Upload SVG files in the Media Library, where they are cleaned.
