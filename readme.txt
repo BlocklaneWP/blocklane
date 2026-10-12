@@ -4,7 +4,7 @@ Tags: seo, contact form, popup, coming soon, security
 Requires at least: 7.1
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -73,7 +73,7 @@ content.
 Blocklane's PHP ships as source. Its JavaScript and CSS ship compiled, and the source of every compiled file is public:
 
 * Repository: https://github.com/BlocklaneWP/blocklane
-* This version: tag v1.0.3, https://github.com/BlocklaneWP/blocklane/tree/v1.0.3
+* This version: tag v1.0.4, https://github.com/BlocklaneWP/blocklane/tree/v1.0.4
 
 Every build folder is compiled from the src folder beside it in the repository: inc/forms/src builds inc/forms/build, inc/onboarding/src builds inc/onboarding/build, and so on for each folder. The plugin's zip ships the build folders; the src folders are in the repository. A build file whose name is a number, such as 452.js, is a chunk webpack split out of that same src folder. The THIRD-PARTY-NOTICES.txt in each build folder names the npm packages in every file, with their versions and license texts.
 
@@ -81,7 +81,7 @@ To build it yourself with Node.js 22 and npm 10:
 
 1. `git clone https://github.com/BlocklaneWP/blocklane.git`
 2. `cd blocklane`
-3. `git checkout v1.0.3`
+3. `git checkout v1.0.4`
 4. `npm ci`
 5. `npm run build`
 
@@ -232,6 +232,9 @@ From WordPress.org, like any other plugin here. Blocklane contains no updater of
 its own and never contacts any other server for updates.
 
 == Changelog ==
+
+= 1.0.4 =
+* Security: the contact form limit, the login limit and the Coming Soon password limit each count an attempt and decide on it in one database step, so a burst of requests sent at the same moment can no longer get past a limit. Each limit counts in fixed windows on the clock: five form submissions per minute from one visitor, and five login or password attempts per 15 minutes. A successful login, or the correct Coming Soon password, still clears the count. Counts kept by earlier versions start over once after this update.
 
 = 1.0.3 =
 * Safer input handling: the request details the plugin reads for the SVG cleanup form, and for llms.txt and the IndexNow key file on sites without pretty permalinks, are now cleaned before use. Both work as before.

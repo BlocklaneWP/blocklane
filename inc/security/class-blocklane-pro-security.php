@@ -59,6 +59,7 @@ final class Security implements Bootable {
 	const LOGIN_FAIL_PREFIX  = 'blocklane_pro_login_fail_';
 	const LOGIN_MAX_ATTEMPTS = 5;
 	const LOGIN_LOCK_CODE    = 'blocklane_pro_login_locked';
+	const LOGIN_WINDOW       = 900; // 15 minutes, a window on the clock.
 
 	/**
 	 * THE SHIPPED TABLE, whole in both editions: the schema Pro reads a
@@ -315,11 +316,19 @@ final class Security implements Bootable {
 		}
 
 		if ( ! empty( $settings['limit-login-attempts'] ) ) {
-			// Priority 30 runs after core's credential checks, so a locked client
-			// is refused even with the right password.
+			// Every credentialed attempt reserves its place at authenticate
+			// priority 30, after core's password check (20; a refusal earlier
+			// than 20 would be overwritten by it), so a locked client is
+			// refused even with the right password. Core's
+			// wp_authenticate_cookie() is also at 30 inside wp_signon(), runs
+			// after this by registration order, and returns a credentialed
+			// attempt's $user unchanged. The count clears at the END of the
+			// chain, and only when the chain ends in a user: a later refusal
+			// (a second factor, core's spam check at 99) keeps it. Not on
+			// wp_login, which XML-RPC and application passwords never fire:
+			// their successful calls would count until the client was locked.
 			add_filter( 'authenticate', array( $this, 'block_locked_login' ), 30, 3 );
-			add_action( 'wp_login_failed', array( $this, 'record_login_failure' ), 10, 2 );
-			add_action( 'wp_login', array( $this, 'clear_login_failures' ), 10, 2 );
+			add_filter( 'authenticate', array( $this, 'clear_login_failures' ), PHP_INT_MAX, 3 );
 		}
 
 		/**
@@ -412,13 +421,15 @@ final class Security implements Bootable {
 		return (string) Helper::client_key( self::LOGIN_FAIL_PREFIX, 'login', true );
 	}
 
-	private function is_login_locked() {
-		return (int) get_transient( $this->login_throttle_key() ) >= self::LOGIN_MAX_ATTEMPTS;
-	}
-
 	/**
-	 * Refuse authentication while the client is locked out — even with valid
-	 * credentials — so a brute-forcer can't proceed.
+	 * Count every credentialed login attempt and refuse it once the client's
+	 * window is spent, even with valid credentials, so a brute-forcer can't
+	 * proceed. The count and the decision are one step of the attempt meter
+	 * (Helper::reserve_attempt()), so simultaneous attempts cannot pass the
+	 * limit; a meter that cannot count refuses and logs it (fail closed).
+	 *
+	 * Untyped on purpose: its input and output are whatever the earlier
+	 * authenticate callbacks returned.
 	 *
 	 * @param \WP_User|\WP_Error|null $user
 	 * @param string                  $username
@@ -426,8 +437,17 @@ final class Security implements Bootable {
 	 * @return \WP_User|\WP_Error|null
 	 */
 	public function block_locked_login( $user, $username, $password ) {
-		unset( $username, $password );
-		if ( $this->is_login_locked() ) {
+		// wp-login.php calls wp_signon() on every load, GET included, with empty
+		// credentials; core does not treat those as attempts (empty_username,
+		// empty_password), and neither does the limit.
+		if ( empty( $username ) || empty( $password ) ) {
+			return $user;
+		}
+		$verdict = Helper::reserve_attempt( $this->login_throttle_key(), self::LOGIN_MAX_ATTEMPTS, self::LOGIN_WINDOW );
+		if ( true !== $verdict ) {
+			if ( is_wp_error( $verdict ) ) {
+				blocklane_pro_log( 'Blocklane: the login limit could not count an attempt (' . $verdict->get_error_code() . '); it was refused.' );
+			}
 			return new \WP_Error(
 				self::LOGIN_LOCK_CODE,
 				__( 'Too many failed login attempts. Please try again in a few minutes.', 'blocklane' )
@@ -437,24 +457,22 @@ final class Security implements Bootable {
 	}
 
 	/**
-	 * Count a failed login — but not our own lockout rejection (which would keep
-	 * extending the window). Uses the shared atomic counter: the old
-	 * read-modify-write transient pair let parallel requests exceed the
-	 * 5-attempt limit (both read N, both stored N+1).
+	 * A successful credentialed login clears the client's count: the LAST
+	 * authenticate callback, so the count clears only when the whole chain
+	 * ends in a user (a later second factor or spam check that refuses keeps
+	 * it), whether or not the caller then fires wp_login (XML-RPC and
+	 * application passwords do not). A cookie login (no credentials) was
+	 * never counted and clears nothing. Untyped like block_locked_login().
 	 *
-	 * @param string             $username
-	 * @param \WP_Error|string|null $error
+	 * @param \WP_User|\WP_Error|null $user
+	 * @param string                  $username
+	 * @param string                  $password
+	 * @return \WP_User|\WP_Error|null
 	 */
-	public function record_login_failure( $username, $error = null ) {
-		unset( $username );
-		if ( $error instanceof \WP_Error && self::LOGIN_LOCK_CODE === $error->get_error_code() ) {
-			return;
+	public function clear_login_failures( $user, $username = '', $password = '' ) {
+		if ( $user instanceof \WP_User && ! empty( $username ) && ! empty( $password ) ) {
+			Helper::reset_attempts( $this->login_throttle_key(), self::LOGIN_WINDOW );
 		}
-		Helper::increment_throttle_counter( $this->login_throttle_key(), 15 * MINUTE_IN_SECONDS );
-	}
-
-	public function clear_login_failures( $username = '', $user = null ) {
-		unset( $username, $user );
-		delete_transient( $this->login_throttle_key() );
+		return $user;
 	}
 }

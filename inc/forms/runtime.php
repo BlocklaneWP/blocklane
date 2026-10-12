@@ -1745,14 +1745,15 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 	}
 
 	/**
-	 * Sliding-window rate limit per client key. Returns true while within the
-	 * limit and counts the attempt. A request with no address cannot be
-	 * counted and is allowed (the limiter's get-then-set window is filed as
-	 * its own issue, spec 2026-10-06 §8).
-	 *
-	 * @return bool
+	 * Fixed-window rate limit per client key (windows on the clock). Returns
+	 * true while within the limit, and the attempt is counted; the count and
+	 * the decision are one step of the attempt meter,
+	 * \blocklane_pro\Helper::reserve_attempt() (spec 2026-10-12, atomic
+	 * throttle door), so simultaneous submissions cannot pass the limit. A
+	 * request with no address cannot be counted and is allowed. A meter that
+	 * cannot count refuses the submission and logs it (fail closed).
 	 */
-	function blocklane_pro_forms_within_rate_limit() {
+	function blocklane_pro_forms_within_rate_limit(): bool {
 		$key = blocklane_pro_forms_rate_key();
 		if ( null === $key ) {
 			return true;
@@ -1770,13 +1771,12 @@ if ( ! function_exists( 'blocklane_pro_forms_register_blocks' ) ) {
 		 */
 		$window = max( 10, (int) apply_filters( 'blocklane_pro_forms_rate_window', 60 ) );
 
-		$count = (int) get_transient( $key );
-		if ( $count >= $limit ) {
+		$within = \blocklane_pro\Helper::reserve_attempt( $key, $limit, $window );
+		if ( is_wp_error( $within ) ) {
+			blocklane_pro_log( 'Blocklane: the contact form limit could not count a submission (' . $within->get_error_code() . '); it was refused.' );
 			return false;
 		}
-		set_transient( $key, $count + 1, $window );
-
-		return true;
+		return $within;
 	}
 
 	/*

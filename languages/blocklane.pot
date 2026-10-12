@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Blocklane 1.0.3\n"
+"Project-Id-Version: Blocklane 1.0.4\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/blocklane\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-11T21:21:00+00:00\n"
+"POT-Creation-Date: 2026-10-12T20:50:05+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: blocklane\n"
@@ -571,7 +571,7 @@ msgid "Forms"
 msgstr ""
 
 #: inc/class-blocklane-pro-settings.php:199
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:173
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:174
 #: inc/onboarding/src/screens/advanced/rows/site-privacy.js:15
 #: inc/onboarding/src/screens/home/tool-cards/site-privacy.js:12
 #: inc/onboarding/src/screens/meta/site-privacy.js:12
@@ -1566,12 +1566,12 @@ msgid "You do not have permission to manage security settings."
 msgstr ""
 
 #. translators: %s: the setting key.
-#: inc/security/class-blocklane-pro-security.php:215
+#: inc/security/class-blocklane-pro-security.php:216
 #, php-format
 msgid "The \"%s\" setting belongs to a part of Blocklane that is not in this build or did not load."
 msgstr ""
 
-#: inc/security/class-blocklane-pro-security.php:433
+#: inc/security/class-blocklane-pro-security.php:453
 msgid "Too many failed login attempts. Please try again in a few minutes."
 msgstr ""
 
@@ -1705,138 +1705,138 @@ msgstr ""
 msgid "You do not have permission to manage site visibility."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:137
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:391
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:138
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:392
 #: inc/site-lock/class-blocklane-pro-site-lock-theme-switch.php:87
 #: inc/site-lock/lifecycle.php:141
 msgid "Coming Soon"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:138
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:139
 msgid "Shown to visitors while the site is password-protected. Edit it in the Site Editor."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:146
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:147
 msgid "Maintenance"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:147
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:148
 msgid "Shown to visitors while the site is in maintenance mode. Edit it in the Site Editor."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:174
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:175
 msgid "The Coming Soon page renders without its password form, so visitors with the password cannot unlock the site, until the assets are rebuilt."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:280
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:281
 msgid "This site is not currently available."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:392
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:393
 #: inc/site-lock/class-blocklane-pro-site-lock-theme-switch.php:88
 #: inc/site-lock/lifecycle.php:140
 msgid "Maintenance Mode"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:394
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:395
 msgid "Your site is private — visitors see the Coming Soon page."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:395
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:396
 msgid "Your site is in maintenance mode — visitors see the maintenance page."
 msgstr ""
 
 #. translators: %s: site name.
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:720
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:713
 #, php-format
 msgid "%s — Coming soon"
 msgstr ""
 
 #. translators: %s: site name.
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:722
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:715
 #, php-format
 msgid "%s — Under maintenance"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:901
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:894
 #: inc/site-lock/src/site-password/index.js:129
 msgid "Log in"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:921
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:914
 #: inc/site-lock/src/site-password/index.js:104
 msgid "Password"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:931
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:924
 #: inc/onboarding/src/screens/SitePrivacyScreen.js:399
 msgid "Show password"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:939
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:932
 msgid "Too many attempts. Please wait a few minutes and try again."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:941
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:934
 msgid "Your session expired — please refresh and try again."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:943
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:936
 msgid "Sorry, that password is incorrect."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:974
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1047
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:967
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1040
 msgid "We’ll be right back"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:975
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:968
 msgid "The site is briefly down for maintenance. Please check back shortly."
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1005
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:998
 msgid "Sales: (555) 123-4567"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1005
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:998
 msgid "Contact sales"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1006
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:999
 msgid "Support: (555) 765-4321"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1006
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:999
 msgid "Get help"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1007
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1000
 msgid "Guides &amp; training"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1007
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1000
 msgid "Learn more"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1008
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1001
 msgid "Office"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1008
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1001
 msgid "123 Example St, Suite 100, City, ST"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1014
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1007
 #: inc/onboarding/src/screens/HomeScreen.js:165
 #: inc/onboarding/src/screens/HomeScreen.js:178
 msgid "Coming soon"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1028
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1021
 msgid "Request website support"
 msgstr ""
 
-#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1047
+#: inc/site-lock/class-blocklane-pro-site-lock-gate.php:1040
 msgid "Launching soon"
 msgstr ""
 

@@ -428,50 +428,167 @@ class Helper {
 	}
 
 	/**
-	 * Atomically add one failed attempt to a throttle counter and return the
-	 * running total. Used by the Security login limiter and the site-lock
-	 * unlock form. A get_transient()+1 / set_transient() pair is a
-	 * read-modify-write — two parallel failures both read N and both store
-	 * N+1, letting a scripted attacker squeeze extra guesses into the window.
+	 * THE attempt meter (spec 2026-10-12, atomic throttle door): counts one
+	 * attempt for a client and decides it, in one step the database applies
+	 * atomically. Every per-client limit goes through it: the contact form
+	 * limit, the login limit and the Coming Soon password limit. A limit is
+	 * atomic only when the DECISION is the increment's own result, so this
+	 * method returns a verdict, never a count, and no caller can read a count:
+	 * a window's row is named for a start only this method computes.
 	 *
-	 * - External object cache: wp_cache_add + wp_cache_incr in the 'transient'
-	 *   group (atomic in Redis/Memcached, and get_transient() reads the same
-	 *   group, so lock checks keep working unchanged).
-	 * - Database transients: claim the row with set_transient( 0 ) — which
-	 *   also sets the expiry that gives the counter GC — then one
-	 *   `UPDATE … value = value + 1` statement increments atomically.
+	 * Windows are fixed and aligned to the clock: the window holding now
+	 * starts at now - ( now % $window ), and each window is its own row, so a
+	 * new window is a new row and no count is ever reset in place.
 	 *
-	 * The window is fixed (set at first failure), not sliding: refreshing the
-	 * expiry on every failure would let an attacker hold a victim IP locked
-	 * forever by dripping one request per window.
+	 * The guarantee: on one database, at most $limit calls per ( $key, window )
+	 * return true, under any interleaving. Outside it:
+	 * - Clock windows: up to 2 x $limit attempts can land in any $window
+	 *   seconds that straddle a window boundary.
+	 * - Clock skew between web servers below one window: a server ahead of
+	 *   the others opens the next window early, and the previous window keeps
+	 *   its count (a new window's creator never removes it), so the bound at
+	 *   a boundary is still 2 x $limit. A request stalled for longer than one
+	 *   window between reading the clock and counting is the same case as
+	 *   skew of a window or more: its window may already have been removed,
+	 *   and it claims that window again at 0.
+	 * - A persistent object cache: the cache branch is atomic only where the
+	 *   backend's wp_cache_incr() is (Redis, Memcached); a drop-in that
+	 *   increments as get + set carries its own race, and an eviction under
+	 *   memory pressure starts the window over. A backend whose increment
+	 *   creates a missing key can recreate an evicted window with no expiry;
+	 *   the name carries the window's start, so no later window reads it.
+	 * - Logging: a statement that fails is logged by WordPress's database
+	 *   class (wpdb::print_error()) with its query text. The row name in it
+	 *   is the key, an HMAC of the client's address bucket (an IPv6 address's
+	 *   /64), so it names no address.
+	 * - Resets: reset_attempts() is the caller's authority (a correct
+	 *   password), not the meter's.
 	 *
-	 * @param string $key    Transient-style counter key.
-	 * @param int    $window Counting window in seconds.
-	 * @return int Attempts recorded in the current window.
+	 * The database branch, without a persistent object cache:
+	 * 1. INSERT IGNORE claims the window's row at 0. It never overwrites a row
+	 *    another request created (add_option() is INSERT ... ON DUPLICATE KEY
+	 *    UPDATE, and would reset the count). It can answer 0 on an error it
+	 *    swallowed; step 4 covers that, since no row is a WP_Error. An ignored
+	 *    insert spends one auto-increment id on InnoDB, which is harmless.
+	 * 2. The request that created the row adds its expiry row, so WordPress's
+	 *    daily expired-transient cleanup removes a window nobody returns to.
+	 * 3. One UPDATE adds 1 only while the count is below the limit, and the
+	 *    number of rows it changed is the verdict. MySQL and MariaDB apply it
+	 *    under the row's write lock; SQLite serializes every writer. The + 0
+	 *    makes the compare numeric on SQLite, where a text value compared with
+	 *    a number compares as text ('9' is not below '12').
+	 * 4. Only when the UPDATE changed nothing: a SELECT tells a spent window
+	 *    (false) from a row that is gone, for example under a concurrent
+	 *    reset. A row that is gone is claimed again ONCE; gone twice, or any
+	 *    statement that fails, is a WP_Error.
+	 * The request that created the window then removes this key's windows
+	 * older than the previous one, after its verdict, so cleanup never
+	 * delays a decision. The rows are transient-shaped and named
+	 * _transient_<key>_<start>, so uninstall's transient sweeps cover them.
+	 *
+	 * @param string $key    The client's key (Helper::client_key()), 1 to 140 bytes.
+	 * @param int    $limit  Attempts allowed per window, at least 1.
+	 * @param int    $window The window in seconds, at least 1.
+	 * @return bool|\WP_Error True: counted and within the limit. False: the
+	 *                        window's limit is spent and nothing was counted.
+	 *                        WP_Error blocklane_pro_attempts_unavailable: the
+	 *                        meter could not count; the caller decides.
+	 * @throws \LogicException An empty or over-long key, or a limit or window below 1.
 	 */
-	public static function increment_throttle_counter( $key, $window ) {
+	public static function reserve_attempt( string $key, int $limit, int $window ): bool|\WP_Error {
+		if ( '' === $key || strlen( $key ) > 140 || $limit < 1 || $window < 1 ) {
+			throw new \LogicException( esc_html( 'Blocklane: reserve_attempt() needs a key of 1 to 140 bytes and a limit and a window of at least 1.' ) );
+		}
+		$now   = time();
+		$start = $now - ( $now % $window );
+		$name  = $key . '_' . $start;
+
 		if ( wp_using_ext_object_cache() ) {
-			wp_cache_add( $key, 0, 'transient', $window );
-			$count = wp_cache_incr( $key, 1, 'transient' );
-			return false === $count ? 1 : (int) $count;
+			wp_cache_add( $name, 0, 'transient', $start + $window - $now );
+			$count = wp_cache_incr( $name, 1, 'transient' );
+			if ( false === $count ) {
+				return self::attempts_unavailable();
+			}
+			return $count <= $limit;
 		}
 
 		global $wpdb;
-
-		if ( false === get_transient( $key ) ) {
-			set_transient( $key, 0, $window );
+		$row = '_transient_' . $name;
+		for ( $try = 0; $try < 2; $try++ ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the window's claim: INSERT IGNORE never overwrites a row another request created (add_option() is INSERT ... ON DUPLICATE KEY UPDATE and would reset the count); a cached read would defeat it.
+			$created = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$wpdb->options} ( option_name, option_value, autoload ) VALUES ( %s, '0', 'off' )", $row ) );
+			if ( false === $created ) {
+				return self::attempts_unavailable();
+			}
+			if ( $created > 0 ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the window's expiry, so WordPress's expired-transient cleanup removes a window nobody returns to.
+				$wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$wpdb->options} ( option_name, option_value, autoload ) VALUES ( %s, %s, 'off' )", '_transient_timeout_' . $name, (string) ( $start + $window ) ) );
+			}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the count and the decision in one statement: the database adds 1 only while the count is below the limit, and the number of rows it changed is the verdict.
+			$counted = $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->options} SET option_value = option_value + 1 WHERE option_name = %s AND option_value + 0 < %d", $row, $limit ) );
+			if ( $created > 0 ) {
+				self::forget_windows( $key, $start - $window );
+			}
+			if ( false === $counted ) {
+				return self::attempts_unavailable();
+			}
+			if ( $counted > 0 ) {
+				return true;
+			}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- a spent window told apart from a row that is gone; the options cache does not hold this row.
+			$present = $wpdb->get_var( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name = %s", $row ) );
+			if ( null !== $present ) {
+				return false;
+			}
 		}
+		return self::attempts_unavailable();
+	}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- an atomic increment of the throttle counter; get_transient() + set_transient() would race between requests.
-		$wpdb->query(
-			$wpdb->prepare(
-				"UPDATE {$wpdb->options} SET option_value = option_value + 1 WHERE option_name = %s",
-				'_transient_' . $key
-			)
-		);
-		wp_cache_delete( '_transient_' . $key, 'options' );
+	/**
+	 * Clear a client's count: every window of $key. The caller's authority (a
+	 * correct password), never the meter's; see reserve_attempt().
+	 *
+	 * @param string $key    The client's key.
+	 * @param int    $window The window reserve_attempt() counts in.
+	 */
+	public static function reset_attempts( string $key, int $window ): void {
+		if ( wp_using_ext_object_cache() ) {
+			$now = time();
+			wp_cache_delete( $key . '_' . ( $now - ( $now % max( 1, $window ) ) ), 'transient' );
+			return;
+		}
+		self::forget_windows( $key, PHP_INT_MAX );
+	}
 
-		return (int) get_transient( $key );
+	/**
+	 * Remove this key's windows whose start is below $before, through the
+	 * transient API (it removes the pair and the options cache). A new
+	 * window's creator passes the previous window's start, so the previous
+	 * window keeps its count: a request still counting there is refused by
+	 * it, never readmitted at 0. Names after the key that are not a window
+	 * start (another key that begins with this one) are left alone.
+	 *
+	 * @param string $key    The client's key.
+	 * @param int    $before Remove windows that start before this time.
+	 */
+	private static function forget_windows( string $key, int $before ): void {
+		global $wpdb;
+		$prefix = '_transient_' . $key . '_';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- this key's windows by name prefix; no core API lists options by prefix.
+		$rows = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s LIMIT 20", $wpdb->esc_like( $prefix ) . '%' ) );
+		foreach ( $rows as $row ) {
+			$start = substr( (string) $row, strlen( $prefix ) );
+			if ( ctype_digit( $start ) && (int) $start < $before ) {
+				delete_transient( substr( (string) $row, strlen( '_transient_' ) ) );
+			}
+		}
+	}
+
+	/**
+	 * The meter's one failure value.
+	 */
+	private static function attempts_unavailable(): \WP_Error {
+		return new \WP_Error( 'blocklane_pro_attempts_unavailable', 'The attempt counter could not be read or written.' );
 	}
 
 	/**

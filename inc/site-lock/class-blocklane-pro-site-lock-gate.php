@@ -67,6 +67,7 @@ class Site_Lock_Gate implements Bootable {
 	/** Brute-force throttle: max wrong guesses per client before a short cooldown. */
 	const THROTTLE_PREFIX = 'blocklane_pro_unlock_fail_';
 	const THROTTLE_MAX    = 5;
+	const THROTTLE_WINDOW = 900; // 15 minutes, a window on the clock.
 
 	private static $instance = null;
 
@@ -470,7 +471,7 @@ class Site_Lock_Gate implements Bootable {
 
 	/* ---- unlock + cookie --------------------------------------------------- */
 
-	private function maybe_handle_unlock() {
+	private function maybe_handle_unlock(): void {
 		if ( ! isset( $_POST[ self::FIELD ] ) ) {
 			return;
 		}
@@ -482,21 +483,27 @@ class Site_Lock_Gate implements Bootable {
 			return;
 		}
 
-		// Brute-force throttle: after too many recent wrong guesses from this
-		// client, refuse further attempts until the cooldown passes.
-		if ( $this->is_throttled() ) {
+		// Brute-force throttle: every attempt reserves its place before the
+		// password is checked, and the count and the decision are one step
+		// of the attempt meter, so simultaneous guesses cannot pass the limit.
+		// A meter that cannot count throttles and logs it (fail closed).
+		$key     = $this->throttle_key();
+		$verdict = Helper::reserve_attempt( $key, self::THROTTLE_MAX, self::THROTTLE_WINDOW );
+		if ( true !== $verdict ) {
+			if ( is_wp_error( $verdict ) ) {
+				blocklane_pro_log( 'Blocklane: the Coming Soon password limit could not count an attempt (' . $verdict->get_error_code() . '); it was refused.' );
+			}
 			$this->unlock_error = 'throttled';
 			return;
 		}
 
 		$password = wp_unslash( $_POST[ self::FIELD ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- a password is checked exactly as typed, as core does on wp-login.php: any sanitizer would change the password (tags, octets, spaces) before the hash check. It is only hashed and compared, never stored or printed.
 		if ( ! is_string( $password ) || ! Site_Lock::check_password( $password ) ) {
-			$this->record_failed_attempt();
 			$this->unlock_error = 'incorrect';
 			return;
 		}
 
-		$this->clear_failed_attempts();
+		Helper::reset_attempts( $key, self::THROTTLE_WINDOW );
 		$this->set_unlock_cookie();
 		wp_safe_redirect( $this->current_url() );
 		exit;
@@ -515,20 +522,6 @@ class Site_Lock_Gate implements Bootable {
 	 */
 	private function throttle_key(): string {
 		return (string) Helper::client_key( self::THROTTLE_PREFIX, 'site-lock', true );
-	}
-
-	private function is_throttled() {
-		return (int) get_transient( $this->throttle_key() ) >= self::THROTTLE_MAX;
-	}
-
-	private function record_failed_attempt() {
-		// Shared atomic counter — a get/set transient pair is a read-modify-write
-		// that parallel guesses can use to exceed THROTTLE_MAX.
-		Helper::increment_throttle_counter( $this->throttle_key(), 15 * MINUTE_IN_SECONDS );
-	}
-
-	private function clear_failed_attempts() {
-		delete_transient( $this->throttle_key() );
 	}
 
 	/**
