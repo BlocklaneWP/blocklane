@@ -1,0 +1,54 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "blocklane/slide",
+	"version": "0.1.0",
+	"title": "Slide",
+	"category": "blocklane-carousel",
+	"description": "A single slide within a carousel.",
+	"parent": [ "blocklane/carousel-track" ],
+	"usesContext": [ "postId", "postType" ],
+	"attributes": {
+		"layout": {
+			"type": "object",
+			"default": {
+				"type": "constrained"
+			}
+		}
+	},
+	"supports": {
+		"html": false,
+		"color": {
+			"background": true,
+			"text": true
+		},
+		"spacing": {
+			"padding": true,
+			"blockGap": true,
+			"__experimentalDefaultControls": {
+				"padding": true,
+				"blockGap": true
+			}
+		},
+		"layout": {
+			"allowSwitching": false,
+			"allowEditing": false,
+			"default": {
+				"type": "constrained"
+			}
+		}
+	},
+	"textdomain": "blocklane",
+	"editorScript": "file:./index.js",
+	"render": "file:./render.php",
+	"example": {
+		"innerBlocks": [
+			{
+				"name": "core/paragraph",
+				"attributes": {
+					"content": "Slide content"
+				}
+			}
+		]
+	}
+}

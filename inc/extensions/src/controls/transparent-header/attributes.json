@@ -1,0 +1,63 @@
+{
+	"groups": [
+		{
+			"blocks": [ "core/group" ],
+			"attributes": {
+				"blocklaneProTransparentHeader": { "type": "boolean", "default": false },
+				"blocklaneProThBackground": { "type": "string", "default": "" },
+				"blocklaneProTransparentSolidOnScroll": { "type": "boolean", "default": true },
+				"blocklaneProTransparentTopOffset": { "type": "string" },
+				"blocklaneProTransparentZIndex": { "type": "number" },
+				"blocklaneProTransparentBackground": { "type": "string" },
+				"blocklaneProTransparentTextColor": { "type": "string" },
+				"blocklaneProTransparentLogo": { "type": "string" }
+			}
+		},
+		{
+			"blocks": [ "core/group" ],
+			"attributes": {
+				"blocklaneProThSolidBackground": { "type": "string" }
+			}
+		},
+		{
+			"blocks": [ "core/navigation" ],
+			"attributes": {
+				"blocklaneProTransparentTextColor": { "type": "string" },
+				"blocklaneProTransparentHoverColor": { "type": "string" },
+				"blocklaneProTransparentCurrentColor": { "type": "string" }
+			}
+		},
+		{
+			"blocks": [
+				"core/site-title",
+				"core/site-tagline",
+				"core/search",
+				"core/loginout"
+			],
+			"attributes": {
+				"blocklaneProTransparentTextColor": { "type": "string" }
+			}
+		},
+		{
+			"blocks": [ "core/button" ],
+			"attributes": {
+				"blocklaneProTransparentTextColor": { "type": "string" },
+				"blocklaneProTransparentBackground": { "type": "string" }
+			}
+		},
+		{
+			"blocks": [ "core/social-links" ],
+			"attributes": {
+				"blocklaneProTransparentIconColor": { "type": "string" },
+				"blocklaneProTransparentIconBackground": { "type": "string" }
+			}
+		},
+		{
+			"blocks": [ "core/site-logo" ],
+			"attributes": {
+				"blocklaneProTransparentLogo": { "type": "string" },
+				"blocklaneProTransparentLogoId": { "type": "number" }
+			}
+		}
+	]
+}

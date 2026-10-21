@@ -1,0 +1,426 @@
+/*
+ * BlocklanePage — the page shell every dashboard screen renders through
+ * (../components/BlocklanePage.js; spec "Blocklane Admin" 2026-10-10,
+ * §5, §7 C1, Amendments D, E, G, AF, AG).
+ *
+ * Authored from the Figma frames and WordPress 7.1's design tokens, not from
+ * the older stylesheet. Every value is a `--wpds-*` token, the admin color
+ * scheme's `--wp-admin-theme-color` (D1: follow the user's scheme), or a sum
+ * of tokens; there is no hex, no px and no !important (stylelint override for
+ * this file in .stylelintrc.js; px is admitted only as design/shell-allow.json
+ * lists it, and this file needs none: the canvas's 0 beside the menu is
+ * unitless). Breakpoints are written in em because WPDS defines none.
+ */
+
+/* ---- Canvas: the frame ---------------------------------------------------
+ * The app region below the admin bar: a frame padded 16 on top, right and
+ * bottom and 0 beside the admin menu (Amendment D). Its color FOLLOWS THE
+ * ADMIN COLOR SCHEME the way core's own frame does (Amendment AJ as revised
+ * by Garrett 2026-10-12): the scheme's menu surface, which
+ * ../components/admin-canvas.js reads from the page and hands over as
+ * --blocklane-canvas — #1e1e1e on Modern, as frame 41:1454 draws it, and the
+ * light menu gray on Light. Without a menu to read (a page outside wp-admin)
+ * the canvas falls back to the surface token. This supersedes AI's fixed
+ * light canvas.
+ *
+ * THE SCROLL MODEL FOLLOWS CORE (follow-up item 9). MIRROR CONTRACT with
+ * core's boot layout, wp-includes/js/dist/script-modules/boot/index.js
+ * (WordPress 7.1, `.boot-layout-container .boot-layout` and
+ * `.boot-layout__stage`, the shell of Appearance → Fonts):
+ * - `.blocklane-app` is placed absolutely over #wpbody (inset 0) and is at
+ *   least the viewport below the admin bar, as core's `.boot-layout` is, so
+ *   the app itself adds no height to the document. Only wp-admin's own menu
+ *   can, where it is the taller (the Blocklane submenu is long);
+ * - `.blocklane-app__body` is the frame: exactly the viewport below the admin
+ *   bar, and it never scrolls. Where the menu does make the document scroll,
+ *   the frame holds the viewport (sticky) instead of riding the document
+ *   the way core's stage does, so the card's corners, the gaps and the toast
+ *   host never leave the screen;
+ * - the page card is the ONE scroll container of the page's content (core's
+ *   stage), and the details card scrolls on its own beside it.
+ * DELIBERATE DEPARTURE (decision F-2, Garrett 2026-10-13): in a short window
+ * (under about 800px tall) core's stage lets the document scroll, so its
+ * corners and anything pinned to its foot leave the screen. This frame stays
+ * pinned to the viewport at every height, so the card's corners, the gaps
+ * and the toast host stay visible; only the card's content scrolls. A
+ * reader comparing this sheet with core's boot layout should expect this
+ * one difference, and it is not to be "fixed" back.
+ * figma-parity's capture preflight fails a shell that scrolls any other way
+ * (PREFLIGHT#scroll-document, PREFLIGHT#scroll-card). */
+.blocklane-app {
+
+	/* The viewport below the admin bar (core sets the bar's height,
+	   46px on mobile, as this property). */
+	--blocklane-viewport: calc(100vh - var(--wp-admin--admin-bar--height, 0rem));
+	position: absolute;
+	inset: 0;
+	min-height: var(--blocklane-viewport);
+	background-color: var(--blocklane-canvas, var(--wpds-color-background-surface-neutral-weak));
+	color: var(--wpds-color-foreground-content-neutral);
+	font-family: var(--wpds-typography-font-family-body);
+}
+
+.blocklane-app__body {
+	position: sticky;
+	top: var(--wp-admin--admin-bar--height, 0rem);
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	height: var(--blocklane-viewport);
+	padding-block: var(--wpds-dimension-padding-lg);
+	padding-inline: 0 var(--wpds-dimension-padding-lg);
+}
+
+.blocklane-app__loading {
+	display: flex;
+	justify-content: center;
+	padding: var(--wpds-dimension-padding-3xl);
+}
+
+/* ---- Page row: the page card and the details card ---------------------- */
+.blocklane-page {
+	display: flex;
+	flex: 1 1 auto;
+	align-items: stretch;
+	gap: var(--wpds-dimension-gap-lg);
+	min-height: 0;
+}
+
+/* admin-ui's Page root is the page card: the frame's height minus its gaps
+   (the row stretches it), and the one scroll container of the page's
+   content. The two-class selector outranks the Page module's own
+   `height: 100%`. The card is its white fill and its radius, with no stroke
+   (Amendment AJ: the frames draw none); a scroll container clips to its own
+   rounded corners. Positioned, so absolutely placed descendants (a
+   ToggleControl's hidden input) stay inside it. A scroll that reaches the
+   card's end stops there instead of moving the document (wp-admin's menu
+   can still make the document taller than the viewport). */
+.blocklane-page .blocklane-page__card {
+	flex: 1 1 auto;
+	box-sizing: border-box;
+	min-width: 0;
+	height: auto;
+	overflow-x: hidden;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	border-radius: var(--wpds-border-radius-lg);
+	background: var(--wpds-color-background-surface-neutral-strong);
+}
+
+/* admin-ui's header is sticky at the card's own scrollport top, so it stays
+   at the top of the card while the content scrolls under it. The header is
+   the Page's first child (its own class is a hashed CSS-module name). */
+.blocklane-page__card > :first-child {
+
+	/* The frames' header rule (Amendment AJ: gray-200, which has no token). */
+	border-bottom-color: #e0e0e0;
+}
+
+/* ---- Page header type and height (Amendment AJ, frame 41:1454) ------------
+ * The header measures the frame's 92: 16 of padding, the title row, the
+ * subtitle's one line, 16 of padding, and the rule drawn INSIDE that box, as
+ * the frames draw their stroke. So the title row is pinned at the frame's 40
+ * whatever the actions hold (a 40px button fits, and admin-ui's 32 minimum
+ * never decides it); the subtitle drops admin-ui's 4 of bottom padding,
+ * which the frames do not draw; and the header's last row gives the rule
+ * back its pixel, so the padding and the rule both keep the frame's values.
+ * The title is 20 / 24 at weight 500 (no token names 500) in the content
+ * color, and the subtitle 13 / 20 in the frames' gray-700 (no token equals
+ * it). BlocklanePage owns the h1, so its own card class scopes these, never
+ * admin-ui's hashed class names; the header row is the header's first child,
+ * the subtitle its paragraph. */
+.blocklane-page__card > :first-child > :first-child {
+	block-size: var(--wpds-dimension-size-lg);
+}
+
+.blocklane-page__card > :first-child > :last-child {
+	margin-block-end: calc(-1 * var(--wpds-border-width-xs));
+}
+
+.blocklane-page__card h1 {
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-xl);
+	font-weight: 500;
+	line-height: var(--wpds-typography-line-height-md);
+}
+
+.blocklane-page__card > :first-child > p {
+	padding-block-end: 0;
+	color: #757575;
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+/* ---- Tab row -------------------------------------------------------------
+ * Under the header, the five-tab row of the frames: tabs 48 tall with 16 on
+ * each side, the row inset 8 so the first label lands on the 24 gutter
+ * (Amendment AG). The selected tab carries the scheme color underline.
+ * It stays pinned with the header while the card's content scrolls
+ * (decision F-4, 2026-10-13): sticky at the header's measured height, which
+ * BlocklanePage.js keeps current on the card as
+ * --blocklane-page-header-block-size (a wrapped subtitle makes the header
+ * taller). Above the content it covers, level with the header. */
+.blocklane-page__tabs {
+	position: sticky;
+	top: var(--blocklane-page-header-block-size, 0);
+	z-index: 1;
+	display: flex;
+	flex-wrap: wrap;
+	padding-inline: var(--wpds-dimension-padding-sm);
+	border-block-end:
+		var(--wpds-border-width-xs) solid
+		var(--wpds-color-stroke-surface-neutral-weak);
+	background: var(--wpds-color-background-surface-neutral-strong);
+}
+
+.blocklane-page__tab {
+	display: flex;
+	align-items: center;
+	--blocklane-tab-height: calc(var(--wpds-dimension-size-lg) + var(--wpds-dimension-size-4xs));
+	min-height: var(--blocklane-tab-height);
+	padding-inline: var(--wpds-dimension-padding-lg);
+	color: var(--wpds-color-foreground-interactive-neutral);
+	font-size: var(--wpds-typography-font-size-md);
+
+	/* The frames' tab label weight (Amendment AJ: 500, which no token names). */
+	font-weight: 500;
+	line-height: var(--wpds-typography-line-height-sm);
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.blocklane-page__tab:hover {
+	color: var(--wp-admin-theme-color);
+}
+
+.blocklane-page__tab[aria-selected="true"] {
+	color: var(--wpds-color-foreground-interactive-neutral-active);
+	box-shadow:
+		inset 0 calc(-1 * var(--wpds-border-width-focus)) 0
+		var(--wp-admin-theme-color);
+}
+
+.blocklane-page__tab:focus {
+	outline: none;
+	box-shadow: none;
+}
+
+.blocklane-page__tab[aria-selected="true"]:focus {
+	box-shadow:
+		inset 0 calc(-1 * var(--wpds-border-width-focus)) 0
+		var(--wp-admin-theme-color);
+}
+
+.blocklane-page__tab:focus-visible {
+	outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+	outline-offset: calc(-1 * var(--wpds-border-width-focus));
+}
+
+/* ---- Content -------------------------------------------------------------
+ * 24 on every side under the header and tabs (the frames' content inset);
+ * an edge-to-edge list (DataViews carries its own 24) asks for none. It hugs
+ * its content as the frames draw it, never stretching to the card's foot:
+ * the card's own white fills what is left. */
+.blocklane-page__content {
+	display: flex;
+	flex-direction: column;
+	flex: none;
+
+	/* The frames' content gap (gap-xl, bound on the SEO @content). Every
+	   screen renders one child here today, so it spaces nothing yet. */
+	row-gap: var(--wpds-dimension-gap-xl);
+}
+
+.blocklane-page__content.has-padding {
+	padding: var(--wpds-dimension-padding-2xl);
+}
+
+.blocklane-page__panel {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+/* The h1 is a programmatic focus target (BlocklanePage.js); like core's
+   NavigableRegion it paints no ring of its own. */
+.blocklane-page__card h1:focus {
+	outline: none;
+}
+
+/* ---- Header actions ------------------------------------------------------
+ * The details toggle (?) is never pressed (Amendment G, AC1): its glyph is
+ * the muted interactive color while the card is closed and the strong one
+ * while it is open. Keyed on aria-expanded, the state the button already
+ * exposes, which also outranks core's `[aria-expanded=true]` accent. */
+.blocklane-page__details-toggle.components-button[aria-expanded="false"] {
+	color: var(--wpds-color-foreground-interactive-neutral-weak);
+}
+
+.blocklane-page__details-toggle.components-button[aria-expanded="true"] {
+	color: var(--wpds-color-foreground-interactive-neutral-weak-active);
+}
+
+.blocklane-page__details-toggle.components-button:hover {
+	color: var(--wp-admin-theme-color);
+}
+
+/* ---- Details card --------------------------------------------------------
+ * The 400px About card beside the page card (BL/DetailsCard): the row
+ * stretches it to the page card's height, and it scrolls on its own, like
+ * the editor sidebar (Amendment E; frames 41:1454 and 104:31419): white, its
+ * radius, and no stroke (Amendment AJ). */
+.blocklane-page__details {
+	display: flex;
+	flex-direction: column;
+	flex: 0 0 var(--wpds-dimension-surface-width-md);
+	box-sizing: border-box;
+	width: var(--wpds-dimension-surface-width-md);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	border-radius: var(--wpds-border-radius-lg);
+	background: var(--wpds-color-background-surface-neutral-strong);
+	color: var(--wpds-color-foreground-content-neutral);
+}
+
+/* A body that brings its own header (the SEO row editor) fills the card:
+   its panel runs the card's height, header and footer pinned. */
+.blocklane-page__details.is-bare {
+	overflow: hidden;
+}
+
+.blocklane-page__details.is-bare > * {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.blocklane-page__details.is-bare .components-panel {
+	position: static;
+	height: 100%;
+}
+
+.blocklane-page__details-header {
+	display: flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
+	padding: var(--wpds-dimension-padding-lg);
+	border-block-end:
+		var(--wpds-border-width-xs) solid
+		var(--wpds-color-stroke-surface-neutral-weak);
+}
+
+.blocklane-page__details-heading {
+	display: flex;
+	flex: 1 1 auto;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
+	min-width: 0;
+}
+
+.blocklane-page__details-title {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-lg);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-page__details-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-lg);
+	padding: var(--wpds-dimension-padding-lg);
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+/* ---- Toast host ----------------------------------------------------------
+ * One SnackbarList, bottom-left of the page card, inset 16 (R9). The host is
+ * a zero-height sticky strip at the foot of the card's own scroll, so a toast
+ * sits on the card's bottom corner whatever the card has scrolled to.
+ * Measured from the card, never from the window, so a folded admin menu
+ * moves it with the card. */
+.blocklane-page__toasts {
+	position: sticky;
+	bottom: 0;
+	z-index: 2;
+	height: 0;
+}
+
+.blocklane-page__toasts .components-snackbar-list {
+	position: absolute;
+	bottom: var(--wpds-dimension-padding-lg);
+	left: var(--wpds-dimension-padding-lg);
+	width: max-content;
+	--blocklane-room: calc(100% - 2 * var(--wpds-dimension-padding-lg));
+	max-width: min(var(--wpds-dimension-surface-width-lg), var(--blocklane-room));
+}
+
+/* ---- Notice detail -------------------------------------------------------
+ * The server's own message under an error notice's sentence (NoticeDetail.js,
+ * read by the Settings save error and LoadError; SD13, SEO SD-3): a muted
+ * second line with no margin of its own. */
+.blocklane-notice-detail {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+/* ---- Disabled screen -------------------------------------------------- */
+.blocklane-page__disabled {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xl);
+	max-width: var(--wpds-dimension-surface-width-xl);
+}
+
+.blocklane-page__disabled .components-notice {
+	margin: 0;
+}
+
+.blocklane-page__disabled-body {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+/* ---- Narrow viewports ----------------------------------------------------
+ * Below wp-admin's 782px breakpoint the details card stacks under the page
+ * card, so the frame stops holding them to the viewport: it flows with its
+ * content, the document scrolls, and neither card scrolls on its own. */
+@media (max-width: 48.8125em) {
+
+	.blocklane-app {
+		position: static;
+	}
+
+	.blocklane-app__body {
+		position: static;
+		height: auto;
+		min-height: var(--blocklane-viewport);
+		padding-inline: var(--wpds-dimension-padding-lg);
+	}
+
+	.blocklane-page {
+		flex-direction: column;
+	}
+
+	.blocklane-page .blocklane-page__card,
+	.blocklane-page__details {
+		overflow: visible;
+	}
+
+	.blocklane-page__details {
+		flex-basis: auto;
+		width: auto;
+	}
+}
+
+/* Reduced motion and forced colors: the shell animates nothing, and the
+   selected tab keeps a visible marker when colors are forced. */
+@media (forced-colors: active) {
+
+	.blocklane-page__tab[aria-selected="true"] {
+		text-decoration: underline;
+	}
+}

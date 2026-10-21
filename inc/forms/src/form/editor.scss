@@ -1,0 +1,146 @@
+/**
+ * Editor-only affordances for the forms suite (loaded via the form block's
+ * editorStyle; selectors cover the child blocks too). Two deliberate
+ * canvas-vs-front deviations, both for editability of otherwise-invisible
+ * runtime state: notifications render visible with a type chip, and hidden
+ * fields render as a chip row.
+ */
+
+.blocklane-form__notification-editor {
+	display: block;
+	outline: 1px dashed currentcolor;
+	outline-offset: 2px;
+	opacity: 0.9;
+}
+
+/* Empty-form setup state: pattern previews + Start blank. */
+.blocklane-form__setup-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 12px;
+	width: 100%;
+	margin-block-end: 12px;
+}
+
+.blocklane-form__setup-choice {
+	padding: 0;
+	overflow: hidden;
+	text-align: start;
+	cursor: pointer;
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+.blocklane-form__setup-choice:hover,
+.blocklane-form__setup-choice:focus-visible {
+	border-color: var(--wp-admin-theme-color, #3858e9);
+}
+
+.blocklane-form__setup-choice .block-editor-block-preview__container {
+	pointer-events: none;
+}
+
+.blocklane-form__setup-choice-title {
+	display: block;
+	padding: 8px 12px;
+	font-size: 12px;
+	border-top: 1px solid #f0f0f0;
+}
+
+/* Dropdown editing state: the option blocks as an open list, wearing the
+   same input-style vars as the closed select so the swap reads as the same
+   control opening. */
+.blocklane-form__select-options {
+	box-sizing: border-box;
+	width: 100%;
+	padding: 0.25em;
+	color: var(--blocklane-form--input-text, inherit);
+	background: var(--blocklane-form--input-background, transparent);
+	border: 1px solid var(--blocklane-form--input-border, #949494);
+	border-radius: var(--blocklane-form--input-radius, 4px);
+}
+
+.blocklane-form__select-options .blocklane-form__option {
+	padding: 0.125em 0.5em;
+}
+
+/* Turnstile placeholder — the configured widget size's footprint (normal
+   300×65, flexible full-width, compact 150×140) so the canvas layout
+   matches what visitors get; the real widget only runs on the front. */
+.blocklane-form__turnstile-placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 300px;
+	max-width: 100%;
+	height: 65px;
+	font-family:
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		Roboto,
+		sans-serif;
+	font-size: 12px;
+	color: #1e1e1e;
+	background: #fafafa;
+	border: 1px solid #e0e0e0;
+	border-radius: 2px;
+}
+
+.blocklane-form__turnstile-placeholder.is-size-flexible {
+	width: 100%;
+}
+
+.blocklane-form__turnstile-placeholder.is-size-compact {
+	width: 150px;
+	height: 140px;
+}
+
+/* theme=dark forces the dark widget on the front; auto follows the
+   visitor's scheme, which the canvas cannot know — it keeps the light
+   look. */
+.blocklane-form__turnstile-placeholder.is-theme-dark {
+	color: #fff;
+	background: #232323;
+	border-color: #797979;
+}
+
+/* "Only when needed": the front usually renders NO visible widget, so the
+   placeholder reads as a ghost of the space Cloudflare MAY claim (canvas
+   text color, whatever the widget theme — there is no box to theme). */
+.blocklane-form__turnstile-placeholder.is-interaction-only {
+	color: inherit;
+	background: transparent;
+	border-style: dashed;
+	opacity: 0.7;
+}
+
+.blocklane-form__notification-chip,
+.blocklane-form__hidden-chip {
+	display: inline-block;
+	padding: 2px 8px;
+	margin-block-end: 4px;
+	font-family:
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		Roboto,
+		sans-serif;
+	font-size: 11px;
+	line-height: 1.6;
+	color: #1e1e1e;
+	background: #f0f0f0;
+	border-radius: 2px;
+}
+
+/* Success/error notification blocks preview the POST-submit states — hiding
+   them until the author is inside the form (the block where submission
+   settings are managed) keeps the canvas a true front-end view. Selecting
+   the notification itself keeps it visible: the ancestor form then carries
+   .has-child-selected. */
+.wp-block[data-type="blocklane/form"]:not(.is-selected):not(.has-child-selected)
+[data-type="blocklane/form-notification"] {
+	display: none;
+}

@@ -1,0 +1,75 @@
+/**
+ * Editor preview of the Password Form block.
+ *
+ * Mirrors the front-end form structure in the Site Lock gate (the inline
+ * <style>
+ * in class-blocklane-pro-site-lock-gate.php) so authors see what visitors get.
+ * Colors come from the theme (Global Styles): the submit reuses the theme
+ * button (.wp-element-button) and the input border uses the border preset, so
+ * the preview tracks the active brand. Block-support styles (background, text,
+ * spacing, border, typography set in the inspector) layer on top via the
+ * wrapper's inline styles.
+ */
+
+.blocklane-pro-site-lock__form {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	width: 100%;
+	text-align: left;
+}
+
+.blocklane-pro-site-lock__label {
+	margin: 0;
+	font-size: 0.75em;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: inherit;
+}
+
+.blocklane-pro-site-lock__inputwrap {
+	position: relative;
+	display: block;
+}
+
+.blocklane-pro-site-lock__input {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 12px 44px 12px 14px;
+	border: 1px solid var(--wp--preset--color--outline, rgba(0, 0, 0, 0.15));
+	border-radius: 4px;
+	background: #fff;
+	color: #1e1e1e;
+	font-size: 16px;
+	font-family: inherit;
+}
+
+.blocklane-pro-site-lock__reveal {
+	position: absolute;
+	top: 50%;
+	right: 6px;
+	transform: translateY(-50%);
+	display: inline-flex;
+	padding: 4px;
+	border: 0;
+	background: none;
+	color: #1e1e1e;
+	opacity: 0.55;
+}
+
+.blocklane-pro-site-lock__reveal svg {
+	width: 24px;
+	height: 24px;
+	fill: currentcolor;
+}
+
+/* Submit reuses the theme button (.wp-element-button). The label is a RichText
+   <span>, so make it a full-width, centered block; per-instance color/radius
+   are
+   applied inline from the Button panel. */
+.blocklane-pro-site-lock__submit {
+	display: block;
+	width: 100%;
+	text-align: center;
+}

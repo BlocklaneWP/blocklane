@@ -1,0 +1,441 @@
+@use "preset-fallbacks";
+
+:where(
+	.blocklane-carousel-autoplay-toggle:focus-visible,
+	.blocklane-carousel-dot:focus-visible,
+	.blocklane-carousel-next:focus-visible,
+	.blocklane-carousel-prev:focus-visible,
+	.blocklane-carousel-scrollbar__thumb:focus-visible,
+	.blocklane-carousel-viewport:focus-visible
+) {
+	outline-color: var(--wp--preset--color--accent-1, currentcolor);
+	outline-offset: 2px;
+	outline-style: solid;
+	outline-width: 2px;
+}
+
+/* The shell, and the media blocks inside its slides. */
+
+.wp-block-blocklane-carousel {
+	position: relative;
+}
+
+.wp-block-blocklane-carousel .wp-block-image {
+	margin-block-end: var(--wp--custom--blocklane-carousel--image-margin-bottom, 0);
+	margin-block-start: var(--wp--custom--blocklane-carousel--image-margin-top, 0);
+}
+
+.wp-block-blocklane-carousel .wp-block-cover {
+	margin-block-end: var(--wp--custom--blocklane-carousel--cover-margin-bottom, 0);
+	margin-block-start: var(--wp--custom--blocklane-carousel--cover-margin-top, 0);
+}
+
+.wp-block-blocklane-carousel .wp-block-cover.aligncenter,
+.wp-block-blocklane-carousel .wp-block-image.aligncenter {
+	margin-inline: auto !important;
+}
+
+/* The row: a native scroll-snap scroller, with or without script. */
+
+.blocklane-carousel-viewport:not(.block-editor-block-list__block) {
+	overflow-x: auto;
+	overflow-y: hidden;
+	overscroll-behavior-x: contain;
+	scroll-snap-type: x mandatory;
+	scrollbar-width: thin;
+}
+
+.blocklane-carousel-viewport:not(.block-editor-block-list__block) > .blocklane-carousel-container {
+	align-items: stretch;
+	display: flex;
+	gap: var(--blocklane-carousel-gap, var(--wp--style--block-gap, 0.5em));
+	gap: round(var(--blocklane-carousel-gap, var(--wp--style--block-gap, 0.5em)), 1px);
+}
+
+.blocklane-carousel-viewport:not(.block-editor-block-list__block) > .blocklane-carousel-container > .blocklane-carousel-slide {
+	box-sizing: border-box;
+	flex-basis: max((100% - var(--blocklane-carousel-gap, var(--wp--style--block-gap, 0.5em)) * (var(--blocklane-carousel-per-view, 1) - 1)) / var(--blocklane-carousel-per-view, 1), min(var(--blocklane-carousel-slide-min-width, 0px), 100%));
+	flex-basis: round(down, max((100% - var(--blocklane-carousel-gap, var(--wp--style--block-gap, 0.5em)) * (var(--blocklane-carousel-per-view, 1) - 1)) / var(--blocklane-carousel-per-view, 1), min(var(--blocklane-carousel-slide-min-width, 0px), 100%)), 1px);
+	flex-grow: 0;
+	flex-shrink: 0;
+	max-width: var(--blocklane-carousel-slide-max-width, none);
+	min-width: 0;
+	scroll-snap-align: start;
+}
+
+/* While the store runs the row. */
+
+.blocklane-carousel-viewport.blocklane-carousel-live:not(.block-editor-block-list__block) {
+	scrollbar-width: none;
+}
+
+.blocklane-carousel-viewport.blocklane-carousel-live:not(.block-editor-block-list__block)::-webkit-scrollbar {
+	display: none;
+}
+
+.blocklane-carousel-viewport.blocklane-carousel-dragging:not(.block-editor-block-list__block),
+.blocklane-carousel-viewport.blocklane-carousel-moving:not(.block-editor-block-list__block) {
+	scroll-snap-type: none;
+}
+
+.blocklane-carousel-viewport.blocklane-carousel-drag-cursor {
+	cursor: grab;
+}
+
+.blocklane-carousel-viewport.blocklane-carousel-dragging {
+	cursor: grabbing;
+	user-select: none;
+}
+
+.blocklane-carousel-viewport.blocklane-carousel-overflow-visible:not(.block-editor-block-list__block) {
+	margin-inline: calc(50% - 50vw);
+	padding-inline: calc(50vw - 50%);
+	scroll-padding-inline: calc(50vw - 50%);
+}
+
+.blocklane-carousel-viewport:not(.blocklane-carousel-live) > .blocklane-carousel-container > .blocklane-carousel-clone {
+	display: none;
+}
+
+/* Fade: the slides stack in place once the store runs. */
+
+.blocklane-carousel-viewport.blocklane-carousel-live[data-bl-carousel-fade="true"] {
+	overflow-x: hidden;
+	scroll-snap-type: none;
+}
+
+.blocklane-carousel-viewport.blocklane-carousel-live[data-bl-carousel-fade="true"] > .blocklane-carousel-container {
+	position: relative;
+}
+
+.blocklane-carousel-viewport.blocklane-carousel-live[data-bl-carousel-fade="true"] > .blocklane-carousel-container > .blocklane-carousel-slide {
+	flex-basis: 100%;
+}
+
+@media (scripting: enabled) {
+
+	.blocklane-carousel-viewport.blocklane-carousel-live[data-bl-carousel-fade="true"] > .blocklane-carousel-container > .blocklane-carousel-slide[aria-hidden="true"] {
+		inset-block-start: 0;
+		inset-inline-start: 0;
+		opacity: 0;
+		pointer-events: none;
+		position: absolute;
+		visibility: hidden;
+		width: 100%;
+	}
+}
+
+/* The controls' rows. */
+
+.wp-block-blocklane-carousel-controls:not(.blocklane-carousel-live):not(.block-editor-block-list__block) {
+	visibility: hidden;
+}
+
+.blocklane-carousel-nav,
+.blocklane-carousel-pagination {
+	align-items: center;
+	display: flex;
+	gap: var(--blocklane-carousel-nav-gap, 8px);
+}
+
+.blocklane-carousel-nav.is-layout-flex,
+.blocklane-carousel-pagination.is-layout-flex {
+	gap: var(--blocklane-carousel-nav-gap, 8px);
+}
+
+.blocklane-carousel-nav {
+	justify-content: flex-start;
+}
+
+.blocklane-carousel-pagination {
+	justify-content: center;
+}
+
+.blocklane-carousel-nav.is-content-justification-left,
+.blocklane-carousel-pagination.is-content-justification-left {
+	justify-content: flex-start;
+}
+
+.blocklane-carousel-nav.is-content-justification-center,
+.blocklane-carousel-pagination.is-content-justification-center {
+	justify-content: center;
+}
+
+.blocklane-carousel-nav.is-content-justification-right,
+.blocklane-carousel-pagination.is-content-justification-right {
+	justify-content: flex-end;
+}
+
+.blocklane-carousel-nav.is-content-justification-stretch,
+.blocklane-carousel-pagination.is-content-justification-stretch {
+	justify-content: space-between;
+}
+
+.blocklane-carousel-controls--rtl .blocklane-carousel-prev {
+	order: 2;
+}
+
+.blocklane-carousel-controls--rtl.blocklane-carousel-pagination {
+	flex-direction: row-reverse;
+}
+
+/* The arrows. */
+
+.blocklane-carousel-next,
+.blocklane-carousel-prev {
+	align-items: center;
+	background: none;
+	border: none;
+	color: var(--blocklane-carousel-arrow-color, var(--wp--custom--blocklane-carousel--navigation-color, currentcolor));
+	cursor: pointer;
+	display: flex;
+	height: var(--blocklane-carousel-arrow-size, var(--wp--custom--blocklane-carousel--navigation-size, 36px));
+	justify-content: center;
+	padding: 0;
+	width: var(--blocklane-carousel-arrow-size, var(--wp--custom--blocklane-carousel--navigation-size, 36px));
+}
+
+.blocklane-carousel-next svg,
+.blocklane-carousel-prev svg {
+	height: 100%;
+	width: 100%;
+}
+
+.blocklane-carousel-next:hover,
+.blocklane-carousel-prev:hover {
+	color: var(--blocklane-carousel-arrow-color, var(--wp--custom--blocklane-carousel--navigation-hover-color, var(--wp--custom--blocklane-carousel--navigation-color, currentcolor)));
+}
+
+.blocklane-carousel-next:disabled,
+.blocklane-carousel-next[aria-disabled="true"],
+.blocklane-carousel-prev:disabled,
+.blocklane-carousel-prev[aria-disabled="true"] {
+	cursor: default;
+	opacity: 0.3;
+}
+
+.blocklane-carousel-controls--rtl .blocklane-carousel-next > .blocklane-carousel-custom-icon,
+.blocklane-carousel-controls--rtl .blocklane-carousel-next > svg,
+.blocklane-carousel-prev > .blocklane-carousel-custom-icon,
+.blocklane-carousel-prev > svg {
+	transform: scaleX(-1);
+}
+
+.blocklane-carousel-controls--rtl .blocklane-carousel-prev > .blocklane-carousel-custom-icon,
+.blocklane-carousel-controls--rtl .blocklane-carousel-prev > svg,
+.blocklane-carousel-next > .blocklane-carousel-custom-icon,
+.blocklane-carousel-next > svg {
+	transform: scaleX(1);
+}
+
+.blocklane-carousel-custom-icon svg {
+	fill: currentcolor;
+	height: 100%;
+	width: 100%;
+}
+
+/*
+ * Centered navigation: keyed on the marks the shell puts on its own
+ * controls.
+ */
+
+.blocklane-carousel-controls--centered.blocklane-carousel-nav:not(.blocklane-carousel-nav--autoplay) {
+	inset: 0;
+	pointer-events: none;
+	position: absolute;
+	z-index: 1;
+}
+
+.blocklane-carousel-controls--centered .blocklane-carousel-next,
+.blocklane-carousel-controls--centered .blocklane-carousel-prev {
+	pointer-events: auto;
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 1;
+}
+
+.blocklane-carousel-controls--centered .blocklane-carousel-prev,
+.blocklane-carousel-controls--centered.blocklane-carousel-controls--rtl .blocklane-carousel-next {
+	left: calc(-1 * (var(--blocklane-carousel-arrow-size, var(--wp--custom--blocklane-carousel--navigation-size, 36px)) + var(--blocklane-carousel-arrow-offset, var(--wp--custom--blocklane-carousel--navigation-offset, 10px))));
+	right: auto;
+}
+
+.blocklane-carousel-controls--centered .blocklane-carousel-next,
+.blocklane-carousel-controls--centered.blocklane-carousel-controls--rtl .blocklane-carousel-prev {
+	left: auto;
+	right: calc(-1 * (var(--blocklane-carousel-arrow-size, var(--wp--custom--blocklane-carousel--navigation-size, 36px)) + var(--blocklane-carousel-arrow-offset, var(--wp--custom--blocklane-carousel--navigation-offset, 10px))));
+}
+
+.blocklane-carousel-controls--centered.blocklane-carousel-controls--full .blocklane-carousel-prev,
+.blocklane-carousel-controls--centered.blocklane-carousel-controls--full.blocklane-carousel-controls--rtl .blocklane-carousel-next {
+	left: var(--blocklane-carousel-arrow-offset, var(--wp--custom--blocklane-carousel--navigation-offset, 10px));
+	right: auto;
+}
+
+.blocklane-carousel-controls--centered.blocklane-carousel-controls--full .blocklane-carousel-next,
+.blocklane-carousel-controls--centered.blocklane-carousel-controls--full.blocklane-carousel-controls--rtl .blocklane-carousel-prev {
+	left: auto;
+	right: var(--blocklane-carousel-arrow-offset, var(--wp--custom--blocklane-carousel--navigation-offset, 10px));
+}
+
+@media (max-width: 768px) {
+
+	.blocklane-carousel-controls--centered .blocklane-carousel-prev,
+	.blocklane-carousel-controls--centered.blocklane-carousel-controls--rtl .blocklane-carousel-next {
+		left: var(--blocklane-carousel-arrow-offset, var(--wp--custom--blocklane-carousel--navigation-offset, 10px));
+		right: auto;
+	}
+
+	.blocklane-carousel-controls--centered .blocklane-carousel-next,
+	.blocklane-carousel-controls--centered.blocklane-carousel-controls--rtl .blocklane-carousel-prev {
+		left: auto;
+		right: var(--blocklane-carousel-arrow-offset, var(--wp--custom--blocklane-carousel--navigation-offset, 10px));
+	}
+}
+
+.blocklane-carousel-controls--centered.blocklane-carousel-pagination {
+	bottom: var(--wp--custom--blocklane-carousel--pagination-bottom, -35px);
+	inset-inline: 0;
+	position: absolute;
+}
+
+.wp-block-blocklane-carousel.blocklane-carousel-center-nav.blocklane-carousel-has-pagination > .blocklane-carousel-viewport {
+	margin-block-end: calc(4 * var(--wp--custom--blocklane-carousel--pagination-size, 8px));
+}
+
+/* Dots and bars. */
+
+.blocklane-carousel-dot {
+	background: var(--blocklane-carousel-dot-color, var(--wp--custom--blocklane-carousel--pagination-color, currentcolor));
+	border: none;
+	border-radius: 50%;
+	color: inherit;
+	cursor: pointer;
+	height: var(--blocklane-carousel-dot-size, var(--wp--custom--blocklane-carousel--pagination-size, 8px));
+	opacity: var(--wp--custom--blocklane-carousel--pagination-inactive-opacity, 0.5);
+	padding: 0;
+	position: relative;
+	width: var(--blocklane-carousel-dot-size, var(--wp--custom--blocklane-carousel--pagination-size, 8px));
+}
+
+.blocklane-carousel-dot::before {
+	content: "";
+	height: 24px;
+	left: 50%;
+	position: absolute;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: 24px;
+}
+
+.blocklane-carousel-dot.is-active {
+	opacity: var(--wp--custom--blocklane-carousel--pagination-active-opacity, 1);
+}
+
+.blocklane-carousel-dot.is-active,
+.blocklane-carousel-dot:not(.is-active):hover {
+	background: var(--blocklane-carousel-dot-color, var(--wp--custom--blocklane-carousel--pagination-active-color, currentcolor));
+}
+
+.blocklane-carousel-dot:not(.is-active):hover {
+	opacity: 0.75;
+}
+
+.blocklane-carousel-pagination--bars .blocklane-carousel-dot {
+	border-radius: var(--blocklane-carousel-bar-height, 4px);
+	flex: 0 0 auto;
+	height: var(--blocklane-carousel-bar-height, 4px);
+	width: var(--blocklane-carousel-bar-width, 32px);
+}
+
+.blocklane-carousel-pagination--bars-fill {
+	width: 100%;
+}
+
+.blocklane-carousel-pagination--bars-fill .blocklane-carousel-dot {
+	flex: 1 1 0;
+	min-width: 0;
+	width: auto;
+}
+
+/* Motion, only for visitors who have not asked for less. */
+
+@media (prefers-reduced-motion: no-preference) {
+
+	.blocklane-carousel-dot {
+		transition: background var(--wp--custom--duration--200, 200ms) var(--wp--custom--ease--default, cubic-bezier(0.4, 0, 0.2, 1)), opacity var(--wp--custom--duration--200, 200ms) var(--wp--custom--ease--default, cubic-bezier(0.4, 0, 0.2, 1));
+	}
+
+	.blocklane-carousel-viewport.blocklane-carousel-live[data-bl-carousel-fade="true"] > .blocklane-carousel-container > .blocklane-carousel-slide {
+		transition: opacity var(--blocklane-carousel-speed, var(--wp--custom--duration--300, 300ms)) var(--wp--custom--ease--in-out, cubic-bezier(0.4, 0, 0.2, 1)), visibility var(--blocklane-carousel-speed, var(--wp--custom--duration--300, 300ms)) var(--wp--custom--ease--in-out, cubic-bezier(0.4, 0, 0.2, 1));
+	}
+}
+
+/* The scrollbar. */
+
+.blocklane-carousel-scrollbar {
+	width: 100%;
+}
+
+.blocklane-carousel-scrollbar.is-hidden {
+	display: none;
+}
+
+.blocklane-carousel-scrollbar__track {
+	background: color-mix(in srgb, var(--blocklane-carousel-dot-color, var(--wp--custom--blocklane-carousel--pagination-color, currentcolor)) 25%, transparent);
+	border-radius: 9999px;
+	cursor: pointer;
+	display: block;
+	height: var(--blocklane-carousel-bar-height, 4px);
+	position: relative;
+	touch-action: none;
+	width: 100%;
+}
+
+.blocklane-carousel-scrollbar__thumb {
+	background: var(--blocklane-carousel-dot-color, var(--wp--custom--blocklane-carousel--pagination-active-color, currentcolor));
+	border-radius: 9999px;
+	cursor: grab;
+	display: block;
+	height: 100%;
+	left: var(--blocklane-carousel-thumb-start, 0%);
+	pointer-events: none;
+	position: absolute;
+	top: 0;
+	width: var(--blocklane-carousel-thumb-size, 25%);
+}
+
+.blocklane-carousel-scrollbar.is-dragging .blocklane-carousel-scrollbar__thumb,
+.blocklane-carousel-scrollbar.is-dragging .blocklane-carousel-scrollbar__track {
+	cursor: grabbing;
+}
+
+/* The pause button. */
+
+.blocklane-carousel-autoplay-toggle {
+	cursor: pointer;
+}
+
+.blocklane-carousel-nav--autoplay > .wp-block-button[hidden],
+.blocklane-carousel-nav--autoplay[hidden] {
+	display: none !important;
+}
+
+/* The edge fade. */
+
+.blocklane-carousel-fade-out {
+	--blocklane-carousel-x-fade-width: min(160px, 15%);
+	-webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--blocklane-carousel-x-fade-width), #000 calc(100% - var(--blocklane-carousel-x-fade-width)), transparent 100%);
+	mask-image: linear-gradient(to right, transparent 0, #000 var(--blocklane-carousel-x-fade-width), #000 calc(100% - var(--blocklane-carousel-x-fade-width)), transparent 100%);
+}
+
+.blocklane-carousel-fade-out.blocklane-carousel-fade-out--end {
+	-webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - var(--blocklane-carousel-x-fade-width)), transparent 100%);
+	mask-image: linear-gradient(to right, #000 0, #000 calc(100% - var(--blocklane-carousel-x-fade-width)), transparent 100%);
+}
+
+.blocklane-carousel-fade-out.blocklane-carousel-fade-out--end[dir="rtl"] {
+	-webkit-mask-image: linear-gradient(to left, #000 0, #000 calc(100% - var(--blocklane-carousel-x-fade-width)), transparent 100%);
+	mask-image: linear-gradient(to left, #000 0, #000 calc(100% - var(--blocklane-carousel-x-fade-width)), transparent 100%);
+}

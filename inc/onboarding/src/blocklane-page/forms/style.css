@@ -1,0 +1,177 @@
+/*
+ * The Forms screen (../../screens/FormsScreen.js, ../../screens/forms/;
+ * the C-forms spec (2026-10-12); design spec Amendments N, J, P
+ * D21, AH). Authored from the Forms frames (`88:17338`) and the WPDS tokens;
+ * it replaces the old sheet's `.blocklane-pro-forms-*` rules, which are gone.
+ *
+ * Tokens only (the stylelint override for blocklane-page/**): no hex, no px,
+ * no !important.
+ */
+
+/* ---- Notices: the banners and an action's failure, stacked over a tab ----
+ * Over the list they keep the gutter (16 under the tabs, 24 at the sides);
+ * on the Settings tab the content inset already supplies it. */
+.blocklane-forms__notices {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-lg);
+}
+
+.blocklane-forms__notices.is-inset {
+	padding: var(--wpds-dimension-padding-lg) var(--wpds-dimension-padding-2xl) 0;
+}
+
+.blocklane-forms__notices .components-notice {
+	margin: 0;
+}
+
+/* ---- Loading: the content area only (R3), filling it as the frame's
+ * `@loading` does; 48 snapped to the largest padding token (Amendment AH,
+ * spec DF2). */
+.blocklane-forms__loading {
+	display: flex;
+	flex: 1 1 auto;
+	justify-content: center;
+	padding: var(--wpds-dimension-padding-3xl);
+}
+
+/* ---- Submissions: the list fills the tab ------------------------------- */
+.blocklane-forms__submissions,
+.blocklane-forms__list {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-height: 0;
+}
+
+/* The list tab's inset is vertical only (the frames' `@content` 24/0/24/0,
+ * design spec W16): DataViews pads its own sides. */
+.blocklane-forms__list {
+	padding-block: var(--wpds-dimension-padding-2xl);
+}
+
+.blocklane-forms__list .dataviews-wrapper {
+	flex: 1 1 auto;
+}
+
+/* D21: unread titles stand out; read ones sit at body weight. */
+.blocklane-forms__form.is-unread {
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+}
+
+.blocklane-forms__form.is-read {
+	font-weight: var(--wpds-typography-font-weight-default);
+}
+
+/* The submission's first values, on one line: the whole entry is one click
+ * away, and the date column keeps its room. */
+.blocklane-forms__excerpt {
+	display: block;
+	max-width: var(--wpds-dimension-surface-width-md);
+	overflow: hidden;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* ---- Settings: one 720 column of bordered sections, then Save ---------- */
+.blocklane-forms__settings {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xl);
+}
+
+.blocklane-forms__column {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-lg);
+	max-width: var(--wpds-dimension-surface-width-xl);
+}
+
+.blocklane-forms__column > .components-notice {
+	margin: 0;
+}
+
+.blocklane-forms__panel {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-md);
+}
+
+/* One card per section (Amendment J): an even border, the medium radius and
+ * a white fill, instead of the panel's top and bottom rules. The border is
+ * drawn inside the box, as the frame's inside stroke is, so it moves no
+ * content. */
+.blocklane-forms__section.components-panel__body {
+	margin: 0;
+	border: 0;
+	border-radius: var(--wpds-border-radius-md);
+	background: var(--wpds-color-background-surface-neutral-strong);
+	box-shadow: inset 0 0 0 var(--wpds-border-width-xs) var(--wpds-color-stroke-surface-neutral);
+}
+
+/* The section's controls stack 16 apart; the last one meets the card's own
+ * bottom padding. */
+.blocklane-forms__section > :not(.components-panel__body-title) {
+	margin: 0 0 var(--wpds-dimension-gap-lg);
+}
+
+.blocklane-forms__section > :last-child {
+	margin-block-end: 0;
+}
+
+.blocklane-forms__intro {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.blocklane-forms__save-row {
+	display: flex;
+	justify-content: flex-end;
+}
+
+/* ---- Entry modal -------------------------------------------------------- */
+.blocklane-forms-entry__meta {
+	margin: 0 0 var(--wpds-dimension-gap-lg);
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+	line-height: var(--wpds-typography-line-height-xs);
+}
+
+.blocklane-forms-entry__field {
+	margin: 0 0 var(--wpds-dimension-gap-md);
+}
+
+.blocklane-forms-entry__value {
+	margin: var(--wpds-dimension-gap-xs) 0 0;
+	white-space: pre-wrap;
+}
+
+.blocklane-forms-entry__files {
+	margin: var(--wpds-dimension-gap-xs) 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.blocklane-forms-entry__filesize {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+}
+
+.blocklane-forms-entry__actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--wpds-dimension-gap-sm);
+	margin-block-start: var(--wpds-dimension-gap-lg);
+}
+
+/* ---- The destructive confirm (../../screens/forms/ConfirmDelete.js) ---- */
+.blocklane-confirm-delete__message {
+	margin: 0;
+}
+
+.blocklane-confirm-delete__actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--wpds-dimension-gap-sm);
+	margin-block-start: var(--wpds-dimension-gap-xl);
+}

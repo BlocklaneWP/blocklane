@@ -1,0 +1,165 @@
+/**
+ * Drag-to-reorder list-table feedback. The spinner itself is WordPress's native
+ * .spinner (added/removed by reorder.js) — this only positions it and styles
+ * the
+ * drag placeholder/helper + the saving (locked) state.
+ */
+
+.wp-list-table .ui-sortable tr {
+	cursor: move;
+}
+
+/* While saving, the list is locked — make that clear. */
+.wp-list-table .blocklane-pro-reordering tr {
+	cursor: default;
+}
+
+.wp-list-table .ui-sortable-placeholder {
+	background: #f1f1f1;
+	outline: 1px dashed #c3c4c7;
+	visibility: visible !important;
+}
+
+.wp-list-table .ui-sortable-helper {
+	background-color: #fff;
+	outline: 1px solid #e1e1e1;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+/* Hierarchical drag: the dragged row's nested children move with it — they dim
+   in place during the drag and snap back under it on drop. */
+.wp-list-table tr.blocklane-pro-reorder-subtree {
+	opacity: 0.4;
+}
+
+/* Collapsed groups: children hide in place. */
+.wp-list-table tr.blocklane-pro-reorder-hidden {
+	display: none;
+}
+
+/* The tree lives in the title column: a root rail with a tick into every
+   top-level title, child titles indented 20px per level under their own
+   rails. The lines are painted by the JS as background gradients on the
+   title cell (each row's lines depend on which ancestors still have siblings
+   below). The checkbox column stays completely stock. Real indentation
+   replaces core's "— " title pads, which the JS strips. The
+   -has-depth class only appears when something is actually nested, so a
+   flat list looks identical to core. */
+
+/* Depth-driven indentation: base 26px + 20px per level, from the
+   --blocklane-pro-level custom property the JS sets on every row. A formula
+   rather than enumerated level-N rules, so the tree indents at any depth
+   instead of flattening past a fixed cap. */
+.blocklane-pro-reorder-has-depth tbody td.column-title,
+.blocklane-pro-reorder-has-depth tbody th.column-title {
+	padding-left: calc(26px + 20px * var(--blocklane-pro-level, 0));
+}
+
+
+/* Tree mode stripes by GROUP, not by row: each top-level page alternates the
+   core stripe color and its nested rows inherit it, so a subtree reads as one
+   block and a collapsed parent keeps a normal row color without blending into
+   the next group. (The JS removes core's .striped class in tree mode, so
+   there's no per-row rule to fight.) */
+table.blocklane-pro-reorder-tree > tbody > tr.blocklane-pro-reorder-alt {
+	background: #f6f7f7;
+}
+
+/* The per-page Screen Option is locked on the sort view (every row shows so
+   the full order can be arranged); the info icon explains on hover/focus.
+   The input is readonly (a disabled input would drop out of the form and
+   break core's screen-options save) — this just makes it look locked. */
+input.blocklane-pro-reorder-perpage-locked {
+	background: #f0f0f1;
+	color: #787c82;
+	border-color: #dcdcde;
+	pointer-events: none;
+}
+
+.blocklane-pro-reorder-tip {
+	position: relative;
+	display: inline-block;
+	margin-left: 4px;
+	vertical-align: middle;
+	color: #787c82;
+	cursor: help;
+}
+
+.blocklane-pro-reorder-tip .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+.blocklane-pro-reorder-tip-bubble {
+	display: none;
+	position: absolute;
+	top: calc(100% + 6px);
+	left: 50%;
+	transform: translateX(-50%);
+	width: 230px;
+	padding: 8px 10px;
+	background: #1d2327;
+	color: #fff;
+	font-size: 12px;
+	line-height: 1.5;
+	text-align: left;
+	border-radius: 4px;
+	z-index: 100;
+}
+
+.blocklane-pro-reorder-tip:hover .blocklane-pro-reorder-tip-bubble,
+.blocklane-pro-reorder-tip:focus .blocklane-pro-reorder-tip-bubble {
+	display: block;
+}
+
+/* The collapse/expand chevron, inline after the title + post state. */
+button.blocklane-pro-reorder-toggle {
+	display: inline-block;
+	background: none;
+	border: none;
+	border-radius: 2px;
+	margin: 0 0 0 4px;
+	padding: 0;
+	cursor: pointer;
+	color: #1d2327;
+	vertical-align: baseline;
+}
+
+button.blocklane-pro-reorder-toggle .dashicons {
+	/* stylelint-disable-next-line font-family-no-missing-generic-family-keyword */
+	font: 400 20px/1 dashicons;
+	width: 20px;
+	height: 20px;
+	vertical-align: middle;
+}
+
+button.blocklane-pro-reorder-toggle:hover {
+	color: #2271b1;
+}
+
+/* Core's focus treatment (button-link): blue ring, transparent outline. */
+button.blocklane-pro-reorder-toggle:focus {
+	color: #2271b1;
+	box-shadow: 0 0 0 2px #2271b1;
+	outline: 2px solid transparent;
+}
+
+/* Swap the row checkbox for the native spinner in the SAME spot — the checkbox
+   is hidden (keeping its space) and the spinner is absolutely positioned over
+   it, so the row doesn't shift while saving. */
+.blocklane-pro-reordering-row .check-column {
+	position: relative;
+}
+
+.blocklane-pro-reordering-row .check-column input[type="checkbox"] {
+	visibility: hidden;
+}
+
+.blocklane-pro-reorder-spinner.spinner {
+	position: absolute;
+	top: 6px;
+	left: 6px;
+	float: none;
+	margin: 0;
+}

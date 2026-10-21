@@ -1,0 +1,293 @@
+/*
+ * The Dashboard (../../screens/HomeScreen.js, ../../screens/home/,
+ * ../../components/LicenseKeyForm.js; the C-home spec (2026-10-13); design
+ * spec D2 and Amendment R). Authored from the Dashboard frames (page
+ * `103:30422`: `BL/Home/WelcomeCard`, `SectionHeader`, `ToolCard`,
+ * `InfoCard`, `LicenseCard`, `LicensePanel`) and the WPDS tokens. It replaces
+ * the old sheet's Home rules (hero, brand fonts, cards, sign-in), which are
+ * gone. Core's Card draws the cards; this sheet only lays them out.
+ *
+ * Tokens only (the stylelint override for blocklane-page/**): no hex, no px,
+ * no font-weight literal, no !important.
+ */
+
+/* ---- The page: hero, then sections, gap-2xl apart ---------------------- */
+.blocklane-home {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-2xl);
+}
+
+/* The hero row: the welcome card fills, the license card is 400 (D35);
+ * both stretch to one height. */
+.blocklane-home__hero {
+	display: flex;
+	align-items: stretch;
+	gap: var(--wpds-dimension-gap-lg);
+}
+
+.blocklane-home__hero > .blocklane-home-welcome {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.blocklane-home__hero > .blocklane-license {
+	flex: none;
+	width: var(--wpds-dimension-surface-width-md);
+}
+
+/* ---- Welcome card ------------------------------------------------------ */
+.blocklane-home-welcome__body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-sm);
+}
+
+.blocklane-home-welcome__eyebrow {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-xs);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-xs);
+	text-transform: uppercase;
+
+	/* The frame's eyebrow hugs its text. */
+	align-self: flex-start;
+}
+
+.blocklane-home-welcome__title {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-lg);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-home-welcome__text {
+	max-width: var(--wpds-dimension-surface-width-xl);
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+/* ---- Sections: heading and sentence, then the grid --------------------- */
+.blocklane-home__section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-lg);
+}
+
+.blocklane-home__section-header {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+}
+
+.blocklane-home__section-title {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-md);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-home__section-subtitle {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+/* Three equal columns at gap-lg; a row's cards share one height. */
+.blocklane-home__grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: var(--wpds-dimension-gap-lg);
+}
+
+/* ---- Tool and resource cards -------------------------------------------
+ * Core's Card holds its parts in one content box; it is made a column so
+ * the body takes the slack and every footer sits on the card's bottom. */
+.blocklane-home-card > :first-child {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.blocklane-home-card__body {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-md);
+}
+
+.blocklane-home-card__icon {
+	display: inline-flex;
+	align-items: center;
+	align-self: flex-start;
+	justify-content: center;
+	width: var(--wpds-dimension-size-lg);
+	height: var(--wpds-dimension-size-lg);
+	border-radius: var(--wpds-border-radius-md);
+	background-color: var(--wpds-color-background-surface-neutral-weak);
+	color: var(--wpds-color-foreground-content-neutral);
+}
+
+.blocklane-home-card__icon svg {
+	fill: currentcolor;
+}
+
+.blocklane-home-card__text {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+}
+
+/* A resource card's name and sentence sit gap-sm apart (`BL/Home/InfoCard`). */
+[data-resource] .blocklane-home-card__text {
+	gap: var(--wpds-dimension-gap-sm);
+}
+
+.blocklane-home-card__title {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-md);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-home-card__description {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+/* ---- License card and panel (Pro) -------------------------------------- */
+.blocklane-license__body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-lg);
+}
+
+.blocklane-license__body.is-loading {
+	align-items: center;
+	justify-content: center;
+
+	/* The never-licensed card's height (200, five size-lg steps), so the hero
+	 * does not jump when the status answers (`112:58861`). */
+	min-height: calc(var(--wpds-dimension-size-lg) * 5);
+}
+
+.blocklane-license p {
+	margin: 0;
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-license__title {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-md);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+/* The masked key: a code chip on its own line (D36, V13; `wpds/code`). */
+.blocklane-license__key {
+	display: inline-flex;
+	align-self: flex-start;
+	padding: calc(var(--wpds-dimension-padding-xs) / 2) var(--wpds-dimension-padding-xs);
+	border-radius: var(--wpds-border-radius-sm);
+	background-color: var(--wpds-color-background-surface-neutral-weak);
+	color: var(--wpds-color-foreground-content-neutral);
+	font-family: var(--wpds-typography-font-family-mono);
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-license__identity {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--wpds-dimension-gap-sm);
+}
+
+.blocklane-license__status,
+.blocklane-license__next {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+}
+
+.blocklane-license__next,
+.blocklane-license__seat {
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-license__next a {
+	align-self: flex-start;
+}
+
+.blocklane-license__verdict {
+	color: var(--wpds-color-foreground-content-neutral);
+}
+
+.blocklane-license__next p,
+.blocklane-license__seat p,
+.blocklane-license__copy,
+.blocklane-license__next-step {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.blocklane-license__seat {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--wpds-dimension-gap-sm);
+}
+
+.blocklane-license__released {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-md);
+}
+
+.blocklane-license__released .components-notice {
+	margin: 0;
+}
+
+/* ---- The key field (LicenseKeyForm) ------------------------------------ */
+.blocklane-license-form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-md);
+}
+
+.blocklane-license-form .is-invalid input {
+	border-color: var(--wpds-color-stroke-surface-error-strong);
+}
+
+/* The field's error line sits gap-xs under the input (R6, V11). */
+.blocklane-license-form .blocklane-license-form__error {
+	display: flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-xs);
+	margin: calc(var(--wpds-dimension-gap-md) * -1 + var(--wpds-dimension-gap-xs)) 0 0;
+	color: var(--wpds-color-foreground-content-error);
+	font-size: var(--wpds-typography-font-size-sm);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-license-form__error svg {
+	flex: none;
+	fill: currentcolor;
+}
+
+/* Activate at the right (D36). */
+.blocklane-license-form__actions {
+	display: flex;
+	justify-content: flex-end;
+}

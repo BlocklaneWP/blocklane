@@ -1,0 +1,278 @@
+/*
+ * Responsive controls: the per-breakpoint overrides for the classes and
+ * custom properties the render filter adds to a block (see
+ * responsive-controls.php). The server substitutes the configured
+ * breakpoints into this file's media queries before printing it.
+ *
+ * Layout of this file:
+ *
+ * - Three media blocks, one per band, and the bands do not overlap:
+ *   desktop is (min-width: 769px), tablet is (min-width: 481px) and
+ *   (max-width: 768px), mobile is (max-width: 480px). The server rewrites
+ *   exactly those four substrings, so every breakpoint is spelled that way
+ *   and no other. Because the bands are disjoint, a tablet rule never runs
+ *   in the mobile band; the filter already copies a tablet value onto the
+ *   mobile property and class ("mobile inherits tablet").
+ * - Every value is read from the filter's custom property
+ *   (--blocklane-pro-<infix>-<bp>); nothing is hard-coded except the
+ *   "after every ordered child" order (51, above the 1-50 vocabulary) and
+ *   the first child's zero block gap.
+ * - Every declaration is !important. The filter writes the author's own
+ *   value into the inline style, and core styles the same element through
+ *   its layout classes; an override has to beat both.
+ * - Every rule is keyed on a has-blocklane-pro-* or blocklane-pro-* class,
+ *   so an element without one is never touched.
+ */
+
+/* ------------------------------------------------------------------------
+ * Desktop band: only hiding applies here.
+ * --------------------------------------------------------------------- */
+
+@media (min-width: 769px) {
+
+	.has-blocklane-pro-hide-desktop {
+		display: none !important;
+	}
+}
+
+/* ------------------------------------------------------------------------
+ * Tablet band.
+ * --------------------------------------------------------------------- */
+
+@media (min-width: 481px) and (max-width: 768px) {
+
+	/* Simple properties. */
+
+	.has-blocklane-pro-fs-tablet {
+		font-size: var(--blocklane-pro-fs-tablet) !important;
+	}
+
+	.has-blocklane-pro-mh-tablet {
+		min-height: var(--blocklane-pro-mh-tablet) !important;
+	}
+
+	.has-blocklane-pro-mw-tablet {
+		max-width: var(--blocklane-pro-mw-tablet) !important;
+	}
+
+	.has-blocklane-pro-ta-tablet {
+		text-align: var(--blocklane-pro-ta-tablet) !important;
+	}
+
+	/* Padding, one side per class. */
+
+	.has-blocklane-pro-padding-top-tablet {
+		padding-top: var(--blocklane-pro-padding-top-tablet) !important;
+	}
+
+	.has-blocklane-pro-padding-right-tablet {
+		padding-right: var(--blocklane-pro-padding-right-tablet) !important;
+	}
+
+	.has-blocklane-pro-padding-bottom-tablet {
+		padding-bottom: var(--blocklane-pro-padding-bottom-tablet) !important;
+	}
+
+	.has-blocklane-pro-padding-left-tablet {
+		padding-left: var(--blocklane-pro-padding-left-tablet) !important;
+	}
+
+	/* Margin, one side per class. */
+
+	.has-blocklane-pro-margin-top-tablet {
+		margin-top: var(--blocklane-pro-margin-top-tablet) !important;
+	}
+
+	.has-blocklane-pro-margin-right-tablet {
+		margin-right: var(--blocklane-pro-margin-right-tablet) !important;
+	}
+
+	.has-blocklane-pro-margin-bottom-tablet {
+		margin-bottom: var(--blocklane-pro-margin-bottom-tablet) !important;
+	}
+
+	.has-blocklane-pro-margin-left-tablet {
+		margin-left: var(--blocklane-pro-margin-left-tablet) !important;
+	}
+
+	/* Block gap: the container's gap for flex and grid layouts ... */
+
+	.is-layout-flex.has-blocklane-pro-gap-tablet,
+	.is-layout-grid.has-blocklane-pro-gap-tablet {
+		gap: var(--blocklane-pro-gap-tablet) !important;
+	}
+
+	/* ... and the children's block-start margin for flow layouts. */
+
+	.is-layout-flow.has-blocklane-pro-gap-tablet > *,
+	.is-layout-constrained.has-blocklane-pro-gap-tablet > * {
+		margin-block-start: var(--blocklane-pro-gap-tablet) !important;
+	}
+
+	.is-layout-flow.has-blocklane-pro-gap-tablet > :first-child,
+	.is-layout-constrained.has-blocklane-pro-gap-tablet > :first-child {
+		margin-block-start: 0 !important;
+	}
+
+	/* Orientation. */
+
+	.has-blocklane-pro-ori-tablet {
+		flex-direction: var(--blocklane-pro-ori-tablet) !important;
+	}
+
+	/*
+	 * Justification along the main axis of the direction in force: the
+	 * tablet orientation when there is one, else the desktop direction.
+	 * Row direction sets justify-content ...
+	 */
+
+	.has-blocklane-pro-jc-tablet.blocklane-pro-ori-tablet-row,
+	.has-blocklane-pro-jc-tablet:not(.blocklane-pro-ori-tablet-row):not(.blocklane-pro-ori-tablet-column):not(.is-vertical) {
+		justify-content: var(--blocklane-pro-jc-tablet) !important;
+	}
+
+	/* ... and column direction sets align-items. */
+
+	.has-blocklane-pro-jc-tablet.blocklane-pro-ori-tablet-column,
+	.has-blocklane-pro-jc-tablet.is-vertical:not(.blocklane-pro-ori-tablet-row):not(.blocklane-pro-ori-tablet-column) {
+		align-items: var(--blocklane-pro-jc-tablet) !important;
+	}
+
+	/* Display order; unordered siblings go after every ordered one. */
+
+	.blocklane-pro-child-order-tablet > :not(.has-blocklane-pro-order-tablet) {
+		order: 51 !important;
+	}
+
+	.has-blocklane-pro-order-tablet {
+		order: var(--blocklane-pro-order-tablet) !important;
+	}
+
+	/* Hiding. */
+
+	.has-blocklane-pro-hide-tablet {
+		display: none !important;
+	}
+}
+
+/* ------------------------------------------------------------------------
+ * Mobile band.
+ * --------------------------------------------------------------------- */
+
+@media (max-width: 480px) {
+
+	/* Simple properties. */
+
+	.has-blocklane-pro-fs-mobile {
+		font-size: var(--blocklane-pro-fs-mobile) !important;
+	}
+
+	.has-blocklane-pro-mh-mobile {
+		min-height: var(--blocklane-pro-mh-mobile) !important;
+	}
+
+	.has-blocklane-pro-mw-mobile {
+		max-width: var(--blocklane-pro-mw-mobile) !important;
+	}
+
+	.has-blocklane-pro-ta-mobile {
+		text-align: var(--blocklane-pro-ta-mobile) !important;
+	}
+
+	/* Padding, one side per class. */
+
+	.has-blocklane-pro-padding-top-mobile {
+		padding-top: var(--blocklane-pro-padding-top-mobile) !important;
+	}
+
+	.has-blocklane-pro-padding-right-mobile {
+		padding-right: var(--blocklane-pro-padding-right-mobile) !important;
+	}
+
+	.has-blocklane-pro-padding-bottom-mobile {
+		padding-bottom: var(--blocklane-pro-padding-bottom-mobile) !important;
+	}
+
+	.has-blocklane-pro-padding-left-mobile {
+		padding-left: var(--blocklane-pro-padding-left-mobile) !important;
+	}
+
+	/* Margin, one side per class. */
+
+	.has-blocklane-pro-margin-top-mobile {
+		margin-top: var(--blocklane-pro-margin-top-mobile) !important;
+	}
+
+	.has-blocklane-pro-margin-right-mobile {
+		margin-right: var(--blocklane-pro-margin-right-mobile) !important;
+	}
+
+	.has-blocklane-pro-margin-bottom-mobile {
+		margin-bottom: var(--blocklane-pro-margin-bottom-mobile) !important;
+	}
+
+	.has-blocklane-pro-margin-left-mobile {
+		margin-left: var(--blocklane-pro-margin-left-mobile) !important;
+	}
+
+	/* Block gap: the container's gap for flex and grid layouts ... */
+
+	.is-layout-flex.has-blocklane-pro-gap-mobile,
+	.is-layout-grid.has-blocklane-pro-gap-mobile {
+		gap: var(--blocklane-pro-gap-mobile) !important;
+	}
+
+	/* ... and the children's block-start margin for flow layouts. */
+
+	.is-layout-flow.has-blocklane-pro-gap-mobile > *,
+	.is-layout-constrained.has-blocklane-pro-gap-mobile > * {
+		margin-block-start: var(--blocklane-pro-gap-mobile) !important;
+	}
+
+	.is-layout-flow.has-blocklane-pro-gap-mobile > :first-child,
+	.is-layout-constrained.has-blocklane-pro-gap-mobile > :first-child {
+		margin-block-start: 0 !important;
+	}
+
+	/* Orientation. */
+
+	.has-blocklane-pro-ori-mobile {
+		flex-direction: var(--blocklane-pro-ori-mobile) !important;
+	}
+
+	/*
+	 * Justification along the main axis of the direction in force, decided
+	 * in order: the mobile orientation, then the tablet orientation, then
+	 * the desktop direction. Row direction sets justify-content ...
+	 */
+
+	.has-blocklane-pro-jc-mobile.blocklane-pro-ori-mobile-row,
+	.has-blocklane-pro-jc-mobile.blocklane-pro-ori-tablet-row:not(.blocklane-pro-ori-mobile-row):not(.blocklane-pro-ori-mobile-column),
+	.has-blocklane-pro-jc-mobile:not(.blocklane-pro-ori-mobile-row):not(.blocklane-pro-ori-mobile-column):not(.blocklane-pro-ori-tablet-row):not(.blocklane-pro-ori-tablet-column):not(.is-vertical) {
+		justify-content: var(--blocklane-pro-jc-mobile) !important;
+	}
+
+	/* ... and column direction sets align-items. */
+
+	.has-blocklane-pro-jc-mobile.blocklane-pro-ori-mobile-column,
+	.has-blocklane-pro-jc-mobile.blocklane-pro-ori-tablet-column:not(.blocklane-pro-ori-mobile-row):not(.blocklane-pro-ori-mobile-column),
+	.has-blocklane-pro-jc-mobile.is-vertical:not(.blocklane-pro-ori-mobile-row):not(.blocklane-pro-ori-mobile-column):not(.blocklane-pro-ori-tablet-row):not(.blocklane-pro-ori-tablet-column) {
+		align-items: var(--blocklane-pro-jc-mobile) !important;
+	}
+
+	/* Display order; unordered siblings go after every ordered one. */
+
+	.blocklane-pro-child-order-mobile > :not(.has-blocklane-pro-order-mobile) {
+		order: 51 !important;
+	}
+
+	.has-blocklane-pro-order-mobile {
+		order: var(--blocklane-pro-order-mobile) !important;
+	}
+
+	/* Hiding. */
+
+	.has-blocklane-pro-hide-mobile {
+		display: none !important;
+	}
+}

@@ -1,0 +1,1234 @@
+{
+	"_comment": "THE pattern content-type taxonomy (spec 2026-10-17-pattern-catalog-browse \u00a73.2): one declaration of what a pattern is, in page order, read by Pattern_Taxonomy (the one classifier and normalizer), by bin/generate-taxonomy.php (which validates it and writes taxonomy-i18n.php), by bin/bundled-patterns-check.php (BP-keyword, BP-type, BP-title, BP-name) and by the theme's pattern gates. Untranslated data only: labels are translated through the generated taxonomy-i18n.php, and a feature that is a catalog unit carries its unit id, never a label (\u00a713 F11). Edit this file, then run php bin/generate-taxonomy.php; --check fails a stale i18n file or any TAXONOMY# rule. Families (spec 2026-10-17-pattern-families \u00a73.3): layout_values (the closed set of Layout option ids, labeled), layout_ops (per block, the attribute paths a derived member may change and the values each admits: a list of enum values, or preset:<kind> for a var:preset reference; null always clears), families (one card each: a base, its derived members as ops, its header and footer siblings) and renamed (a retired pattern's family and layout, or the pattern it folded into). FAMILY# rules live in Pattern_Taxonomy::problems().",
+	"version": 1,
+	"keywords": {
+		"max": 3,
+		"types_max": 1
+	},
+	"groups": [
+		{
+			"id": "structure",
+			"label": "Site structure",
+			"entries": [
+				{
+					"id": "headers",
+					"label": "Headers",
+					"lead": "Header",
+					"slot": "header",
+					"structural": {
+						"area": "header"
+					},
+					"synonyms": [
+						"masthead",
+						"top bar"
+					]
+				},
+				{
+					"id": "navigation",
+					"label": "Navigation",
+					"lead": "Navigation",
+					"slot": "overlay",
+					"structural": {
+						"area": "navigation-overlay"
+					},
+					"synonyms": [
+						"nav",
+						"menu",
+						"mobile menu"
+					]
+				},
+				{
+					"id": "menu-panels",
+					"label": "Menu panels",
+					"lead": "Menu panel",
+					"slot": "panel",
+					"structural": {
+						"area": "menu"
+					},
+					"synonyms": [
+						"mega menu",
+						"dropdown"
+					]
+				},
+				{
+					"id": "footers",
+					"label": "Footers",
+					"lead": "Footer",
+					"slot": "footer",
+					"structural": {
+						"area": "footer"
+					}
+				}
+			]
+		},
+		{
+			"id": "openers",
+			"label": "Page openers",
+			"entries": [
+				{
+					"id": "heroes",
+					"label": "Heroes",
+					"lead": "Hero",
+					"type": "Hero",
+					"slot": "opener",
+					"categories": [
+						"banner"
+					],
+					"synonyms": [
+						"banner",
+						"intro"
+					]
+				}
+			]
+		},
+		{
+			"id": "sections",
+			"label": "Page sections",
+			"entries": [
+				{
+					"id": "about",
+					"label": "About",
+					"lead": "About",
+					"type": "About",
+					"slot": "body",
+					"categories": [
+						"about"
+					]
+				},
+				{
+					"id": "services",
+					"label": "Services",
+					"lead": "Services",
+					"type": "Services",
+					"slot": "body",
+					"categories": [
+						"services"
+					]
+				},
+				{
+					"id": "features",
+					"label": "Features",
+					"lead": "Features",
+					"type": "Features",
+					"slot": "body",
+					"categories": [
+						"columns"
+					]
+				},
+				{
+					"id": "team",
+					"label": "Team",
+					"lead": "Team",
+					"type": "Team",
+					"slot": "body",
+					"categories": [
+						"team"
+					],
+					"synonyms": [
+						"staff",
+						"people",
+						"members",
+						"team members"
+					]
+				},
+				{
+					"id": "testimonials",
+					"label": "Testimonials",
+					"lead": "Testimonials",
+					"type": "Testimonials",
+					"slot": "body",
+					"categories": [
+						"testimonials"
+					],
+					"synonyms": [
+						"reviews",
+						"quotes"
+					]
+				},
+				{
+					"id": "portfolio",
+					"label": "Portfolio",
+					"lead": "Portfolio",
+					"type": "Portfolio",
+					"slot": "body",
+					"categories": [
+						"portfolio"
+					],
+					"synonyms": [
+						"projects",
+						"work"
+					]
+				},
+				{
+					"id": "pricing",
+					"label": "Pricing",
+					"lead": "Pricing",
+					"type": "Pricing",
+					"slot": "body",
+					"synonyms": [
+						"prices",
+						"plans",
+						"packages"
+					]
+				},
+				{
+					"id": "faq",
+					"label": "FAQ",
+					"lead": "FAQ",
+					"type": "FAQ",
+					"slot": "body",
+					"synonyms": [
+						"questions",
+						"frequently asked questions"
+					]
+				},
+				{
+					"id": "call-to-action",
+					"label": "Call to action",
+					"lead": "Call to action",
+					"type": "Call-to-action",
+					"slot": "body",
+					"categories": [
+						"call-to-action"
+					],
+					"synonyms": [
+						"cta"
+					]
+				},
+				{
+					"id": "contact",
+					"label": "Contact",
+					"lead": "Contact",
+					"type": "Contact",
+					"slot": "body",
+					"categories": [
+						"contact"
+					]
+				}
+			]
+		},
+		{
+			"id": "content",
+			"label": "Content and media",
+			"entries": [
+				{
+					"id": "text",
+					"label": "Text",
+					"lead": "Text",
+					"type": "Text",
+					"slot": "body",
+					"categories": [
+						"text"
+					]
+				},
+				{
+					"id": "media",
+					"label": "Media",
+					"lead": "Media",
+					"type": "Media",
+					"slot": "body",
+					"categories": [
+						"media"
+					]
+				},
+				{
+					"id": "gallery",
+					"label": "Gallery",
+					"lead": "Gallery",
+					"type": "Gallery",
+					"slot": "body",
+					"categories": [
+						"gallery"
+					],
+					"synonyms": [
+						"photos",
+						"images"
+					]
+				},
+				{
+					"id": "video",
+					"label": "Video",
+					"lead": "Video",
+					"type": "Video",
+					"slot": "body",
+					"categories": [
+						"videos"
+					]
+				},
+				{
+					"id": "audio",
+					"label": "Audio",
+					"lead": "Audio",
+					"type": "Audio",
+					"slot": "body",
+					"categories": [
+						"audio"
+					],
+					"synonyms": [
+						"podcast"
+					]
+				},
+				{
+					"id": "buttons",
+					"label": "Buttons",
+					"lead": "Buttons",
+					"type": "Buttons",
+					"slot": "component",
+					"categories": [
+						"buttons"
+					]
+				}
+			]
+		},
+		{
+			"id": "blog",
+			"label": "Blog",
+			"entries": [
+				{
+					"id": "posts",
+					"label": "Posts",
+					"lead": "Posts",
+					"type": "Posts",
+					"slot": "body",
+					"categories": [
+						"posts",
+						"query"
+					],
+					"synonyms": [
+						"blog",
+						"articles",
+						"news",
+						"query loop",
+						"latest posts"
+					]
+				}
+			]
+		},
+		{
+			"id": "pages",
+			"label": "Full pages",
+			"entries": [
+				{
+					"id": "page-layouts",
+					"label": "Page layouts",
+					"lead": "Page",
+					"slot": "page",
+					"structural": {
+						"full_page": true
+					}
+				},
+				{
+					"id": "coming-soon",
+					"label": "Coming soon and maintenance",
+					"leads": [
+						"Coming soon",
+						"Maintenance"
+					],
+					"slot": "template",
+					"structural": {
+						"template_types": [
+							"coming-soon",
+							"maintenance"
+						]
+					}
+				}
+			]
+		}
+	],
+	"descriptors": [
+		{
+			"term": "Stats",
+			"synonyms": [
+				"numbers",
+				"metrics",
+				"counters",
+				"statistics"
+			]
+		},
+		"Story",
+		"Timeline",
+		"Checklist",
+		"Comparison",
+		"Statement",
+		"Notice",
+		"Offer",
+		"Announcement",
+		"Site-map",
+		"Legal",
+		"Newsletter",
+		"Lead-form",
+		{
+			"term": "Tabs-content",
+			"synonyms": [
+				"tabs"
+			]
+		},
+		"Case-studies"
+	],
+	"features": [
+		{
+			"id": "forms",
+			"unit": "module:forms",
+			"blocks": [
+				"blocklane/form"
+			]
+		},
+		{
+			"id": "carousel",
+			"unit": "module:carousel",
+			"blocks": [
+				"blocklane/carousel"
+			],
+			"synonyms": [
+				"slider",
+				"slideshow"
+			]
+		},
+		{
+			"id": "motion",
+			"unit": "extension:scroll-motion",
+			"effect": "motion",
+			"synonyms": [
+				"scroll motion"
+			]
+		},
+		{
+			"id": "animation",
+			"unit": "extension:animation-designer",
+			"effect": "animation"
+		},
+		{
+			"id": "transition",
+			"label": "Transition",
+			"effect": "transition"
+		},
+		{
+			"id": "transform",
+			"unit": "extension:transforms",
+			"effect": "transform"
+		}
+	],
+	"parts": [
+		"intro",
+		"plans",
+		"cards",
+		"items",
+		"media",
+		"actions",
+		"form",
+		"details",
+		"questions",
+		"quotes",
+		"logos",
+		"stats",
+		"menu",
+		"social",
+		"legal",
+		"steps"
+	],
+	"retired_slugs": {
+		"query": "posts",
+		"featured": "*"
+	},
+	"normalizer": {
+		"min_stem": 3,
+		"exceptions": [
+			"news",
+			"canvas",
+			"series",
+			"species",
+			"physics",
+			"analytics",
+			"always",
+			"towards",
+			"alias",
+			"atlas",
+			"bias",
+			"lens",
+			"thanks"
+		],
+		"irregular": {
+			"heroes": "hero",
+			"movies": "movie",
+			"cookies": "cookie",
+			"menus": "menu"
+		},
+		"fold": {
+			"\u00a0": " ",
+			"\u00b7": "",
+			"\u00df": "ss",
+			"\u00e0": "a",
+			"\u00e1": "a",
+			"\u00e2": "a",
+			"\u00e3": "a",
+			"\u00e4": "a",
+			"\u00e5": "a",
+			"\u00e6": "ae",
+			"\u00e7": "c",
+			"\u00e8": "e",
+			"\u00e9": "e",
+			"\u00ea": "e",
+			"\u00eb": "e",
+			"\u00ec": "i",
+			"\u00ed": "i",
+			"\u00ee": "i",
+			"\u00ef": "i",
+			"\u00f0": "d",
+			"\u00f1": "n",
+			"\u00f2": "o",
+			"\u00f3": "o",
+			"\u00f4": "o",
+			"\u00f5": "o",
+			"\u00f6": "o",
+			"\u00f8": "o",
+			"\u00f9": "u",
+			"\u00fa": "u",
+			"\u00fb": "u",
+			"\u00fc": "u",
+			"\u00fd": "y",
+			"\u00fe": "th",
+			"\u00ff": "y",
+			"\u0101": "a",
+			"\u0103": "a",
+			"\u0105": "a",
+			"\u0107": "c",
+			"\u0109": "c",
+			"\u010b": "c",
+			"\u010d": "c",
+			"\u010f": "d",
+			"\u0111": "d",
+			"\u0113": "e",
+			"\u0115": "e",
+			"\u0117": "e",
+			"\u0119": "e",
+			"\u011b": "e",
+			"\u011d": "g",
+			"\u011f": "g",
+			"\u0121": "g",
+			"\u0123": "g",
+			"\u0125": "h",
+			"\u0127": "h",
+			"\u0129": "i",
+			"\u012b": "i",
+			"\u012d": "i",
+			"\u012f": "i",
+			"\u0131": "i",
+			"\u0133": "ij",
+			"\u0135": "j",
+			"\u0137": "k",
+			"\u0138": "k",
+			"\u013a": "l",
+			"\u013c": "l",
+			"\u013e": "l",
+			"\u0140": "l",
+			"\u0142": "l",
+			"\u0144": "n",
+			"\u0146": "n",
+			"\u0148": "n",
+			"\u0149": "n",
+			"\u014b": "n",
+			"\u014d": "o",
+			"\u014f": "o",
+			"\u0151": "o",
+			"\u0153": "oe",
+			"\u0155": "r",
+			"\u0157": "r",
+			"\u0159": "r",
+			"\u015b": "s",
+			"\u015d": "s",
+			"\u015f": "s",
+			"\u0161": "s",
+			"\u0163": "t",
+			"\u0165": "t",
+			"\u0167": "t",
+			"\u0169": "u",
+			"\u016b": "u",
+			"\u016d": "u",
+			"\u016f": "u",
+			"\u0171": "u",
+			"\u0173": "u",
+			"\u0175": "w",
+			"\u0177": "y",
+			"\u017a": "z",
+			"\u017c": "z",
+			"\u017e": "z",
+			"\u017f": "s",
+			"\u0192": "f",
+			"\u01ce": "a",
+			"\u01d0": "i",
+			"\u01d2": "o",
+			"\u01d4": "u",
+			"\u0219": "s",
+			"\u021b": "t",
+			"\u02bc": "",
+			"\u03c2": "\u03c3",
+			"\u1680": " ",
+			"\u2000": " ",
+			"\u2001": " ",
+			"\u2002": " ",
+			"\u2003": " ",
+			"\u2004": " ",
+			"\u2005": " ",
+			"\u2006": " ",
+			"\u2007": " ",
+			"\u2008": " ",
+			"\u2009": " ",
+			"\u200a": " ",
+			"\u200b": "",
+			"\u200c": "",
+			"\u200d": "",
+			"\u2010": " ",
+			"\u2011": " ",
+			"\u2012": " ",
+			"\u2013": " ",
+			"\u2014": " ",
+			"\u2015": " ",
+			"\u2018": "",
+			"\u2019": "",
+			"\u2028": " ",
+			"\u2029": " ",
+			"\u202f": " ",
+			"\u205f": " ",
+			"\u2060": "",
+			"\u2212": " ",
+			"\u3000": " ",
+			"\ufeff": ""
+		}
+	},
+	"page_types": [],
+	"layout_values": [
+		{
+			"id": "media-right",
+			"label": "Media right"
+		},
+		{
+			"id": "media-left",
+			"label": "Media left"
+		},
+		{
+			"id": "left-aligned",
+			"label": "Left aligned"
+		},
+		{
+			"id": "centered",
+			"label": "Centered"
+		},
+		{
+			"id": "side-by-side",
+			"label": "Side by side"
+		},
+		{
+			"id": "rounded",
+			"label": "Rounded"
+		},
+		{
+			"id": "stacked",
+			"label": "Stacked"
+		},
+		{
+			"id": "icon-above",
+			"label": "Icon above"
+		},
+		{
+			"id": "icon-beside",
+			"label": "Icon beside"
+		},
+		{
+			"id": "standard",
+			"label": "Standard"
+		},
+		{
+			"id": "phone-button",
+			"label": "Button stays on phones"
+		},
+		{
+			"id": "over-cover",
+			"label": "Transparent over a cover"
+		},
+		{
+			"id": "mega-menu",
+			"label": "Mega menus"
+		},
+		{
+			"id": "three-with-links",
+			"label": "Three with links"
+		},
+		{
+			"id": "one-step",
+			"label": "One step"
+		},
+		{
+			"id": "in-steps",
+			"label": "In steps"
+		}
+	],
+	"layout_ops": {
+		"core/media-text": {
+			"mediaPosition": [
+				"left",
+				"right"
+			],
+			"verticalAlignment": [
+				"top",
+				"center",
+				"bottom"
+			],
+			"isStackedOnMobile": [
+				true,
+				false
+			]
+		},
+		"core/cover": {
+			"contentPosition": [
+				"top left",
+				"top center",
+				"top right",
+				"center left",
+				"center center",
+				"center right",
+				"bottom left",
+				"bottom center",
+				"bottom right"
+			]
+		},
+		"core/group": {
+			"layout.type": [
+				"default",
+				"constrained",
+				"flex",
+				"grid"
+			],
+			"layout.justifyContent": [
+				"left",
+				"center",
+				"right",
+				"space-between",
+				"stretch"
+			],
+			"layout.orientation": [
+				"horizontal",
+				"vertical"
+			],
+			"layout.verticalAlignment": [
+				"top",
+				"center",
+				"bottom",
+				"stretch",
+				"space-between"
+			],
+			"layout.flexWrap": [
+				"wrap",
+				"nowrap"
+			],
+			"style.spacing.padding": "preset:spacing",
+			"style.spacing.blockGap": "preset:spacing"
+		},
+		"core/buttons": {
+			"layout.type": [
+				"flex"
+			],
+			"layout.justifyContent": [
+				"left",
+				"center",
+				"right",
+				"space-between",
+				"stretch"
+			],
+			"layout.orientation": [
+				"horizontal",
+				"vertical"
+			]
+		},
+		"core/heading": {
+			"style.typography.textAlign": [
+				"left",
+				"center",
+				"right"
+			]
+		},
+		"core/paragraph": {
+			"style.typography.textAlign": [
+				"left",
+				"center",
+				"right"
+			]
+		},
+		"core/quote": {
+			"textAlign": [
+				"left",
+				"center",
+				"right"
+			]
+		},
+		"core/image": {
+			"align": [
+				"left",
+				"center",
+				"right",
+				"wide",
+				"full"
+			]
+		},
+		"core/icon": {
+			"align": [
+				"left",
+				"center",
+				"right"
+			]
+		},
+		"core/button": {
+			"style.dimensions.width": [
+				"25%",
+				"50%",
+				"75%",
+				"100%"
+			],
+			"style.border.radius": "preset:border-radius"
+		},
+		"move": true
+	},
+	"families": [
+		{
+			"id": "buttons-fill-outline",
+			"base": "blocklane/buttons-fill-outline",
+			"base_value": "side-by-side",
+			"derived": [
+				{
+					"value": "rounded",
+					"ops": [
+						{
+							"at": [
+								{
+									"type": "core/buttons"
+								},
+								{
+									"type": "core/button",
+									"each": true
+								}
+							],
+							"set": {
+								"style": {
+									"border": {
+										"radius": "var:preset|border-radius|full"
+									}
+								}
+							}
+						}
+					]
+				},
+				{
+					"value": "stacked",
+					"ops": [
+						{
+							"at": [
+								{
+									"type": "core/buttons"
+								}
+							],
+							"set": {
+								"layout": {
+									"type": "flex",
+									"orientation": "vertical",
+									"justifyContent": "stretch"
+								}
+							}
+						},
+						{
+							"at": [
+								{
+									"type": "core/buttons"
+								},
+								{
+									"type": "core/button",
+									"each": true
+								}
+							],
+							"set": {
+								"style": {
+									"dimensions": {
+										"width": "100%"
+									}
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "services-grid-icons-six",
+			"base": "blocklane/services-grid-icons-six",
+			"base_value": "icon-above",
+			"derived": [
+				{
+					"value": "icon-beside",
+					"ops": [
+						{
+							"at": [
+								{
+									"type": "core/group"
+								},
+								{
+									"type": "core/group",
+									"nth": 1
+								}
+							],
+							"set": {
+								"style": {
+									"spacing": {
+										"blockGap": "var:preset|spacing|50"
+									}
+								}
+							}
+						},
+						{
+							"at": [
+								{
+									"type": "core/group"
+								},
+								{
+									"type": "core/group",
+									"nth": 1
+								},
+								{
+									"type": "core/group",
+									"each": true
+								}
+							],
+							"set": {
+								"layout": {
+									"orientation": null,
+									"flexWrap": "nowrap",
+									"verticalAlignment": "top"
+								}
+							}
+						},
+						{
+							"at": [
+								{
+									"type": "core/group"
+								},
+								{
+									"type": "core/group",
+									"nth": 1
+								},
+								{
+									"type": "core/group",
+									"each": true
+								},
+								{
+									"type": "core/group",
+									"nth": 0
+								}
+							],
+							"set": {
+								"style": {
+									"spacing": {
+										"padding": {
+											"top": "var:preset|spacing|20",
+											"right": "var:preset|spacing|20",
+											"bottom": "var:preset|spacing|20",
+											"left": "var:preset|spacing|20"
+										}
+									}
+								}
+							}
+						}
+					]
+				}
+			],
+			"siblings": [
+				{
+					"pattern": "blocklane/services-grid-icons",
+					"value": "three-with-links",
+					"reason": "structure"
+				}
+			]
+		},
+		{
+			"id": "banner-media-text",
+			"base": "blocklane/banner-media-text",
+			"base_value": "media-right",
+			"derived": [
+				{
+					"value": "media-left",
+					"ops": [
+						{
+							"at": [
+								{
+									"type": "core/group"
+								},
+								{
+									"type": "core/media-text",
+									"nth": 0
+								}
+							],
+							"set": {
+								"mediaPosition": "left"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "banner-cover-left",
+			"base": "blocklane/banner-cover-left",
+			"base_value": "left-aligned",
+			"derived": [
+				{
+					"value": "centered",
+					"ops": [
+						{
+							"at": [
+								{
+									"type": "core/cover"
+								},
+								{
+									"type": "core/group",
+									"nth": 0
+								}
+							],
+							"set": {
+								"layout": {
+									"justifyContent": "center"
+								}
+							}
+						},
+						{
+							"at": [
+								{
+									"type": "core/cover"
+								},
+								{
+									"type": "core/group",
+									"nth": 0
+								},
+								{
+									"type": "core/paragraph",
+									"each": true
+								}
+							],
+							"set": {
+								"style": {
+									"typography": {
+										"textAlign": "center"
+									}
+								}
+							}
+						},
+						{
+							"at": [
+								{
+									"type": "core/cover"
+								},
+								{
+									"type": "core/group",
+									"nth": 0
+								},
+								{
+									"type": "core/heading",
+									"nth": 0
+								}
+							],
+							"set": {
+								"style": {
+									"typography": {
+										"textAlign": "center"
+									}
+								}
+							}
+						},
+						{
+							"at": [
+								{
+									"type": "core/cover"
+								},
+								{
+									"type": "core/group",
+									"nth": 0
+								},
+								{
+									"type": "core/buttons",
+									"nth": 0
+								}
+							],
+							"set": {
+								"layout": {
+									"type": "flex",
+									"justifyContent": "center"
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "testimonials-quote-centered",
+			"base": "blocklane/testimonials-quote-centered",
+			"base_value": "centered",
+			"derived": [
+				{
+					"value": "left-aligned",
+					"ops": [
+						{
+							"at": [
+								{
+									"type": "core/group"
+								},
+								{
+									"type": "core/icon",
+									"nth": 0
+								}
+							],
+							"set": {
+								"align": null
+							}
+						},
+						{
+							"at": [
+								{
+									"type": "core/group"
+								},
+								{
+									"type": "core/quote",
+									"nth": 0
+								}
+							],
+							"set": {
+								"textAlign": null
+							}
+						},
+						{
+							"at": [
+								{
+									"type": "core/group"
+								},
+								{
+									"type": "core/quote",
+									"nth": 0
+								},
+								{
+									"type": "core/image",
+									"nth": 0
+								}
+							],
+							"set": {
+								"align": null
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "banner-columns-form",
+			"base": "blocklane/banner-columns-form",
+			"base_value": "one-step",
+			"siblings": [
+				{
+					"pattern": "blocklane/banner-columns-form-steps",
+					"value": "in-steps",
+					"reason": "structure"
+				}
+			]
+		},
+		{
+			"id": "header-row-menu-button",
+			"base": "blocklane/header-row-menu-button",
+			"base_value": "standard",
+			"siblings": [
+				{
+					"pattern": "blocklane/header-row-nav-right",
+					"value": "phone-button"
+				},
+				{
+					"pattern": "blocklane/header-row-transparent",
+					"value": "over-cover"
+				},
+				{
+					"pattern": "blocklane/header-row-menu-button-mega",
+					"value": "mega-menu"
+				}
+			]
+		},
+		{
+			"id": "header-stack-announcement-menu-button",
+			"base": "blocklane/header-stack-announcement-menu-button",
+			"base_value": "standard",
+			"siblings": [
+				{
+					"pattern": "blocklane/header-stack-announcement",
+					"value": "phone-button"
+				}
+			]
+		},
+		{
+			"id": "header-row-nav-left",
+			"base": "blocklane/header-row-nav-left",
+			"base_value": "standard",
+			"siblings": [
+				{
+					"pattern": "blocklane/header-row-nav-left-button-stays",
+					"value": "phone-button"
+				}
+			]
+		},
+		{
+			"id": "header-row-nav-centered",
+			"base": "blocklane/header-row-nav-centered",
+			"base_value": "standard",
+			"siblings": [
+				{
+					"pattern": "blocklane/header-row-nav-centered-button-stays",
+					"value": "phone-button"
+				}
+			]
+		},
+		{
+			"id": "header-stack-two-row",
+			"base": "blocklane/header-stack-two-row",
+			"base_value": "standard",
+			"siblings": [
+				{
+					"pattern": "blocklane/header-stack-two-row-button-stays",
+					"value": "phone-button"
+				},
+				{
+					"pattern": "blocklane/header-stack-two-row-mega",
+					"value": "mega-menu"
+				}
+			]
+		}
+	],
+	"renamed": {
+		"blocklane/banner-media-text-reversed": {
+			"family": "banner-media-text",
+			"layout": "media-left"
+		},
+		"blocklane/buttons-pill": {
+			"family": "buttons-fill-outline",
+			"layout": "rounded"
+		},
+		"blocklane/buttons-stack-full-width": {
+			"family": "buttons-fill-outline",
+			"layout": "stacked"
+		},
+		"blocklane/services-grid-icons-left": {
+			"family": "services-grid-icons-six",
+			"layout": "icon-beside"
+		},
+		"blocklane/banner-cover-centered": {
+			"family": "banner-cover-left",
+			"layout": "centered"
+		},
+		"blocklane/testimonials-quote-left": {
+			"family": "testimonials-quote-centered",
+			"layout": "left-aligned"
+		},
+		"blocklane/media-group-strip": {
+			"pattern": "blocklane/call-to-action-group-strip"
+		}
+	}
+}

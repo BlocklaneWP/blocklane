@@ -1,0 +1,204 @@
+/*
+ * Popups — front styles: the position slots, the modal overlay, and the
+ * close button. The popup's CONTENT is block markup and styles itself; the
+ * dialog chrome is deliberately INVISIBLE — no background, radius, shadow,
+ * or padding of its own — so the front render matches the popup editor 1:1
+ * and the outermost block owns the entire surface (design popups with a
+ * background group). The content wrapper carries is-layout-flow, so the
+ * theme's own block-gap rhythm applies exactly as it does in the canvas.
+ * Entrance animations are per-popup rules emitted by the runtime (shared
+ * Animation-extension keyframes), not defined here.
+ */
+
+.blocklane-popup {
+	position: fixed;
+	z-index: 99999;
+}
+
+.blocklane-popup[hidden] {
+	display: none;
+}
+
+/* Center: a real modal — overlay + centered card. */
+.blocklane-popup--center {
+	align-items: center;
+	display: flex;
+	inset: 0;
+	justify-content: center;
+	padding: 24px;
+}
+
+.blocklane-popup__overlay {
+	background: rgba(0, 0, 0, 0.55);
+	inset: 0;
+	position: absolute;
+}
+
+/* Edges and corners: non-modal slide-ins pinned with a viewport margin. */
+.blocklane-popup:not(.blocklane-popup--center) {
+	max-width: calc(100vw - 48px);
+}
+
+.blocklane-popup--bottom-right {
+	bottom: 24px;
+	right: 24px;
+}
+
+.blocklane-popup--bottom-left {
+	bottom: 24px;
+	left: 24px;
+}
+
+.blocklane-popup--top-right {
+	right: 24px;
+	top: 24px;
+}
+
+.blocklane-popup--top-left {
+	left: 24px;
+	top: 24px;
+}
+
+.blocklane-popup--top-center {
+	left: 50%;
+	top: 24px;
+	transform: translateX(-50%);
+}
+
+.blocklane-popup--bottom-center {
+	bottom: 24px;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.blocklane-popup--center-left {
+	left: 24px;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+.blocklane-popup--center-right {
+	right: 24px;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+/* The dialog shrink-wraps its blocks: size a popup with the outermost
+   block's own width settings (a group's content width, a fixed-width
+   cover, ...) — no popup-level width setting to fight the block editor.
+   FULLY transparent: any dialog surface of our own would peek through a
+   designed group's rounded corners. The popup's background is the outermost
+   block's background — design popups with a background group. */
+.blocklane-popup__dialog {
+	max-height: min(90vh, 100%);
+	max-width: 100%;
+	overflow: auto;
+	position: relative;
+	width: fit-content;
+}
+
+/* Center modals mirror the editor canvas: blocks lay out at the theme's
+   content width there, so the dialog does too — what you design is what
+   opens. Corner slide-ins stay shrink-wrapped (toast semantics). */
+.blocklane-popup--center .blocklane-popup__dialog {
+	width: min(var(--wp--style--global--content-size, 40rem), 100%);
+
+	/* The dialog is content-width but invisible: a designed card can be
+	   narrower, leaving transparent gutters. Let clicks in those gutters
+	   fall through to the overlay so outside-click dismiss still works;
+	   the content and close button re-enable their own hits below. */
+	pointer-events: none;
+}
+
+.blocklane-popup__content,
+.blocklane-popup__close {
+	pointer-events: auto;
+}
+
+/* Core's flow-layout first/last-child margin reset is emitted only when the
+   theme supports blockGap; classic themes get is-layout-flow with no such
+   rule, so the first block's theme top margin would reopen as a transparent
+   gap above the now-chromeless card (and the last block's bottom margin
+   below it). Re-establish the reset here — the inter-block margins that make
+   up the flow rhythm are untouched. */
+.blocklane-popup__content > :first-child {
+	margin-block-start: 0;
+}
+
+.blocklane-popup__content > :last-child {
+	margin-block-end: 0;
+}
+
+.blocklane-popup__dialog:focus {
+	outline: none;
+}
+
+.blocklane-popup__close {
+	align-items: center;
+	background: rgba(255, 255, 255, 0.9);
+	border: none;
+	border-radius: 50%;
+	color: #1e1e1e;
+	cursor: pointer;
+	display: flex;
+	height: 32px;
+	justify-content: center;
+	padding: 0;
+	position: absolute;
+	right: 8px;
+	top: 8px;
+	width: 32px;
+	z-index: 1;
+}
+
+.blocklane-popup__close:hover {
+	background: #fff;
+}
+
+.blocklane-popup__close:focus-visible {
+	outline: 2px solid currentcolor;
+	outline-offset: 2px;
+}
+
+/* Cover openers: a single overlay <button> is the opener (ARIA-correct — no
+   role="button" wrapping the cover's interactive inner blocks). It's the first
+   child of the inner-container and fills it; the cover's own controls are
+   lifted above it so they keep working, while clicks on the background or text
+   open the popup. Living inside the inner-container keeps the button in the
+   content's own stacking context — no fight with core's cover z-index rules. */
+.blocklane-popup-cover-opener__trigger {
+	appearance: none;
+	background: transparent;
+	border: 0;
+	cursor: pointer;
+	height: 100%;
+	inset: 0;
+	margin: 0;
+	padding: 0;
+	position: absolute;
+	width: 100%;
+	z-index: 0;
+}
+
+.blocklane-popup-cover-opener__trigger:focus-visible {
+	outline: 2px solid #fff;
+	outline-offset: -4px;
+}
+
+/* The absolute trigger is the inner-container's first child, so core's flow
+   ":first-child" reset (a zero-specificity :where() rule) now lands on it
+   instead of the first visible block — restore the reset on the real one. */
+.blocklane-popup-cover-opener__trigger + * {
+	margin-block-start: 0;
+}
+
+/* Keep the cover's own interactive controls clickable above the overlay. */
+.blocklane-popup-cover-opener a[href],
+.blocklane-popup-cover-opener button:not(.blocklane-popup-cover-opener__trigger),
+.blocklane-popup-cover-opener input:not([type="hidden"]),
+.blocklane-popup-cover-opener select,
+.blocklane-popup-cover-opener textarea,
+.blocklane-popup-cover-opener [tabindex]:not([tabindex="-1"]) {
+	position: relative;
+	z-index: 1;
+}

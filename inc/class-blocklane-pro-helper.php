@@ -1,0 +1,715 @@
+<?php
+/**
+ * Helper: theme.json runtime layering, child theme generator.
+ *
+ * @package blocklane_pro
+ */
+
+namespace blocklane_pro;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+class Helper {
+
+	private static $instance = null;
+
+	public static function get_instance() {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+
+		return self::$instance;
+	}
+
+	public function __construct() {}
+
+	/**
+	 * Generate and activate a child theme of the active FSE parent theme.
+	 *
+	 * Copies the bundled child-theme template, rewrites its style.css header from
+	 * the submitted details, and switches the active theme to the new child.
+	 *
+	 * @param array $data themeName (required), themeUrl, description, author,
+	 *                    authorUrl, version, textDomain.
+	 * @return array{imported: bool|null, headers: array<string, string>}|\WP_Error The import result and the
+	 *         style.css header values as written on success, WP_Error (with a status) on failure.
+	 */
+	public static function create_child_theme( $data ) {
+		$template_dir = BLOCKLANE_PRO_PATH . '/inc/child-theme';
+		$parent_dir   = get_template_directory();
+		$themes_dir   = dirname( $parent_dir );
+
+		$theme_slug = ! empty( $data['textDomain'] ) ? sanitize_title( $data['textDomain'] ) : sanitize_title( $data['themeName'] );
+
+		// An empty slug would resolve to the themes root directory.
+		if ( '' === $theme_slug ) {
+			return new \WP_Error(
+				'blocklane_pro_child_theme_invalid_name',
+				__( 'Please use a theme name (or text domain) that contains letters or numbers.', 'blocklane' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Never write into the parent theme or over any existing theme.
+		if ( $theme_slug === basename( $parent_dir ) ) {
+			return new \WP_Error(
+				'blocklane_pro_child_theme_parent_collision',
+				__( 'That matches the parent theme. Choose a different name or text domain.', 'blocklane' ),
+				array( 'status' => 409 )
+			);
+		}
+
+		// Use the WP Filesystem API rather than raw file calls. Force the
+		// 'direct' transport: this is a server-side REST action with no UI to
+		// collect FTP/SSH credentials, so direct is the only workable method.
+		global $wp_filesystem;
+		$force_direct = static function () {
+			return 'direct';
+		};
+		add_filter( 'filesystem_method', $force_direct );
+		// A REST request does not load the admin file functions.
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		$fs_ready = WP_Filesystem();
+		remove_filter( 'filesystem_method', $force_direct );
+
+		if ( ! $fs_ready ) {
+			return new \WP_Error(
+				'blocklane_pro_child_theme_filesystem',
+				__( 'Could not access the filesystem to create the theme.', 'blocklane' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		$child_dir = $themes_dir . '/' . $theme_slug;
+
+		// Collision check against the filesystem (the source of truth) rather
+		// than wp_get_theme()->exists(), whose cache can wrongly report a
+		// just-deleted theme as still present. Catches existing themes AND
+		// leftover directories, so we never overwrite or leave partial files.
+		clearstatcache( true, $child_dir );
+		if ( $wp_filesystem->is_dir( $child_dir ) ) {
+			return new \WP_Error(
+				'blocklane_pro_child_theme_exists',
+				__( 'A theme with this slug already exists. Choose a different name or text domain.', 'blocklane' ),
+				array( 'status' => 409 )
+			);
+		}
+
+		if ( ! $wp_filesystem->mkdir( $child_dir ) ) {
+			return new \WP_Error(
+				'blocklane_pro_child_theme_mkdir',
+				__( 'Could not create the theme directory.', 'blocklane' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		$style = $wp_filesystem->get_contents( $template_dir . '/style.css' );
+		if ( false === $style ) {
+			self::remove_generated_dir( $child_dir );
+			return new \WP_Error(
+				'blocklane_pro_child_theme_template',
+				__( 'Could not read the child theme template.', 'blocklane' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		// Rewrite each header line. Values are inserted via a callback so they're
+		// treated literally — never as preg_replace backreferences ($1, \1, …).
+		// A blank optional field takes its value from child_theme_fallbacks(),
+		// the one source the form's placeholders are localized from too.
+		$fallback = self::child_theme_fallbacks();
+		$headers  = array(
+			'Theme Name'  => $data['themeName'],
+			'Template'    => get_template(),
+			'Theme URI'   => ! empty( $data['themeUrl'] ) ? $data['themeUrl'] : $fallback['Theme URI'],
+			'Description' => ! empty( $data['description'] ) ? $data['description'] : $fallback['Description'],
+			'Author'      => ! empty( $data['author'] ) ? $data['author'] : $fallback['Author'],
+			'Author URI'  => ! empty( $data['authorUrl'] ) ? $data['authorUrl'] : $fallback['Author URI'],
+			'Version'     => ! empty( $data['version'] ) ? $data['version'] : $fallback['Version'],
+			'Text Domain' => ! empty( $data['textDomain'] ) ? $data['textDomain'] : $fallback['Text Domain'],
+		);
+
+		foreach ( $headers as $label => $value ) {
+			// Every value, typed or fallback, goes through style_header_value()
+			// here, the one door between a value and the file: it makes the
+			// value one line and closes no comment. The cleaned value is what
+			// the response reports, so the summary shows what was written.
+			$value             = self::style_header_value( (string) $value );
+			$headers[ $label ] = $value;
+			// Anchor to the start of the header line (^…$/m) so a value that happens
+			// to contain another header label can't hijack a later replacement.
+			$style = preg_replace_callback(
+				'/^' . preg_quote( $label, '/' ) . ':.*$/m',
+				static function () use ( $label, $value ) {
+					return $label . ': ' . $value;
+				},
+				$style,
+				1
+			);
+		}
+
+		// Write the files; on any failure remove what we created. The child
+		// ships the bundled branded screenshot ("Blocklane Child Theme").
+		$written = $wp_filesystem->put_contents( $child_dir . '/style.css', $style )
+			&& $wp_filesystem->copy( $template_dir . '/functions.php', $child_dir . '/functions.php' )
+			&& $wp_filesystem->copy( $template_dir . '/screenshot.png', $child_dir . '/screenshot.png' );
+
+		if ( ! $written ) {
+			self::remove_generated_dir( $child_dir );
+			return new \WP_Error(
+				'blocklane_pro_child_theme_write',
+				__( 'Could not write the child theme files. Check theme directory permissions.', 'blocklane' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		// Optionally bake the source theme's Site Editor customizations into the
+		// child's files (global styles -> theme.json, edited templates/parts ->
+		// HTML) so the child reproduces the customized look.
+		$imported = null;
+		if ( ! empty( $data['importCustomizations'] ) ) {
+			$imported = (bool) Child_Theme_Import::export( Child_Theme_Import::resolve_source(), $theme_slug, $child_dir );
+		}
+
+		// Only activate once WordPress recognizes it as a valid theme.
+		wp_clean_themes_cache();
+		if ( ! wp_get_theme( $theme_slug )->exists() ) {
+			self::remove_generated_dir( $child_dir );
+			return new \WP_Error(
+				'blocklane_pro_child_theme_invalid',
+				__( 'The generated theme could not be validated.', 'blocklane' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		switch_theme( $theme_slug );
+
+		// Headers included so the UI can show the values actually written
+		// (blank optional fields resolve server-side; see $headers above).
+		return array(
+			'imported' => $imported,
+			'headers'  => $headers,
+		);
+	}
+
+	/**
+	 * What generation writes for each style.css header the form leaves blank.
+	 *
+	 * The one source for those values: create_child_theme() falls back to
+	 * them, the REST controller takes a blank theme name from here, and the
+	 * dashboard localizes them as the form's placeholders, so a placeholder
+	 * always shows the header that will be written, in any admin language.
+	 * They are plain literals on purpose: the header is written in English
+	 * whatever the admin's locale, so the placeholder is too (#2146).
+	 *
+	 * Blank fields fall back to THIS SITE and the active parent, never to
+	 * Blocklane: the child theme belongs to whoever generated it, and a
+	 * style.css that credits the plugin vendor is wrong on any theme.
+	 *
+	 * Every value built from stored or display text is decoded once, here:
+	 * core saves the site title through esc_html(), and WP_Theme reads its
+	 * headers through wp_kses(), which writes a bare & as &amp;. Undecoded,
+	 * "Joe's Pizza" reached the placeholder (a nested localized value, which
+	 * wp_localize_script() does not decode) and the header as "Joe&#039;s
+	 * Pizza". wp_specialchars_decode() undoes exactly what esc_html() encodes
+	 * (& < > " '), never a numeric entity such as a newline. The decoded text
+	 * stays text in the form, where the screen sets it as an attribute value.
+	 * It is not yet safe to write: a stored site title can hold a raw line
+	 * break, which esc_html() keeps. create_child_theme()'s header loop makes
+	 * every value one line through style_header_value(), and the dashboard
+	 * localizes the placeholders through the same function, so a placeholder
+	 * still shows what is written. WP_Theme sanitizes a header VALUE when it
+	 * reads one; it never sees a line boundary, so it is no guard against a
+	 * planted line.
+	 *
+	 * @return array{'Theme Name': string, 'Theme URI': string, Description: string, Author: string, 'Author URI': string, Version: string, 'Text Domain': string}
+	 */
+	public static function child_theme_fallbacks(): array {
+		$parent = wp_get_theme( get_template() );
+		$name   = self::theme_display_name( get_template() );
+		$site   = wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES );
+		$author = wp_specialchars_decode( (string) $parent->get( 'Author' ), ENT_QUOTES );
+
+		return array(
+			'Theme Name'  => $name . ' Child',
+			'Theme URI'   => home_url(),
+			'Description' => sprintf( 'A child theme of %s.', $name ),
+			'Author'      => '' !== $site ? $site : $author,
+			'Author URI'  => home_url(),
+			'Version'     => '1.0.0',
+			'Text Domain' => get_template() . '-child',
+		);
+	}
+
+	/**
+	 * A theme's name as plain text: the one reader of a theme's display name
+	 * for the Child Theme tool. WP_Theme reads the Name header through
+	 * wp_kses(), which writes a bare & as &amp;; this undoes exactly that, so
+	 * the fallbacks and the customizations endpoint name a theme alike.
+	 *
+	 * @param string $stylesheet The theme's directory name.
+	 */
+	public static function theme_display_name( string $stylesheet ): string {
+		return wp_specialchars_decode( (string) wp_get_theme( $stylesheet )->get( 'Name' ), ENT_QUOTES );
+	}
+
+	/**
+	 * A style.css header value as the generator writes it: one line that
+	 * cannot close the header comment.
+	 *
+	 * Header values live on one line each inside the style.css comment, and
+	 * get_file_data() reads the FIRST line that starts with a label, so a
+	 * value carrying a line break could plant a header above the real one
+	 * ("Acme" LF "Template: other" names another parent). Every run of CR
+	 * and LF, with the spaces and tabs around it, becomes one space, the way
+	 * _sanitize_text_fields() collapses whitespace. The comment terminator
+	 * (an asterisk, then a slash) would end the comment early, so it is
+	 * removed until none is left: one str_replace() pass can re-form it from
+	 * two asterisks and two slashes.
+	 *
+	 * @param string $value A header value, typed or fallback.
+	 */
+	public static function style_header_value( string $value ): string {
+		$value = (string) preg_replace( '/[\t ]*[\r\n]+[\t ]*/', ' ', $value );
+		while ( false !== strpos( $value, '*/' ) ) {
+			$value = str_replace( '*/', '', $value );
+		}
+		return $value;
+	}
+
+	/**
+	 * Best-effort cleanup of a directory created during child-theme generation.
+	 * Only ever called for a directory this run just created (generation bails
+	 * earlier if the directory already existed).
+	 *
+	 * @param string $dir Absolute directory path.
+	 */
+	private static function remove_generated_dir( $dir ) {
+		global $wp_filesystem;
+
+		if ( $wp_filesystem && $wp_filesystem->is_dir( $dir ) ) {
+			$wp_filesystem->delete( $dir, true );
+		}
+	}
+
+	/**
+	 * Recursively drop empty-array members from a decoded global-styles
+	 * (user theme.json) doc before it is re-encoded.
+	 *
+	 * Gutenberg leaves empty {} objects behind when styles are cleared in
+	 * the editor. json_decode( $json, true ) turns those into empty PHP
+	 * arrays, which wp_json_encode() emits as [] — and Gutenberg's deepmerge
+	 * treats [] as non-mergeable, clobbering the corresponding theme subtree
+	 * (the {}-vs-[] deepmerge poison). Every writer that round-trips the
+	 * wp_global_styles post content MUST pass the decoded doc through here
+	 * at encode time.
+	 *
+	 * @param array $data Decoded user theme.json data.
+	 * @return array The same data with all recursively-empty arrays removed.
+	 */
+	public static function prune_empty_deep( array $data ): array {
+		foreach ( $data as $key => $value ) {
+			if ( is_array( $value ) ) {
+				$data[ $key ] = self::prune_empty_deep( $value );
+				if ( array() === $data[ $key ] ) {
+					unset( $data[ $key ] );
+				}
+			}
+		}
+		return $data;
+	}
+
+	/**
+	 * The doors that count attempts per client, each with the filter name it
+	 * read before the shared one (deprecated in 1.0.2, applied after the
+	 * shared filter for its own door only), or '' for none. A door is named
+	 * here once; client_address() refuses any other.
+	 */
+	private const CLIENT_DOORS = array(
+		'forms'     => 'blocklane_pro_forms_client_ip',
+		'site-lock' => '',
+		'login'     => 'blocklane_pro_login_client_ip',
+	);
+
+	/**
+	 * The ONE reading of a client's address (#1953), for every public door
+	 * that counts attempts per client — the forms rate limiter and
+	 * Turnstile's remoteip, the site-lock unlock throttle, the login
+	 * throttle — and the only read of REMOTE_ADDR in the shipped code
+	 * (PHPStan blocklane.chokepointMember on $_SERVER['REMOTE_ADDR']; the
+	 * forwarding headers, which a client can spoof, may be read nowhere).
+	 *
+	 * REMOTE_ADDR, then the `blocklane_pro_client_ip` filter, ALWAYS, with
+	 * the door's name: a site behind a CDN or reverse proxy returns the real
+	 * visitor address there once, for every door. Before 1.0.2 each door
+	 * passed its own filter name and the site-lock door passed none, so a
+	 * site behind a proxy could not fix that door at all; a per-caller filter
+	 * argument that a caller may omit is a second door, so there is no such
+	 * argument now. A door's own older filter (forms, login) still applies,
+	 * after the shared one, through apply_filters_deprecated().
+	 *
+	 * @param string $door 'forms', 'site-lock' or 'login'.
+	 * @return string The address, '' when the request carries none.
+	 * @throws \LogicException For a door CLIENT_DOORS does not name.
+	 */
+	public static function client_address( string $door ): string {
+		if ( ! array_key_exists( $door, self::CLIENT_DOORS ) ) {
+			// esc_html + brackets, as Edition::has(): a door name is a slug,
+			// so the escape changes nothing a developer reads.
+			throw new \LogicException(
+				esc_html( 'Blocklane: unknown client-address door [' . $door . ']; the doors are ' . implode( ', ', array_keys( self::CLIENT_DOORS ) ) . '.' )
+			);
+		}
+		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+		/**
+		 * Filters the visitor address the plugin's per-client limits key on:
+		 * the contact form limit (and the address sent to Turnstile), the
+		 * Coming Soon password limit and the login limit. Behind a CDN or a
+		 * reverse proxy, return the real visitor address from the header
+		 * that proxy sets and you trust; X-Forwarded-For is never read here.
+		 *
+		 * @since 1.0.2
+		 *
+		 * @param string $ip   REMOTE_ADDR, sanitized.
+		 * @param string $door 'forms', 'site-lock' or 'login'.
+		 */
+		$ip     = (string) apply_filters( 'blocklane_pro_client_ip', $ip, $door );
+		$legacy = self::CLIENT_DOORS[ $door ];
+		if ( '' !== $legacy ) {
+			$ip = (string) apply_filters_deprecated( $legacy, array( $ip ), '1.0.2', 'blocklane_pro_client_ip' );
+		}
+		return $ip;
+	}
+
+	/**
+	 * The ONE derivation of a per-client throttle key (spec 2026-10-06 §4.3,
+	 * F3), for every public door that counts attempts per client: the forms
+	 * rate limiter, the site-lock unlock throttle and the login throttle.
+	 * Before it, three doors each derived their own and only the login
+	 * throttle collapsed IPv6 to its /64 — so the two public forms could be
+	 * sidestepped by rotating addresses inside one routed prefix, and each
+	 * rotation wrote an options row.
+	 *
+	 * The door's client_address() (REMOTE_ADDR and the shared filter), then
+	 * IPv6 collapsed to its /64 network, then an HMAC with the auth salt, so
+	 * the key names no address and cannot be guessed.
+	 *
+	 * With no address: null, which the forms limiter reads as "cannot count,
+	 * allow" (unchanged); a door that must keep counting passes
+	 * $count_unknown and gets one fixed bucket every address-less request
+	 * shares, so its lockout still engages.
+	 *
+	 * @param string $prefix        The door's transient prefix.
+	 * @param string $door          The door's name in client_address().
+	 * @param bool   $count_unknown Whether a request with no address shares one bucket (true) or gets no key (false).
+	 */
+	public static function client_key( string $prefix, string $door, bool $count_unknown = false ): ?string {
+		$ip = self::client_address( $door );
+		if ( '' === $ip ) {
+			return $count_unknown ? $prefix . hash_hmac( 'sha256', 'no-address', wp_salt( 'auth' ) ) : null;
+		}
+		return $prefix . hash_hmac( 'sha256', self::ip_bucket( $ip ), wp_salt( 'auth' ) );
+	}
+
+	/**
+	 * Collapse an IPv6 address to its /64 network prefix (anything else,
+	 * IPv4 included, returned unchanged), so a per-client throttle can't be
+	 * sidestepped by rotating addresses within a routed prefix.
+	 */
+	private static function ip_bucket( string $ip ): string {
+		$packed = inet_pton( $ip );
+		if ( false === $packed || 16 !== strlen( $packed ) ) {
+			return $ip;
+		}
+		$back = inet_ntop( substr( $packed, 0, 8 ) . str_repeat( "\0", 8 ) );
+		return false !== $back ? $back . '/64' : $ip;
+	}
+
+	/**
+	 * THE attempt meter (spec 2026-10-12, atomic throttle door): counts one
+	 * attempt for a client and decides it, in one step the database applies
+	 * atomically. Every per-client limit goes through it: the contact form
+	 * limit, the login limit and the Coming Soon password limit. A limit is
+	 * atomic only when the DECISION is the increment's own result, so this
+	 * method returns a verdict, never a count, and no caller can read a count:
+	 * a window's row is named for a start only this method computes.
+	 *
+	 * Windows are fixed and aligned to the clock: the window holding now
+	 * starts at now - ( now % $window ), and each window is its own row, so a
+	 * new window is a new row and no count is ever reset in place.
+	 *
+	 * The guarantee: on one database, at most $limit calls per ( $key, window )
+	 * return true, under any interleaving. Outside it:
+	 * - Clock windows: up to 2 x $limit attempts can land in any $window
+	 *   seconds that straddle a window boundary.
+	 * - Clock skew between web servers below one window: a server ahead of
+	 *   the others opens the next window early, and the previous window keeps
+	 *   its count (a new window's creator never removes it), so the bound at
+	 *   a boundary is still 2 x $limit. A request stalled for longer than one
+	 *   window between reading the clock and counting is the same case as
+	 *   skew of a window or more: its window may already have been removed,
+	 *   and it claims that window again at 0.
+	 * - A persistent object cache: the cache branch is atomic only where the
+	 *   backend's wp_cache_incr() is (Redis, Memcached); a drop-in that
+	 *   increments as get + set carries its own race, and an eviction under
+	 *   memory pressure starts the window over. A backend whose increment
+	 *   creates a missing key can recreate an evicted window with no expiry;
+	 *   the name carries the window's start, so no later window reads it.
+	 * - Logging: a statement that fails is logged by WordPress's database
+	 *   class (wpdb::print_error()) with its query text. The row name in it
+	 *   is the key, an HMAC of the client's address bucket (an IPv6 address's
+	 *   /64), so it names no address.
+	 * - Resets: reset_attempts() is the caller's authority (a correct
+	 *   password), not the meter's.
+	 *
+	 * The database branch, without a persistent object cache:
+	 * 1. INSERT IGNORE claims the window's row at 0. It never overwrites a row
+	 *    another request created (add_option() is INSERT ... ON DUPLICATE KEY
+	 *    UPDATE, and would reset the count). It can answer 0 on an error it
+	 *    swallowed; step 4 covers that, since no row is a WP_Error. An ignored
+	 *    insert spends one auto-increment id on InnoDB, which is harmless.
+	 * 2. The request that created the row adds its expiry row, so WordPress's
+	 *    daily expired-transient cleanup removes a window nobody returns to.
+	 * 3. One UPDATE adds 1 only while the count is below the limit, and the
+	 *    number of rows it changed is the verdict. MySQL and MariaDB apply it
+	 *    under the row's write lock; SQLite serializes every writer. The + 0
+	 *    makes the compare numeric on SQLite, where a text value compared with
+	 *    a number compares as text ('9' is not below '12').
+	 * 4. Only when the UPDATE changed nothing: a SELECT tells a spent window
+	 *    (false) from a row that is gone, for example under a concurrent
+	 *    reset. A row that is gone is claimed again ONCE; gone twice, or any
+	 *    statement that fails, is a WP_Error.
+	 * The request that created the window then removes this key's windows
+	 * older than the previous one, after its verdict, so cleanup never
+	 * delays a decision. The rows are transient-shaped and named
+	 * _transient_<key>_<start>, so uninstall's transient sweeps cover them.
+	 *
+	 * @param string $key    The client's key (Helper::client_key()), 1 to 140 bytes.
+	 * @param int    $limit  Attempts allowed per window, at least 1.
+	 * @param int    $window The window in seconds, at least 1.
+	 * @return bool|\WP_Error True: counted and within the limit. False: the
+	 *                        window's limit is spent and nothing was counted.
+	 *                        WP_Error blocklane_pro_attempts_unavailable: the
+	 *                        meter could not count; the caller decides.
+	 * @throws \LogicException An empty or over-long key, or a limit or window below 1.
+	 */
+	public static function reserve_attempt( string $key, int $limit, int $window ): bool|\WP_Error {
+		if ( '' === $key || strlen( $key ) > 140 || $limit < 1 || $window < 1 ) {
+			throw new \LogicException( esc_html( 'Blocklane: reserve_attempt() needs a key of 1 to 140 bytes and a limit and a window of at least 1.' ) );
+		}
+		$now   = time();
+		$start = $now - ( $now % $window );
+		$name  = $key . '_' . $start;
+
+		if ( wp_using_ext_object_cache() ) {
+			wp_cache_add( $name, 0, 'transient', $start + $window - $now );
+			$count = wp_cache_incr( $name, 1, 'transient' );
+			if ( false === $count ) {
+				return self::attempts_unavailable();
+			}
+			return $count <= $limit;
+		}
+
+		global $wpdb;
+		$row = '_transient_' . $name;
+		for ( $try = 0; $try < 2; $try++ ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the window's claim: INSERT IGNORE never overwrites a row another request created (add_option() is INSERT ... ON DUPLICATE KEY UPDATE and would reset the count); a cached read would defeat it.
+			$created = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$wpdb->options} ( option_name, option_value, autoload ) VALUES ( %s, '0', 'off' )", $row ) );
+			if ( false === $created ) {
+				return self::attempts_unavailable();
+			}
+			if ( $created > 0 ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the window's expiry, so WordPress's expired-transient cleanup removes a window nobody returns to.
+				$wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$wpdb->options} ( option_name, option_value, autoload ) VALUES ( %s, %s, 'off' )", '_transient_timeout_' . $name, (string) ( $start + $window ) ) );
+			}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the count and the decision in one statement: the database adds 1 only while the count is below the limit, and the number of rows it changed is the verdict.
+			$counted = $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->options} SET option_value = option_value + 1 WHERE option_name = %s AND option_value + 0 < %d", $row, $limit ) );
+			if ( $created > 0 ) {
+				self::forget_windows( $key, $start - $window );
+			}
+			if ( false === $counted ) {
+				return self::attempts_unavailable();
+			}
+			if ( $counted > 0 ) {
+				return true;
+			}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- a spent window told apart from a row that is gone; the options cache does not hold this row.
+			$present = $wpdb->get_var( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name = %s", $row ) );
+			if ( null !== $present ) {
+				return false;
+			}
+		}
+		return self::attempts_unavailable();
+	}
+
+	/**
+	 * Clear a client's count: every window of $key. The caller's authority (a
+	 * correct password), never the meter's; see reserve_attempt().
+	 *
+	 * @param string $key    The client's key.
+	 * @param int    $window The window reserve_attempt() counts in.
+	 */
+	public static function reset_attempts( string $key, int $window ): void {
+		if ( wp_using_ext_object_cache() ) {
+			$now = time();
+			wp_cache_delete( $key . '_' . ( $now - ( $now % max( 1, $window ) ) ), 'transient' );
+			return;
+		}
+		self::forget_windows( $key, PHP_INT_MAX );
+	}
+
+	/**
+	 * Remove this key's windows whose start is below $before, through the
+	 * transient API (it removes the pair and the options cache). A new
+	 * window's creator passes the previous window's start, so the previous
+	 * window keeps its count: a request still counting there is refused by
+	 * it, never readmitted at 0. Names after the key that are not a window
+	 * start (another key that begins with this one) are left alone.
+	 *
+	 * @param string $key    The client's key.
+	 * @param int    $before Remove windows that start before this time.
+	 */
+	private static function forget_windows( string $key, int $before ): void {
+		global $wpdb;
+		$prefix = '_transient_' . $key . '_';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- this key's windows by name prefix; no core API lists options by prefix.
+		$rows = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s LIMIT 20", $wpdb->esc_like( $prefix ) . '%' ) );
+		foreach ( $rows as $row ) {
+			$start = substr( (string) $row, strlen( $prefix ) );
+			if ( ctype_digit( $start ) && (int) $start < $before ) {
+				delete_transient( substr( (string) $row, strlen( '_transient_' ) ) );
+			}
+		}
+	}
+
+	/**
+	 * The meter's one failure value.
+	 */
+	private static function attempts_unavailable(): \WP_Error {
+		return new \WP_Error( 'blocklane_pro_attempts_unavailable', 'The attempt counter could not be read or written.' );
+	}
+
+	/**
+	 * Autoload budget for a cache row the front end reads on every request.
+	 *
+	 * Autoloading is a genuine win while the payload is small — the row rides
+	 * alloptions and the read costs nothing. Past this size it inverts: every
+	 * request on the site (admin, REST, cron included, none of which read
+	 * these rows) pays the bytes. Rows over budget stay on-demand instead.
+	 *
+	 * This is the single source of truth for that threshold. Callers that
+	 * cannot reach this class — the runtimes, which stay free of plugin classes
+	 * so load order cannot trip them — carry their own guarded copies:
+	 * blocklane_pro_popups_autoload_ok() in inc/popups/runtime.php and
+	 * blocklane_pro_ext_autoload_ok() in inc/extensions/loader/runtime-helpers.php.
+	 * Keep the number in sync across all three.
+	 *
+	 * @param mixed $value The value about to be stored.
+	 * @return bool Whether the option should autoload.
+	 */
+	public static function autoload_ok( $value ) {
+		return strlen( maybe_serialize( $value ) ) < self::AUTOLOAD_MAX_BYTES;
+	}
+
+	/**
+	 * Byte ceiling for an autoloaded cache row. See autoload_ok().
+	 *
+	 * @var int
+	 */
+	const AUTOLOAD_MAX_BYTES = 32768;
+
+	/**
+	 * Merge a store's normalized next row over the RAW stored row, so keys this
+	 * build does not know survive the save.
+	 *
+	 * Both editions write one option namespace, and they are allowed to be at
+	 * different versions and to take turns being the one that runs (free wakes
+	 * when Pro is deactivated; a free build older than Pro is the ordinary
+	 * state, since directory review lags a Pro release). A store that rebuilds
+	 * its row from THIS build's key table therefore erases every key the newer
+	 * or larger edition added, silently, on its first save — the customer finds
+	 * out by reinstalling. The rule every store follows: a writer preserves what
+	 * it does not understand. Read the RAW row, never the store's get(): get()
+	 * normalizes to the known keys and has already dropped exactly the keys this
+	 * exists to keep. Read-time get() still returns known keys only — a
+	 * dashboard never sees, edits or echoes a foreign key.
+	 *
+	 * The closure of the guarantee, so nobody documents it wider: top-level
+	 * foreign keys are kept; inside a known key the merge recurses into exactly
+	 * one shape — a NON-EMPTY, all-string-keyed template (a map of settings, such
+	 * as seo.verification or forms.defaults) where both the next and the raw
+	 * value are arrays. A list template (reorder-post-types, org_profiles) and
+	 * an empty-map template (local_hours) are opaque: their members are values
+	 * the store owns, not keys, and the store's normalizer writes them whole. A
+	 * key that changes SHAPE or TYPE between versions must change NAME — a
+	 * carry-through cannot protect a key both editions claim.
+	 *
+	 * A stored value that is not a row at all (a string, an object — only
+	 * something outside the plugin writes that) is refused as a typed failure
+	 * and the caller writes nothing; paving it over would be the silently
+	 * emptied cache from the defect history. `false`, `''` and a missing row
+	 * are "no row" (WordPress stores `false` as `''`).
+	 *
+	 * @param string              $option Option name.
+	 * @param array<string,mixed> $next   The normalized row this build is about to write — known keys only.
+	 * @param array<string,mixed> $known  The template of keys this build owns (a DEFAULTS table or defaults()).
+	 * @return array<string,mixed>|\WP_Error The row to write, or blocklane_pro_option_unreadable when the stored value is not a row.
+	 */
+	public static function with_foreign_keys( string $option, array $next, array $known ): array|\WP_Error {
+		$raw = get_option( $option, null );
+		if ( null === $raw || false === $raw || '' === $raw ) {
+			return $next;
+		}
+		if ( ! is_array( $raw ) ) {
+			return new \WP_Error(
+				'blocklane_pro_option_unreadable',
+				sprintf( 'The stored value of %s is not a settings row; nothing was written. Inspect it with `wp option get %1$s`.', $option ),
+				array(
+					'status' => 500,
+					'option' => $option,
+				)
+			);
+		}
+		return self::merge_foreign( $next, $raw, $known );
+	}
+
+	/**
+	 * The merge behind with_foreign_keys(): $next wins on every key it names,
+	 * foreign keys ride along, and string-keyed map templates recurse.
+	 *
+	 * @param array<string,mixed> $next  Known keys, normalized.
+	 * @param array<mixed>        $raw   The stored row as read.
+	 * @param array<string,mixed> $known The template this level of the store owns.
+	 * @return array<string,mixed>
+	 */
+	private static function merge_foreign( array $next, array $raw, array $known ): array {
+		$out = $next + array_diff_key( $raw, $known );
+		foreach ( $known as $key => $template ) {
+			if ( ! is_array( $template ) || array() === $template || ! self::is_string_keyed( $template ) ) {
+				continue;
+			}
+			if ( isset( $next[ $key ] ) && is_array( $next[ $key ] ) && isset( $raw[ $key ] ) && is_array( $raw[ $key ] ) ) {
+				$out[ $key ] = self::merge_foreign( $next[ $key ], $raw[ $key ], $template );
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Whether every key of an array is a string — the "map, not list" test the
+	 * foreign-key merge recurses on.
+	 *
+	 * @param array<mixed> $value The array to test.
+	 * @return bool
+	 */
+	private static function is_string_keyed( array $value ): bool {
+		foreach ( array_keys( $value ) as $key ) {
+			if ( ! is_string( $key ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+}
