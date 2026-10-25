@@ -1,0 +1,166 @@
+{
+	"_comment": "Which Pro block attributes are COPY: text a reader or an editor sees, which a shipped pattern must offer for translation. Core's `role: \"content\"` is the editor's hint for content-only editing and pattern transforms, not a definition of copy (theme defect history, \"Copy defined by core's role flag\"), so every string attribute in an extension sidecar (inc/extensions/src/controls/*/attributes.json) and in a Pro block.json is classified here or carries the role. An attribute with the role needs no entry: the theme's capture and i18n gate read the role from the editor's and the server's block registries. `copy` lists copy WITHOUT the role, each with the reason the role is wrong for it; the theme's tools/lib/i18n-targets.mjs must name each one in BLOCK_COPY_ATTRIBUTES (and each `nested_copy` path), or capture ships it as a raw English literal. `not_copy` lists everything else, grouped by why. inc/extensions/src/copy-attributes.test.js fails an unclassified string attribute, a stale or doubled key, and a listed attribute that carries the role.",
+	"copy": [
+		{
+			"key": "controls/navigation-toggle/blocklaneToggleLabel",
+			"blocks": [ "core/navigation" ],
+			"why": "The menu button's visible label. No role: core/navigation is already a content block (supports.contentRole), and a role here would make pattern transforms keep this one attribute and drop the navigation's ref and every other setting (getRetainedBlockAttributes keeps only content-role attributes)."
+		},
+		{
+			"key": "blocklane-pro/mega-menu/description",
+			"blocks": [ "blocklane-pro/mega-menu" ],
+			"why": "The item's description line under its label. Core gives the navigation-submenu and navigation-link description no role either; the label carries it."
+		},
+		{
+			"key": "blocklane-pro/mega-menu/title",
+			"blocks": [ "blocklane-pro/mega-menu" ],
+			"why": "The link's title attribute, as on core's navigation-link and navigation-submenu, which carry no role for it."
+		},
+		{
+			"key": "blocklane/form/formName",
+			"blocks": [ "blocklane/form" ],
+			"why": "The form's name in the submissions screen and the notification email. No role on any blocklane/form attribute: form-contact declares blockTypes blocklane/form, and a role would make that pattern transform drop the form's id, recipients and settings."
+		},
+		{
+			"key": "blocklane/form/subject",
+			"blocks": [ "blocklane/form" ],
+			"why": "The notification email's subject line. No role, for the pattern-transform reason on formName."
+		},
+		{
+			"key": "blocklane/form/closedMessage",
+			"blocks": [ "blocklane/form" ],
+			"why": "The message a visitor reads when the form is closed. No role, for the pattern-transform reason on formName."
+		},
+		{
+			"key": "blocklane/form/uniqueMessage",
+			"blocks": [ "blocklane/form" ],
+			"why": "The message a visitor reads on a duplicate submission. No role, for the pattern-transform reason on formName."
+		}
+	],
+	"nested_copy": [
+		{
+			"block": "blocklane/form",
+			"path": [ "autoResponder", "subject" ],
+			"why": "The auto-reply's subject line, which the visitor reads."
+		},
+		{
+			"block": "blocklane/form",
+			"path": [ "autoResponder", "message" ],
+			"why": "The auto-reply's body, which the visitor reads."
+		}
+	],
+	"not_copy": [
+		{
+			"why": "A URL, a link target or a link kind.",
+			"keys": [
+				"controls/advanced-group/href",
+				"controls/advanced-group/linkDestination",
+				"controls/advanced-group/linkTarget",
+				"controls/transparent-header/blocklaneProTransparentLogo",
+				"controls/video-modal/blocklaneProVideoUrl",
+				"blocklane/form/redirectUrl",
+				"blocklane-pro/mega-menu/url",
+				"blocklane-pro/mega-menu/collapsedUrl"
+			]
+		},
+		{
+			"why": "A CSS length, a preset reference or a color value.",
+			"keys": [
+				"controls/advanced-group/stickyScrollOffset",
+				"controls/advanced-group/blocklaneProMaxWidth",
+				"controls/advanced-tabs/blocklaneProTabDescriptionFontSize",
+				"controls/button-icons/iconColor",
+				"controls/button-icons/customIconColor",
+				"controls/button-icons/iconSize",
+				"controls/button-icons/iconSpacing",
+				"controls/hover-color/hoverTextColor",
+				"controls/hover-color/customHoverTextColor",
+				"controls/hover-color/hoverBackgroundColor",
+				"controls/hover-color/customHoverBackgroundColor",
+				"controls/hover-color/hoverBorderColor",
+				"controls/hover-color/customHoverBorderColor",
+				"controls/hover-color/hoverTransitionTiming",
+				"controls/transparent-header/blocklaneProThBackground",
+				"controls/transparent-header/blocklaneProTransparentTopOffset",
+				"controls/transparent-header/blocklaneProTransparentBackground",
+				"controls/transparent-header/blocklaneProTransparentTextColor",
+				"controls/transparent-header/blocklaneProThSolidBackground",
+				"controls/transparent-header/blocklaneProTransparentHoverColor",
+				"controls/transparent-header/blocklaneProTransparentCurrentColor",
+				"controls/transparent-header/blocklaneProTransparentIconColor",
+				"controls/transparent-header/blocklaneProTransparentIconBackground",
+				"blocklane/carousel-controls/arrowColor",
+				"blocklane/carousel-controls/dotColor",
+				"blocklane/carousel-controls/buttonTextColor",
+				"blocklane/carousel-controls/buttonBackgroundColor",
+				"blocklane/carousel-controls/buttonFontSize",
+				"blocklane-pro/site-password/buttonBackground",
+				"blocklane-pro/site-password/buttonTextColor",
+				"blocklane-pro/site-password/buttonBorderRadius"
+			]
+		},
+		{
+			"why": "A choice from a fixed set of tokens the code reads, never shown as text.",
+			"keys": [
+				"controls/advanced-tabs/blocklaneProTabListPosition",
+				"controls/advanced-tabs/blocklaneProTabListVerticalAlignment",
+				"controls/animation/animationType",
+				"controls/animation/animationPresetId",
+				"controls/button-icons/icon",
+				"controls/button-icons/iconWeight",
+				"controls/navigation-toggle/blocklaneToggleIcon",
+				"controls/navigation-toggle/blocklaneToggleStyle",
+				"controls/paragraph-hover-decoration/textDecorationHover",
+				"controls/scroll-motion/blocklaneProScrollMotionMode",
+				"controls/scroll-motion/blocklaneProScrollMotionAxis",
+				"controls/text-wrap/textWrap",
+				"controls/video-modal/blocklaneProVideoSource",
+				"controls/video-modal/blocklaneProPlayIcon",
+				"blocklane/carousel-controls/navType",
+				"blocklane/carousel-controls/justifyContent",
+				"blocklane/carousel-controls/arrowIcon",
+				"blocklane/carousel-controls/arrowIconWeight",
+				"blocklane/carousel-track/sourceType",
+				"blocklane/carousel-track/autoplayStyle",
+				"blocklane/carousel-track/fadeOutEdges",
+				"blocklane/form-group/type",
+				"blocklane/form-input/type",
+				"blocklane/form-input/autocomplete",
+				"blocklane/form-notification/type",
+				"blocklane/form/successAction",
+				"blocklane-pro/mega-menu/menuSlug",
+				"blocklane-pro/mega-menu/justifyMenu",
+				"blocklane-pro/mega-menu/panelAnimation",
+				"blocklane-pro/mega-menu/width"
+			]
+		},
+		{
+			"why": "SVG markup, drawn and never read as text.",
+			"keys": [
+				"controls/button-icons/customIconSvg",
+				"blocklane/carousel-controls/customArrowSvg"
+			]
+		},
+		{
+			"why": "What the form submits or checks: a field name, a submitted value, a prefill a hidden field uses as a token, a bound, an id, an address list or a date. Translating it changes what the form sends.",
+			"keys": [
+				"blocklane/form-file/name",
+				"blocklane/form-group/name",
+				"blocklane/form-input/name",
+				"blocklane/form-input/defaultValue",
+				"blocklane/form-input/min",
+				"blocklane/form-input/max",
+				"blocklane/form-input/step",
+				"blocklane/form-option/value",
+				"blocklane/form-select/name",
+				"blocklane/form-textarea/name",
+				"blocklane/form-textarea/defaultValue",
+				"blocklane/form/formId",
+				"blocklane/form/recipients",
+				"blocklane/form/scheduleStart",
+				"blocklane/form/scheduleEnd",
+				"blocklane/form/uniqueField"
+			]
+		}
+	]
+}

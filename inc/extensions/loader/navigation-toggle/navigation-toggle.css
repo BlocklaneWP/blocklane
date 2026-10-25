@@ -1,0 +1,45 @@
+/**
+ * Menu Button: the navigation toggle's icon and label side by side.
+ *
+ * The button look is the theme's own (wp-element-button); this sheet only
+ * lines the icon and the label up and keeps the label on one line.
+ */
+
+.wp-block-navigation__responsive-container-open.blocklane-navigation-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5em;
+}
+
+/* Core fills the toggle's SVG; these icons are drawn with strokes. */
+.wp-block-navigation__responsive-container-open .blocklane-navigation-toggle__icon {
+	flex: none;
+	fill: none;
+	inline-size: 24px;
+	block-size: 24px;
+}
+
+.blocklane-navigation-toggle__label {
+	line-height: 1.2;
+	white-space: nowrap;
+}
+
+/*
+ * On a dark ground the theme's filled button (accent-1) all but vanishes,
+ * so there it is the base color with contrast text. A dark ground is one
+ * WordPress or the theme marks as dark: a cover core did not mark light, a
+ * block whose text is the base color, or the Brand, Deep and Inverse
+ * section styles. :where() keeps this at the toggle's own specificity, so
+ * a container that styles the toggle (a site's own toolbar, say) still
+ * wins. Elsewhere the button is unchanged.
+ */
+:where(.wp-block-cover:not(.is-light), .has-base-color, .is-style-section-3, .is-style-section-4, .is-style-section-5) .wp-block-navigation__responsive-container-open.blocklane-navigation-toggle--button {
+	background-color: var(--wp--preset--color--base, #fff);
+	color: var(--wp--preset--color--contrast, #111);
+}
+
+:where(.wp-block-cover:not(.is-light), .has-base-color, .is-style-section-3, .is-style-section-4, .is-style-section-5) .wp-block-navigation__responsive-container-open.blocklane-navigation-toggle--button:hover {
+	background-color: var(--wp--preset--color--accent-2, #e0e7ff);
+	color: var(--wp--preset--color--contrast, #111);
+}

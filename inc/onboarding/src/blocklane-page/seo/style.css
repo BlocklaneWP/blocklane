@@ -1,0 +1,302 @@
+/**
+ * The SEO screen (the C-seo spec (2026-10-12)), authored from the
+ * SEO frames' exports (design/figma/frames/free/seo/*.json) and their
+ * screenshots: every value is the --wpds-* token the frame binds, and nothing
+ * here is copied from the older dashboard sheet (the clean-room rule, design
+ * spec Amendment B F9). Tokens only: stylelint refuses a px or hex literal in
+ * blocklane-page/** unless design/shell-allow.json lists it.
+ */
+
+/* ---- Overview (frame 64:1962) ---------------------------------------- */
+
+/* @content: the coverage card, the pair, and the hint, gap-xl apart. */
+.blocklane-seo-overview {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xl);
+}
+
+/* @card:*: white, a weak hairline, radius-md, padding-2xl, gap-lg inside. */
+.blocklane-seo-overview__card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-lg);
+	padding: var(--wpds-dimension-padding-2xl);
+	border: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
+	border-radius: var(--wpds-border-radius-md);
+	background-color: var(--wpds-color-background-surface-neutral-strong);
+}
+
+/* The two lower cards share one row and one height (@card:visibility FILL). */
+.blocklane-seo-overview__pair {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--wpds-dimension-gap-xl);
+	align-items: stretch;
+}
+
+.blocklane-seo-overview__title {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-md);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-seo-overview__intro,
+.blocklane-seo-overview__hint {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+/* @disable-hint hugs its two parts, gap-xs apart. */
+.blocklane-seo-overview__hint {
+	display: flex;
+	flex-wrap: wrap;
+	align-self: flex-start;
+	gap: var(--wpds-dimension-gap-xs);
+}
+
+/* Four meters, one column each, gap-xl apart; a column never narrows below
+   surface-width-xs, so a narrow card wraps them instead. */
+.blocklane-seo-overview__meters {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(var(--wpds-dimension-surface-width-xs), 1fr));
+	gap: var(--wpds-dimension-gap-xl);
+}
+
+.blocklane-seo-overview__meter {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+	min-width: 0;
+}
+
+.blocklane-seo-overview__meter-label {
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-seo-overview__meter-count {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+/* D14: core's ProgressBar as a meter, a size-5xs (4px) track the full column
+   wide in track-neutral-weak, filled in interactive-brand-strong. Its own
+   classes are hashed CSS-module names, so the track is reached by the class
+   the bar takes and the fill as the track's first child. */
+.blocklane-seo-overview .blocklane-seo-overview__meter-bar {
+	width: 100%;
+	height: var(--wpds-dimension-size-5xs);
+	margin-top: var(--wpds-dimension-gap-xs);
+	background-color: var(--wpds-color-background-track-neutral-weak);
+}
+
+.blocklane-seo-overview .blocklane-seo-overview__meter-bar > div:first-child {
+	background-color: var(--wpds-color-background-interactive-brand-strong);
+}
+
+/* Status lines: a size-4xs dot, the text, and a value at the far end. */
+.blocklane-seo-overview__list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-lg);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.blocklane-seo-overview__status {
+	display: flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-seo-overview__dot {
+	flex: none;
+	width: var(--wpds-dimension-size-4xs);
+	height: var(--wpds-dimension-size-4xs);
+	border-radius: 50%;
+	background-color: var(--wpds-color-stroke-surface-neutral);
+}
+
+.blocklane-seo-overview__status.is-on .blocklane-seo-overview__dot {
+	background-color: var(--wpds-color-stroke-surface-success-strong);
+}
+
+.blocklane-seo-overview__status.is-off-warning .blocklane-seo-overview__dot {
+	background-color: var(--wpds-color-stroke-surface-warning-strong);
+}
+
+.blocklane-seo-overview__name {
+	flex: 1 1 auto;
+}
+
+/* A verification service's brand mark (design spec Amendment AO): 16px by
+   its own width and height, decorative, in ONE fixed neutral color whatever
+   the admin color scheme (Meta's and Pinterest's guidelines admit only
+   black, white or gray marks). On the overview card it sits between the dot
+   and the name, on the line's gap; in the settings form it leads the label. */
+.blocklane-seo-mark {
+	flex: none;
+	color: var(--wpds-color-foreground-content-neutral);
+	fill: currentcolor;
+}
+
+.blocklane-seo-verify-label {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
+}
+
+.blocklane-seo-overview__value[data-value="missing"] {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+/* Core's mobile breakpoint (782px) stacks the pair, as the shell does. */
+@media (max-width: 48.8125em) {
+
+	.blocklane-seo-overview__pair {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+/* ---- Content (frames 64:12256, 62:1094) ------------------------------ */
+
+/* The Content tab's @content pads padding-2xl above and below and nothing
+   beside: DataViews brings its own side inset (Amendment I, W16). The page
+   shell's content area pads all four sides or none, so the block padding
+   sits on the tab's own wrapper. */
+.blocklane-seo-content {
+	padding-block: var(--wpds-dimension-padding-2xl);
+}
+
+/* Y2: the content type rides beside the title as a Badge. DataViews owns
+   the title's weight and color (runtime truth, D9). */
+.blocklane-seo-content__title {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
+}
+
+/* ---- Edit SEO drawer (BL/SeoEditPanel 62:930, frame 62:1094) --------- */
+
+/* The drawer fills the details card: header and footer pinned, the body
+   scrolling between them (@edit-header, @edit-body, @edit-footer). */
+.blocklane-seo-editor {
+	display: flex;
+	flex-direction: column;
+}
+
+/* A programmatic focus target on the stacked layout (tabindex -1), never a
+   Tab stop, so it paints no ring; focus moves on into its fields. */
+.blocklane-seo-editor:focus {
+	outline: none;
+}
+
+.blocklane-seo-editor__panel {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.blocklane-seo-editor__header {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
+	padding: var(--wpds-dimension-padding-lg);
+	border-block-end: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
+}
+
+.blocklane-seo-editor__heading {
+	display: flex;
+	flex: 1 1 auto;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
+	min-width: 0;
+}
+
+.blocklane-seo-editor__title {
+	overflow: hidden;
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-lg);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-sm);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.blocklane-seo-editor__nav {
+	display: flex;
+	flex: none;
+	gap: var(--wpds-dimension-gap-xs);
+}
+
+.blocklane-seo-editor__body {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-lg);
+	min-height: 0;
+	padding: var(--wpds-dimension-padding-lg);
+	overflow-y: auto;
+}
+
+.blocklane-seo-editor__footer {
+	display: flex;
+	flex: none;
+	justify-content: flex-end;
+	gap: var(--wpds-dimension-gap-sm);
+	padding: var(--wpds-dimension-padding-md) var(--wpds-dimension-padding-lg);
+	border-block-start: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
+}
+
+/* ---- Settings (frames 65:14838, 66:3222; Amendment J) ---------------- */
+
+/* @column: the readable 720 measure (surface-width-xl), the sections then
+   the save row gap-lg apart; @panel: one bordered card per section, gap-md
+   apart. */
+.blocklane-seo-settings {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-lg);
+	max-width: var(--wpds-dimension-surface-width-xl);
+}
+
+.blocklane-seo-settings__sections {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-md);
+}
+
+.blocklane-seo-settings__sections > .components-panel__body {
+	margin: 0;
+	border: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-md);
+	background-color: var(--wpds-color-background-surface-neutral-strong);
+}
+
+/* Fields inside an open section sit gap-xl apart (the frame's toggles). */
+.blocklane-seo-settings__sections > .components-panel__body.is-opened > :nth-child(n + 3) {
+	margin-top: var(--wpds-dimension-gap-xl);
+}
+
+/* A toggle's help sits under its label, clear of the switch, as core lays it
+   out and the frame draws it (the switch's size-md plus gap-sm). The older
+   dashboard sheet flattens this indent dashboard-wide (design spec §2 D-m);
+   the SEO column restores core's. */
+.blocklane-seo-settings .components-toggle-control__help {
+	margin-inline-start: calc(var(--wpds-dimension-size-md) + var(--wpds-dimension-gap-sm));
+}

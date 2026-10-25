@@ -1,0 +1,179 @@
+/*
+ * The Site Visibility screen (../../screens/SitePrivacyScreen.js,
+ * ../../screens/site-privacy/; the C-site-privacy spec (2026-10-12);
+ * design spec Amendment O). Authored from the Site Visibility frames
+ * (page `87:17357`: `@column`, `@settings-panel`, `@status`,
+ * `@panel:site-visibility`, the two `@card:*`, `@password`, `@preview-*`,
+ * `@save-row`, `@loading` and the About card's `@body`) and the WPDS tokens;
+ * it replaces the old sheet's `.blocklane-pro-site-privacy*` rules, which
+ * are gone.
+ *
+ * Tokens only (the stylelint override for blocklane-page/**): no hex, no px,
+ * no !important.
+ */
+
+/* ---- The 720 column, LEFT-aligned in the content area like every 720
+ * form column (decision D-SV1; design spec Amendment AN 2: one rule, as
+ * core's settings screens do). The frames still draw it centered (x = 224
+ * in the 848 page card) until the fix queue redraws them. It holds the
+ * form, the loading box or the load error. */
+.blocklane-site-visibility {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-lg);
+	width: 100%;
+	max-width: var(--wpds-dimension-surface-width-xl);
+}
+
+.blocklane-site-visibility .components-notice {
+	margin: 0;
+}
+
+/* `@settings-panel`: a save error, the status, the cards, then Save. */
+.blocklane-site-visibility__form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-lg);
+}
+
+.blocklane-site-visibility__status {
+	display: flex;
+}
+
+/* `@panel:site-visibility`: the two cards, 12 apart. */
+.blocklane-site-visibility__cards {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-md);
+}
+
+/* `@card:*`: a bordered white card whose children stack 16 apart; its
+ * content starts one border plus `padding-lg` in (the frames' x = 241). */
+.blocklane-site-visibility__card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-lg);
+	padding: var(--wpds-dimension-padding-lg);
+	border: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-md);
+	background: var(--wpds-color-background-surface-neutral-strong);
+}
+
+/* The rule between the Site Editor link and the preview link: a card child
+ * like the rest, so the card's gap spaces it 16 above and below. */
+.blocklane-site-visibility__divider {
+	width: 100%;
+	height: 0;
+	margin: 0;
+	border: 0;
+	border-top: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
+}
+
+/* `@password`, `@preview-link`: a field and its lines, 8 apart. */
+.blocklane-site-visibility__field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-sm);
+}
+
+/* The field's help line, as core writes a control's help (12/16). */
+.blocklane-site-visibility__help {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+	line-height: var(--wpds-typography-line-height-xs);
+}
+
+/* The search checkbox's row and its help line, 4 apart (`@help-tip` to
+ * `@reading-link` in the frames). */
+.blocklane-site-visibility__check-group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+}
+
+/* Under the search checkbox the line starts at the label (the box and its
+ * gap), as the frame's `SV/Search engines checkbox` draws it; it holds a
+ * link button, so it keeps the 20 line. */
+.blocklane-site-visibility__help.is-indented {
+	padding-inline-start: var(--wpds-dimension-padding-2xl);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+/* R6 / V5: the password field's error line, under its help. */
+.blocklane-site-visibility__error {
+	display: flex;
+	gap: var(--wpds-dimension-gap-xs);
+	align-items: center;
+	margin: 0;
+	color: var(--wpds-color-foreground-content-error);
+	font-size: var(--wpds-typography-font-size-sm);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+/* core's `error` glyph strokes in currentColor. */
+.blocklane-site-visibility__error svg {
+	flex: 0 0 auto;
+}
+
+/* The invalid field: core's input draws its border from the backdrop. */
+.blocklane-site-visibility__field input[aria-invalid="true"] + .components-input-control__backdrop,
+.blocklane-site-visibility__field input[aria-invalid="true"] ~ .components-input-control__backdrop {
+	border-color: var(--wpds-color-stroke-interactive-error-strong);
+}
+
+/* The preview link's label, in core's field-label style (Amendment L). */
+.blocklane-site-visibility__label {
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-xs);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-xs);
+	text-transform: uppercase;
+}
+
+/* `@preview-row`: the URL fills the row, Copy hugs. */
+.blocklane-site-visibility__preview-row {
+	display: flex;
+	gap: var(--wpds-dimension-gap-sm);
+	align-items: flex-start;
+}
+
+.blocklane-site-visibility__preview-row > :first-child {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.blocklane-site-visibility__edit {
+	margin: 0;
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+/* The checkbox and its help tip on the label's line, 8 apart. */
+.blocklane-site-visibility__check-row {
+	display: flex;
+	gap: var(--wpds-dimension-gap-sm);
+	align-items: center;
+}
+
+/* `@regen-row`: the Regenerate link on a 20 line. */
+.blocklane-site-visibility__regen-row {
+	display: flex;
+	align-items: center;
+	min-height: var(--wpds-typography-line-height-sm);
+}
+
+/* `@save-row` (R1): a Large primary Save at the right, no rule above. */
+.blocklane-site-visibility__save-row {
+	display: flex;
+	justify-content: flex-end;
+}
+
+/* `@loading` (R3): the content area's spinner, in the frame's 720 × 200 box
+ * (200 is five `gap-3xl`; no size token names it). */
+.blocklane-site-visibility__loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: calc(var(--wpds-dimension-gap-3xl) * 5);
+}

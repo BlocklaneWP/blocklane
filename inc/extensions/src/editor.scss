@@ -1,0 +1,36 @@
+/**
+ * Editor-specific styles for the block-editor extensions.
+ */
+
+// Shared core-mirror rules (single source of truth — inc/shared/README.md).
+@import "../../shared/styles/core-mirrors";
+@import "./components/custom-icon-modal";
+
+// Import control-specific styles for editor preview.
+@import "./controls/transparent-header/editor";
+
+.blocklane-pro-block-setting-full-width {
+	width: 100%;
+}
+
+.components-base-control__help {
+	margin-top: calc(8px);
+	margin-bottom: 0;
+	font-size: 12px;
+	font-style: normal;
+	color: rgb(117, 117, 117);
+}
+
+// Fix: crisp text in toolbar dropdown menus. Core keeps positioned popovers on
+// a compositor layer (will-change: transform); on scaled/zoomed displays the
+// layer is resampled at fractional device pixels, softening the glyphs — the
+// second blur cause alongside the framer-motion scale transition (see the
+// popoverProps animate:false in icon-library / responsive-controls). Anchored
+// menus reposition rarely, so painting them in the normal raster costs
+// nothing; the scroll-following popovers (block toolbar etc.) keep their
+// layer. Doubled class beats core's .components-popover rule regardless of
+// stylesheet order.
+.components-popover.components-dropdown-menu__popover,
+.components-popover.components-dropdown__content {
+	will-change: auto;
+}

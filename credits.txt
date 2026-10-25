@@ -1,0 +1,57 @@
+=== Credits ===
+
+This plugin is licensed under the GNU General Public License, version 2 or
+later (GPL-2.0-or-later). See license.txt for the full license text.
+
+Every path below is relative to the plugin folder.
+
+
+== Third-party code and assets ==
+
+* enshrined/svg-sanitize by Daryll Doyle
+  https://github.com/darylldoyle/svg-sanitizer
+  Version 1.0.0 (2026-09-01), GPL-2.0-or-later. Bundled at
+  inc/advanced/vendor/svg-sanitize/, with its license in
+  inc/advanced/vendor/svg-sanitize/LICENSE. Sanitizes SVG uploads when the
+  Settings screen's Safe SVG Uploads setting is switched on.
+
+* Phosphor Icons
+  https://phosphoricons.com
+  MIT, with its license in inc/icon-collection/LICENSE. The Icon block's
+  bundled starter set, inc/icon-collection/svg/.
+
+* Phosphor Icons, in the carousel
+  https://phosphoricons.com
+  MIT, with its license in inc/carousel/LICENSE. The carousel arrow glyph
+  catalog (inc/carousel/arrow-icons.json) and the carousel block icons.
+
+* npm packages the build bundles
+  The JavaScript and CSS the build writes into the plugin's build folders
+  include some npm packages webpack bundles rather than loading from
+  WordPress: WordPress packages WordPress itself does not load
+  (@wordpress/dataviews, @wordpress/icons and the packages they use;
+  GPL-2.0-or-later) and MIT and 0BSD packages such as Ariakit, Base UI,
+  Floating UI, date-fns and clsx. Every build folder that ships a bundle
+  carries a third-party notices file the build writes from what it bundled:
+  each bundle, the packages in it, and each package's version and license
+  text, for example inc/carousel/build/THIRD-PARTY-NOTICES.txt.
+
+* @wordpress/icons path data
+  https://github.com/WordPress/gutenberg/tree/trunk/packages/icons
+  GPL-2.0-or-later, the same license as this plugin. The navigation menu
+  button's five icons (menu, layout, category, grid, list) are that
+  package's 17.0.0 glyphs, written as SVG in
+  inc/extensions/loader/navigation-toggle/navigation-toggle.php.
+
+
+== Made for this plugin ==
+
+* Bundled pattern placeholder images and video
+  Copyright (C) 2026 Blocklane LLC, GPL-2.0-or-later, the same license as
+  this plugin. Bundled at inc/bundled-patterns/assets/: flat gray images labeled
+  with their pixel size (the cover image named -blank carries no label),
+  drawn by the Blocklane theme's image generator, and one silent, unlabeled
+  8-second video of a light band drifting across the same gray
+  (placeholder-video-1280x720.mp4), rendered by the theme's video generator
+  from ffmpeg's synthetic sources. The labels are set in Inter by Rasmus
+  Andersson, SIL Open Font License 1.1.

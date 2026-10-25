@@ -1,0 +1,77 @@
+/*
+ * The details card's About and its video slot (../../components/About.js,
+ * VideoPreview.js; spec 2026-10-12-c-settings.md §3.3; design spec
+ * Amendments D and E): video, intro, labeled groups, a muted note, Learn
+ * more. Tokens only.
+ */
+.blocklane-about {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-lg);
+}
+
+.blocklane-about p {
+	margin: 0;
+}
+
+.blocklane-about__intro {
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-about__group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+}
+
+.blocklane-about__group-label {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-md);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-about__items {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+	margin: 0;
+	padding-inline-start: var(--wpds-dimension-padding-lg);
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-about__note.is-muted {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+	line-height: var(--wpds-typography-line-height-xs);
+}
+
+/* ---- The video slot: "Coming soon" (SD17) -------------------------------- */
+.blocklane-video-preview {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--wpds-dimension-gap-sm);
+	aspect-ratio: 16 / 9;
+	border-radius: var(--wpds-border-radius-md);
+	background: var(--wpds-color-background-surface-neutral-weak);
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+/* The inactive play glyph, 48 (size-lg + size-4xs). */
+.blocklane-video-preview__glyph {
+	width: calc(var(--wpds-dimension-size-lg) + var(--wpds-dimension-size-4xs));
+	height: calc(var(--wpds-dimension-size-lg) + var(--wpds-dimension-size-4xs));
+	fill: currentcolor;
+}
+
+.blocklane-video-preview__caption {
+	margin: 0;
+	font-size: var(--wpds-typography-font-size-sm);
+	line-height: var(--wpds-typography-line-height-xs);
+}

@@ -1,0 +1,375 @@
+/**
+ * Front styles for the whole forms suite. One sheet, attached to the form
+ * block — every other forms block renders inside a form, so this always
+ * loads with them. Vertical rhythm between fields comes from the theme's
+ * block gap (layout support), never from margins here.
+ */
+
+.blocklane-form__field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25em;
+}
+
+.blocklane-form__label {
+	display: block;
+}
+
+.blocklane-form__required {
+	margin-inline-start: 0.125em;
+	color: var(--blocklane-form--asterisk, currentColor);
+}
+
+/* Hidden labels stay in the DOM for assistive tech — clipped, never
+   display:none (that would silence screen readers too). */
+.blocklane-form__label.is-visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+.blocklane-form__required-notice {
+	font-size: 0.875em;
+	opacity: 0.8;
+}
+
+/*
+ * Test mode's badge (spec forms.md v4 TM-C), printed only for someone who
+ * could edit the form. The context's own text color, dashed, so it reads in
+ * any section without a color of its own.
+ */
+.blocklane-form__test-mode {
+	width: fit-content;
+	padding: 0.25em 0.5em;
+	font-size: 0.875em;
+	font-weight: 600;
+	border: 1px dashed currentcolor;
+	border-radius: 0.25em;
+}
+
+.blocklane-form__control {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 100%;
+	padding: 0.5em 0.75em;
+	font: inherit;
+
+	/* The control is its own surface: white by default (Garrett's ruling
+	   2026-08-18, a transparent control disappears on tinted section
+	   backgrounds), so its text defaults to that surface's pair, never to the
+	   context's. Inheriting made typed text white on white on every dark
+	   section and palette. Input Styles still override both. */
+	color: var(--blocklane-form--input-text, #1e1e1e);
+	background: var(--blocklane-form--input-background, #fff);
+	border: 1px solid var(--blocklane-form--input-border, #949494);
+	border-radius: var(--blocklane-form--input-radius, 4px);
+}
+
+.blocklane-form__control:focus {
+	border-color: var(--blocklane-form--input-focus-border, var(--blocklane-form--input-border, currentColor));
+}
+
+select.blocklane-form__control {
+	appearance: auto;
+}
+
+/* Radio / checkbox rows (form-group options and the consent input). */
+.blocklane-form__option,
+.blocklane-form__checkbox-label {
+	display: flex;
+	gap: 0.5em;
+	align-items: center;
+}
+
+.blocklane-form__option input,
+.blocklane-form__checkbox-label input {
+	width: auto;
+	margin: 0;
+}
+
+.blocklane-form__fieldset {
+	min-width: 0;
+	padding: 0;
+	margin: 0;
+	border: 0;
+}
+
+.blocklane-form__fieldset .blocklane-form__legend {
+	display: block;
+	padding: 0;
+	margin-block-end: 0.25em;
+}
+
+.blocklane-form__fieldset .blocklane-form__option {
+	margin-block-start: 0.25em;
+}
+
+/* Honeypot — visually hidden, still in the accessibility-hidden subtree. */
+.blocklane-form__hp {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	clip-path: inset(50%);
+}
+
+/* Notifications stay hidden until the runtime reveals them (Phase 2). The
+   markup also carries `hidden` (#743) — this rule is the styled half, the
+   attribute is the one that survives an optimizer dropping this file. */
+.blocklane-form__notification {
+	display: none;
+	padding: 0.75em 1em;
+	border-inline-start: 4px solid currentcolor;
+}
+
+.blocklane-form__notification.is-visible {
+	display: block;
+}
+
+.blocklane-form__submit {
+	cursor: pointer;
+
+	/* The Width dimension (style engine inline width) must never overflow
+	   its container by its own padding. */
+	box-sizing: border-box;
+}
+
+/* Turnstile renders inside the submit-button block, above the button —
+   sibling roots in one block, so the layout gap doesn't separate them. */
+
+/* The form's last child, its own block-level row (form/shell.php appends it
+   after the inner blocks — never inline with field layouts). */
+.blocklane-form__turnstile {
+	margin-block-start: 0.75em;
+}
+
+/* File field: native picker button inherits the control chrome; the hint
+   line mirrors the server's effective constraints. */
+.blocklane-form__control.is-file {
+	padding: 0.4em 0.5em;
+	cursor: pointer;
+}
+
+.blocklane-form__hint {
+	margin: 0;
+	font-size: 0.8125em;
+	opacity: 0.7;
+}
+
+/* Inline field errors (client and server share this path). The color is
+   --blocklane-form--error when a theme sets it, and otherwise the context's
+   own text color: a fixed red read 3.51:1 on a dark section and failed AA
+   wherever the form sat on a dark surface or palette. currentColor is the
+   section's text, which the theme already holds to contrast there. The
+   glyph and the weight say "error" without color (WCAG 1.4.1), and the
+   invalid control's border doubles, so the state shows on any surface. */
+.blocklane-form__error {
+	margin: 0;
+	font-size: 0.875em;
+	font-weight: 600;
+	color: var(--blocklane-form--error, currentColor);
+}
+
+.blocklane-form__error::before {
+	margin-inline-end: 0.35em;
+	content: "\26A0\FE0E";
+	content: "\26A0\FE0E" / "";
+}
+
+.blocklane-form [aria-invalid="true"] {
+	border-color: var(--blocklane-form--error, currentColor);
+	box-shadow: inset 0 0 0 1px var(--blocklane-form--error, currentColor);
+}
+
+.blocklane-form__notification:focus {
+	outline: none;
+}
+
+.blocklane-form.is-submitting .blocklane-form__submit {
+	opacity: 0.7;
+	cursor: wait;
+}
+
+// Conditional visibility (v3): the [hidden] attribute does the real work;
+// this backstops themes that set an explicit display on field wrappers.
+.blocklane-form__field.is-bl-hidden {
+	display: none;
+}
+
+// Visually hidden, still announced. Carries the wizard's "Step N of M" live
+// region — without it a screen reader is told nothing when the step changes.
+.blocklane-form__sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+/*
+ * Inline block style (`is-style-inline`): a single-field form (one control
+ * plus submit, e.g. a newsletter signup) on one row, inside one border.
+ *
+ * - Only a form whose one field is followed by its submit button, with no
+ *   other field anywhere in it, is laid out inline; any other form falls back
+ *   to the normal stacked layout, because the guard below never matches.
+ * - The field wrapper is `display: contents`, so the label, the control and
+ *   the runtime's inline error (`.blocklane-form__error`, tied to the control
+ *   with aria-describedby by view.js) become grid items of the form. The
+ *   border is the form's ::before, under the control and the button.
+ * - The field takes the colors of whatever holds it (transparent fill, the
+ *   context's text, a currentColor border and ring), so the theme's own
+ *   submit button always reads on it, in a light or a dark section, on any
+ *   theme. Input Styles (`--blocklane-form--input-*`) still override.
+ * - The label stays the accessible name. It is hidden only when the control
+ *   shows a placeholder as the visual hint; with no placeholder it stays
+ *   visible above the field, never placeholder-only.
+ * - Below 18rem of form width the button drops under the field at full width.
+ */
+$inline-form: ".blocklane-form.is-style-inline:has(> .blocklane-form__field + .blocklane-form__submit):not(:has(> .blocklane-form__field ~ .blocklane-form__field, > :not(.blocklane-form__field) .blocklane-form__field))";
+$inline-inset: var(--wp--preset--spacing--20, 0.5rem);
+
+#{$inline-form} {
+	position: relative;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	container-type: inline-size;
+
+	> * {
+		grid-column: 1 / -1;
+		margin-block: 0;
+	}
+
+	> .blocklane-form__required-notice {
+		grid-row: 1;
+		margin-block-end: $inline-inset;
+	}
+
+	> .blocklane-form__field {
+		display: contents;
+	}
+
+	> .blocklane-form__field > .blocklane-form__label {
+		grid-row: 2;
+		grid-column: 1 / -1;
+		margin-block-end: $inline-inset;
+	}
+
+	> .blocklane-form__field:has(> .blocklane-form__control[placeholder]:not([placeholder=""])) > .blocklane-form__label {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	/* The one border around the control and the button. */
+	&::before {
+		grid-row: 3;
+		grid-column: 1 / -1;
+		pointer-events: none;
+		content: "";
+		background: var(--blocklane-form--input-background, transparent);
+		border: 1px solid var(--blocklane-form--input-border, currentColor);
+		border-radius: var(--blocklane-form--input-radius, var(--wp--preset--border-radius--medium, 4px));
+	}
+
+	> .blocklane-form__field > .blocklane-form__control {
+		grid-row: 3;
+		grid-column: 1;
+		align-self: stretch;
+		min-width: 0;
+		padding-inline-start: calc(#{$inline-inset} + 0.25em);
+		color: var(--blocklane-form--input-text, currentColor);
+		background: transparent;
+		border: 0;
+		border-radius: 0;
+		box-shadow: none;
+	}
+
+	> .blocklane-form__field > .blocklane-form__control::placeholder {
+		color: currentcolor;
+		opacity: 0.7;
+	}
+
+	/* The ring is the field's: the control's own outline would sit inside it. */
+	> .blocklane-form__field > .blocklane-form__control:focus,
+	> .blocklane-form__field > .blocklane-form__control:focus-visible {
+		outline: none;
+	}
+
+	&:has(> .blocklane-form__field > .blocklane-form__control:focus-visible, > .blocklane-form__submit:focus-visible)::before {
+		outline: 2px solid currentcolor;
+		outline-offset: 2px;
+	}
+
+	/* An invalid field marks the whole field, not the borderless control. */
+	&:has(> .blocklane-form__field > .blocklane-form__control[aria-invalid="true"])::before {
+		border-color: var(--blocklane-form--error, currentColor);
+		box-shadow: inset 0 0 0 1px var(--blocklane-form--error, currentColor);
+	}
+
+	/* Its own height, centered: core's .wp-block-button__link sets height:100%,
+	   which in a grid row would run the button past its inset. */
+	> .blocklane-form__submit {
+		grid-row: 3;
+		grid-column: 2;
+		align-self: center;
+		height: auto;
+		margin: $inline-inset;
+	}
+
+	> .blocklane-form__field > .blocklane-form__error {
+		grid-row: 4;
+		grid-column: 1 / -1;
+		margin-block-start: $inline-inset;
+	}
+
+	> .blocklane-form__notification {
+		grid-row: 6;
+		margin-block-start: $inline-inset;
+	}
+
+	> .blocklane-form__turnstile {
+		grid-row: 7;
+	}
+}
+
+/* Narrow: the button leaves the field and takes the full width below it. */
+@container (width < 18rem) {
+	#{$inline-form} {
+
+		&::before,
+		> .blocklane-form__field > .blocklane-form__control {
+			grid-column: 1 / -1;
+		}
+
+		> .blocklane-form__field > .blocklane-form__control {
+			padding-block: $inline-inset;
+		}
+
+		> .blocklane-form__submit {
+			grid-row: 5;
+			grid-column: 1 / -1;
+			justify-self: stretch;
+			margin: $inline-inset 0 0;
+		}
+	}
+}

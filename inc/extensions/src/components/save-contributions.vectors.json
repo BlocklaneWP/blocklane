@@ -1,0 +1,1155 @@
+{
+	"_comment": "Save-contribution vectors (spec 2026-10-17-pro-downgrade-inert-attributes §3.4, §8 V9). Each vector is a block's name, the attribute names its type registers, its attributes and the props the save already carries; `today` is the saved root element as today's three Pro save filters serialize it (recorded by save-contributions-vectors.test.js with BL_RECORD_VECTORS=1, never typed), and `expected` is what the one save module must write. They are equal except where `contract` names the rule that changes it: S5 (closed value sets, security read F2) and F3 (a contribution applies only when the block's name is in its list AND its type registers the attribute, security read S2). `blocks` and `sets` are the lists and closed sets the contributions read; the test holds `blocks` to the sidecars.",
+	"order": [
+		"decoration-hover",
+		"text-wrap",
+		"tabs"
+	],
+	"sets": {
+		"decoration-hover": [
+			"none",
+			"underline",
+			"line-through"
+		],
+		"text-wrap": [
+			"pretty",
+			"balance"
+		],
+		"tab-list-position": [
+			"bottom",
+			"left",
+			"right"
+		],
+		"tab-list-vertical-alignment": [
+			"top",
+			"center",
+			"bottom"
+		],
+		"tab-description-font-size": [
+			"^var\\(--wp--preset--font-size--[a-z0-9\\u00c0-\\u00d6\\u00d8-\\u00f6\\u00f8-\\u00ff]+(?:-[a-z0-9\\u00c0-\\u00d6\\u00d8-\\u00f6\\u00f8-\\u00ff]+)*\\)$",
+			"^(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:px|em|rem|vw|vh|%)$"
+		]
+	},
+	"blocks": {
+		"decoration-hover": [
+			"core/paragraph",
+			"core/heading",
+			"core/button"
+		],
+		"text-wrap": [
+			"core/paragraph",
+			"core/heading",
+			"core/list",
+			"core/post-title",
+			"core/post-excerpt"
+		],
+		"tabs": [
+			"core/tabs"
+		],
+		"tab-list": [
+			"core/tab-list"
+		]
+	},
+	"vectors": [
+		{
+			"id": "dh-paragraph-style-none",
+			"block": "core/paragraph",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"style": {
+					":hover": {
+						"typography": {
+							"textDecoration": "none"
+						}
+					}
+				}
+			},
+			"props": {},
+			"today": "<div class=\"has-hover-decoration-none\"></div>",
+			"expected": "<div class=\"has-hover-decoration-none\"></div>"
+		},
+		{
+			"id": "dh-paragraph-style-underline",
+			"block": "core/paragraph",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"style": {
+					":hover": {
+						"typography": {
+							"textDecoration": "underline"
+						}
+					}
+				}
+			},
+			"props": {},
+			"today": "<div class=\"has-hover-decoration-underline\"></div>",
+			"expected": "<div class=\"has-hover-decoration-underline\"></div>"
+		},
+		{
+			"id": "dh-paragraph-style-line-through",
+			"block": "core/paragraph",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"style": {
+					":hover": {
+						"typography": {
+							"textDecoration": "line-through"
+						}
+					}
+				}
+			},
+			"props": {},
+			"today": "<div class=\"has-hover-decoration-line-through\"></div>",
+			"expected": "<div class=\"has-hover-decoration-line-through\"></div>"
+		},
+		{
+			"id": "dh-heading-style-none",
+			"block": "core/heading",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"style": {
+					":hover": {
+						"typography": {
+							"textDecoration": "none"
+						}
+					}
+				}
+			},
+			"props": {},
+			"today": "<div class=\"has-hover-decoration-none\"></div>",
+			"expected": "<div class=\"has-hover-decoration-none\"></div>"
+		},
+		{
+			"id": "dh-heading-style-underline",
+			"block": "core/heading",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"style": {
+					":hover": {
+						"typography": {
+							"textDecoration": "underline"
+						}
+					}
+				}
+			},
+			"props": {},
+			"today": "<div class=\"has-hover-decoration-underline\"></div>",
+			"expected": "<div class=\"has-hover-decoration-underline\"></div>"
+		},
+		{
+			"id": "dh-heading-style-line-through",
+			"block": "core/heading",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"style": {
+					":hover": {
+						"typography": {
+							"textDecoration": "line-through"
+						}
+					}
+				}
+			},
+			"props": {},
+			"today": "<div class=\"has-hover-decoration-line-through\"></div>",
+			"expected": "<div class=\"has-hover-decoration-line-through\"></div>"
+		},
+		{
+			"id": "dh-button-style-none",
+			"block": "core/button",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"style": {
+					":hover": {
+						"typography": {
+							"textDecoration": "none"
+						}
+					}
+				}
+			},
+			"props": {},
+			"today": "<div class=\"has-hover-decoration-none\"></div>",
+			"expected": "<div class=\"has-hover-decoration-none\"></div>"
+		},
+		{
+			"id": "dh-button-style-underline",
+			"block": "core/button",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"style": {
+					":hover": {
+						"typography": {
+							"textDecoration": "underline"
+						}
+					}
+				}
+			},
+			"props": {},
+			"today": "<div class=\"has-hover-decoration-underline\"></div>",
+			"expected": "<div class=\"has-hover-decoration-underline\"></div>"
+		},
+		{
+			"id": "dh-button-style-line-through",
+			"block": "core/button",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"style": {
+					":hover": {
+						"typography": {
+							"textDecoration": "line-through"
+						}
+					}
+				}
+			},
+			"props": {},
+			"today": "<div class=\"has-hover-decoration-line-through\"></div>",
+			"expected": "<div class=\"has-hover-decoration-line-through\"></div>"
+		},
+		{
+			"id": "dh-paragraph-legacy-none",
+			"block": "core/paragraph",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"textDecorationHover": "none"
+			},
+			"props": {},
+			"today": "<div class=\"has-hover-decoration-none\"></div>",
+			"expected": "<div class=\"has-hover-decoration-none\"></div>"
+		},
+		{
+			"id": "dh-paragraph-legacy-underline",
+			"block": "core/paragraph",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"textDecorationHover": "underline"
+			},
+			"props": {},
+			"today": "<div class=\"has-hover-decoration-underline\"></div>",
+			"expected": "<div class=\"has-hover-decoration-underline\"></div>"
+		},
+		{
+			"id": "dh-paragraph-legacy-line-through",
+			"block": "core/paragraph",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"textDecorationHover": "line-through"
+			},
+			"props": {},
+			"today": "<div class=\"has-hover-decoration-line-through\"></div>",
+			"expected": "<div class=\"has-hover-decoration-line-through\"></div>"
+		},
+		{
+			"id": "dh-paragraph-style-wins",
+			"block": "core/paragraph",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"style": {
+					":hover": {
+						"typography": {
+							"textDecoration": "line-through"
+						}
+					}
+				},
+				"textDecorationHover": "underline"
+			},
+			"props": {},
+			"today": "<div class=\"has-hover-decoration-line-through\"></div>",
+			"expected": "<div class=\"has-hover-decoration-line-through\"></div>"
+		},
+		{
+			"id": "dh-paragraph-style-invalid-hides-legacy",
+			"block": "core/paragraph",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"style": {
+					":hover": {
+						"typography": {
+							"textDecoration": "blink"
+						}
+					}
+				},
+				"textDecorationHover": "underline"
+			},
+			"props": {},
+			"today": "<div class=\"\"></div>",
+			"expected": "<div></div>",
+			"contract": {
+				"rule": "S5",
+				"why": "a value outside the set writes nothing; today's filter wrote an empty class attribute (core's validation reads it as no class, so a block saved either way stays valid)",
+				"writes": "nothing"
+			}
+		},
+		{
+			"id": "dh-paragraph-legacy-invalid",
+			"block": "core/paragraph",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"textDecorationHover": "blink"
+			},
+			"props": {},
+			"today": "<div class=\"\"></div>",
+			"expected": "<div></div>",
+			"contract": {
+				"rule": "S5",
+				"why": "a value outside the set writes nothing; today's filter wrote an empty class attribute (core's validation reads it as no class, so a block saved either way stays valid)",
+				"writes": "nothing"
+			}
+		},
+		{
+			"id": "dh-paragraph-unset",
+			"block": "core/paragraph",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {},
+			"props": {},
+			"today": "<div></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "dh-paragraph-classname",
+			"block": "core/paragraph",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"textDecorationHover": "underline"
+			},
+			"props": {
+				"className": "is-style-lead"
+			},
+			"today": "<div class=\"is-style-lead has-hover-decoration-underline\"></div>",
+			"expected": "<div class=\"is-style-lead has-hover-decoration-underline\"></div>"
+		},
+		{
+			"id": "dh-quote-not-listed",
+			"block": "core/quote",
+			"registered": [
+				"textDecorationHover"
+			],
+			"attributes": {
+				"textDecorationHover": "underline"
+			},
+			"props": {},
+			"today": "<div></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "dh-paragraph-unregistered",
+			"block": "core/paragraph",
+			"registered": [],
+			"attributes": {
+				"textDecorationHover": "underline"
+			},
+			"props": {},
+			"contract": {
+				"rule": "F3",
+				"why": "the block does not register textDecorationHover (free where Pro never ran): no contribution, so core moves nothing into className",
+				"writes": "nothing"
+			},
+			"today": "<div class=\"has-hover-decoration-underline\"></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "tw-paragraph-pretty",
+			"block": "core/paragraph",
+			"registered": [
+				"textWrap"
+			],
+			"attributes": {
+				"textWrap": "pretty"
+			},
+			"props": {},
+			"today": "<div class=\"has-text-wrap-pretty\"></div>",
+			"expected": "<div class=\"has-text-wrap-pretty\"></div>"
+		},
+		{
+			"id": "tw-paragraph-balance",
+			"block": "core/paragraph",
+			"registered": [
+				"textWrap"
+			],
+			"attributes": {
+				"textWrap": "balance"
+			},
+			"props": {},
+			"today": "<div class=\"has-text-wrap-balance\"></div>",
+			"expected": "<div class=\"has-text-wrap-balance\"></div>"
+		},
+		{
+			"id": "tw-heading-pretty",
+			"block": "core/heading",
+			"registered": [
+				"textWrap"
+			],
+			"attributes": {
+				"textWrap": "pretty"
+			},
+			"props": {},
+			"today": "<div class=\"has-text-wrap-pretty\"></div>",
+			"expected": "<div class=\"has-text-wrap-pretty\"></div>"
+		},
+		{
+			"id": "tw-heading-balance",
+			"block": "core/heading",
+			"registered": [
+				"textWrap"
+			],
+			"attributes": {
+				"textWrap": "balance"
+			},
+			"props": {},
+			"today": "<div class=\"has-text-wrap-balance\"></div>",
+			"expected": "<div class=\"has-text-wrap-balance\"></div>"
+		},
+		{
+			"id": "tw-list-pretty",
+			"block": "core/list",
+			"registered": [
+				"textWrap"
+			],
+			"attributes": {
+				"textWrap": "pretty"
+			},
+			"props": {},
+			"today": "<div class=\"has-text-wrap-pretty\"></div>",
+			"expected": "<div class=\"has-text-wrap-pretty\"></div>"
+		},
+		{
+			"id": "tw-list-balance",
+			"block": "core/list",
+			"registered": [
+				"textWrap"
+			],
+			"attributes": {
+				"textWrap": "balance"
+			},
+			"props": {},
+			"today": "<div class=\"has-text-wrap-balance\"></div>",
+			"expected": "<div class=\"has-text-wrap-balance\"></div>"
+		},
+		{
+			"id": "tw-post-title-pretty",
+			"block": "core/post-title",
+			"registered": [
+				"textWrap"
+			],
+			"attributes": {
+				"textWrap": "pretty"
+			},
+			"props": {},
+			"today": "<div class=\"has-text-wrap-pretty\"></div>",
+			"expected": "<div class=\"has-text-wrap-pretty\"></div>"
+		},
+		{
+			"id": "tw-post-title-balance",
+			"block": "core/post-title",
+			"registered": [
+				"textWrap"
+			],
+			"attributes": {
+				"textWrap": "balance"
+			},
+			"props": {},
+			"today": "<div class=\"has-text-wrap-balance\"></div>",
+			"expected": "<div class=\"has-text-wrap-balance\"></div>"
+		},
+		{
+			"id": "tw-post-excerpt-pretty",
+			"block": "core/post-excerpt",
+			"registered": [
+				"textWrap"
+			],
+			"attributes": {
+				"textWrap": "pretty"
+			},
+			"props": {},
+			"today": "<div class=\"has-text-wrap-pretty\"></div>",
+			"expected": "<div class=\"has-text-wrap-pretty\"></div>"
+		},
+		{
+			"id": "tw-post-excerpt-balance",
+			"block": "core/post-excerpt",
+			"registered": [
+				"textWrap"
+			],
+			"attributes": {
+				"textWrap": "balance"
+			},
+			"props": {},
+			"today": "<div class=\"has-text-wrap-balance\"></div>",
+			"expected": "<div class=\"has-text-wrap-balance\"></div>"
+		},
+		{
+			"id": "tw-paragraph-unset",
+			"block": "core/paragraph",
+			"registered": [
+				"textWrap"
+			],
+			"attributes": {
+				"textWrap": ""
+			},
+			"props": {},
+			"today": "<div></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "tw-paragraph-invalid",
+			"block": "core/paragraph",
+			"registered": [
+				"textWrap"
+			],
+			"attributes": {
+				"textWrap": "stable"
+			},
+			"props": {},
+			"contract": {
+				"rule": "S5",
+				"why": "textWrap is a closed set, pretty or balance: any other value writes no class",
+				"writes": "nothing"
+			},
+			"today": "<div class=\"has-text-wrap-stable\"></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "tw-paragraph-injection",
+			"block": "core/paragraph",
+			"registered": [
+				"textWrap"
+			],
+			"attributes": {
+				"textWrap": "pretty has-x"
+			},
+			"props": {},
+			"contract": {
+				"rule": "S5",
+				"why": "a value that is not one of the set writes nothing, so no second class rides in",
+				"writes": "nothing"
+			},
+			"today": "<div class=\"has-text-wrap-pretty has-x\"></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "tw-paragraph-classname",
+			"block": "core/paragraph",
+			"registered": [
+				"textWrap"
+			],
+			"attributes": {
+				"textWrap": "balance"
+			},
+			"props": {
+				"className": "is-style-lead"
+			},
+			"today": "<div class=\"is-style-lead has-text-wrap-balance\"></div>",
+			"expected": "<div class=\"is-style-lead has-text-wrap-balance\"></div>"
+		},
+		{
+			"id": "tw-quote-not-listed",
+			"block": "core/quote",
+			"registered": [
+				"textWrap"
+			],
+			"attributes": {
+				"textWrap": "pretty"
+			},
+			"props": {},
+			"today": "<div></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "tw-paragraph-unregistered",
+			"block": "core/paragraph",
+			"registered": [],
+			"attributes": {
+				"textWrap": "pretty"
+			},
+			"props": {},
+			"contract": {
+				"rule": "F3",
+				"why": "the block does not register textWrap: no contribution",
+				"writes": "nothing"
+			},
+			"today": "<div class=\"has-text-wrap-pretty\"></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "both-paragraph-order",
+			"block": "core/paragraph",
+			"registered": [
+				"textDecorationHover",
+				"textWrap"
+			],
+			"attributes": {
+				"style": {
+					":hover": {
+						"typography": {
+							"textDecoration": "underline"
+						}
+					}
+				},
+				"textWrap": "balance"
+			},
+			"props": {
+				"className": "is-style-lead"
+			},
+			"today": "<div class=\"is-style-lead has-hover-decoration-underline has-text-wrap-balance\"></div>",
+			"expected": "<div class=\"is-style-lead has-hover-decoration-underline has-text-wrap-balance\"></div>"
+		},
+		{
+			"id": "both-heading-legacy-order",
+			"block": "core/heading",
+			"registered": [
+				"textDecorationHover",
+				"textWrap"
+			],
+			"attributes": {
+				"textDecorationHover": "line-through",
+				"textWrap": "pretty"
+			},
+			"props": {},
+			"today": "<div class=\"has-hover-decoration-line-through has-text-wrap-pretty\"></div>",
+			"expected": "<div class=\"has-hover-decoration-line-through has-text-wrap-pretty\"></div>"
+		},
+		{
+			"id": "tabs-position-unset",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": ""
+			},
+			"props": {},
+			"today": "<div></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "tabs-position-top",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "top"
+			},
+			"props": {},
+			"today": "<div></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "tabs-position-bottom",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "bottom"
+			},
+			"props": {},
+			"today": "<div class=\"has-blocklane-tab-list-bottom\"></div>",
+			"expected": "<div class=\"has-blocklane-tab-list-bottom\"></div>"
+		},
+		{
+			"id": "tabs-position-left",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "left"
+			},
+			"props": {},
+			"today": "<div class=\"has-blocklane-tab-list-left\"></div>",
+			"expected": "<div class=\"has-blocklane-tab-list-left\"></div>"
+		},
+		{
+			"id": "tabs-position-right",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "right"
+			},
+			"props": {},
+			"today": "<div class=\"has-blocklane-tab-list-right\"></div>",
+			"expected": "<div class=\"has-blocklane-tab-list-right\"></div>"
+		},
+		{
+			"id": "tabs-position-diagonal",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "diagonal"
+			},
+			"props": {},
+			"today": "<div></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "tabs-left-valign-top",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "left",
+				"blocklaneProTabListVerticalAlignment": "top"
+			},
+			"props": {},
+			"today": "<div class=\"has-blocklane-tab-list-left has-blocklane-tab-list-valign-top\"></div>",
+			"expected": "<div class=\"has-blocklane-tab-list-left has-blocklane-tab-list-valign-top\"></div>"
+		},
+		{
+			"id": "tabs-left-valign-center",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "left",
+				"blocklaneProTabListVerticalAlignment": "center"
+			},
+			"props": {},
+			"today": "<div class=\"has-blocklane-tab-list-left has-blocklane-tab-list-valign-center\"></div>",
+			"expected": "<div class=\"has-blocklane-tab-list-left has-blocklane-tab-list-valign-center\"></div>"
+		},
+		{
+			"id": "tabs-left-valign-bottom",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "left",
+				"blocklaneProTabListVerticalAlignment": "bottom"
+			},
+			"props": {},
+			"today": "<div class=\"has-blocklane-tab-list-left has-blocklane-tab-list-valign-bottom\"></div>",
+			"expected": "<div class=\"has-blocklane-tab-list-left has-blocklane-tab-list-valign-bottom\"></div>"
+		},
+		{
+			"id": "tabs-left-always",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "left",
+				"blocklaneProTabDescriptionsAlwaysVisible": true
+			},
+			"props": {},
+			"today": "<div class=\"has-blocklane-tab-list-left has-blocklane-tab-descriptions-always\"></div>",
+			"expected": "<div class=\"has-blocklane-tab-list-left has-blocklane-tab-descriptions-always\"></div>"
+		},
+		{
+			"id": "tabs-left-width",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "left",
+				"blocklaneProTabListWidth": 30
+			},
+			"props": {},
+			"today": "<div class=\"has-blocklane-tab-list-left\" style=\"--blocklane-tab-list-width:30%\"></div>",
+			"expected": "<div class=\"has-blocklane-tab-list-left\" style=\"--blocklane-tab-list-width:30%\"></div>"
+		},
+		{
+			"id": "tabs-right-valign-top",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "right",
+				"blocklaneProTabListVerticalAlignment": "top"
+			},
+			"props": {},
+			"today": "<div class=\"has-blocklane-tab-list-right has-blocklane-tab-list-valign-top\"></div>",
+			"expected": "<div class=\"has-blocklane-tab-list-right has-blocklane-tab-list-valign-top\"></div>"
+		},
+		{
+			"id": "tabs-right-valign-center",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "right",
+				"blocklaneProTabListVerticalAlignment": "center"
+			},
+			"props": {},
+			"today": "<div class=\"has-blocklane-tab-list-right has-blocklane-tab-list-valign-center\"></div>",
+			"expected": "<div class=\"has-blocklane-tab-list-right has-blocklane-tab-list-valign-center\"></div>"
+		},
+		{
+			"id": "tabs-right-valign-bottom",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "right",
+				"blocklaneProTabListVerticalAlignment": "bottom"
+			},
+			"props": {},
+			"today": "<div class=\"has-blocklane-tab-list-right has-blocklane-tab-list-valign-bottom\"></div>",
+			"expected": "<div class=\"has-blocklane-tab-list-right has-blocklane-tab-list-valign-bottom\"></div>"
+		},
+		{
+			"id": "tabs-right-always",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "right",
+				"blocklaneProTabDescriptionsAlwaysVisible": true
+			},
+			"props": {},
+			"today": "<div class=\"has-blocklane-tab-list-right has-blocklane-tab-descriptions-always\"></div>",
+			"expected": "<div class=\"has-blocklane-tab-list-right has-blocklane-tab-descriptions-always\"></div>"
+		},
+		{
+			"id": "tabs-right-width",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "right",
+				"blocklaneProTabListWidth": 30
+			},
+			"props": {},
+			"today": "<div class=\"has-blocklane-tab-list-right\" style=\"--blocklane-tab-list-width:30%\"></div>",
+			"expected": "<div class=\"has-blocklane-tab-list-right\" style=\"--blocklane-tab-list-width:30%\"></div>"
+		},
+		{
+			"id": "tabs-bottom-side-only",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "bottom",
+				"blocklaneProTabListVerticalAlignment": "top",
+				"blocklaneProTabListWidth": 30,
+				"blocklaneProTabDescriptionsAlwaysVisible": true
+			},
+			"props": {},
+			"today": "<div class=\"has-blocklane-tab-list-bottom\"></div>",
+			"expected": "<div class=\"has-blocklane-tab-list-bottom\"></div>"
+		},
+		{
+			"id": "tabs-left-valign-invalid",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "left",
+				"blocklaneProTabListVerticalAlignment": "stretch"
+			},
+			"props": {},
+			"contract": {
+				"rule": "S5",
+				"why": "the vertical alignment is a closed set, top, center or bottom: any other value writes no alignment class",
+				"writes": "<div class=\"has-blocklane-tab-list-left\"></div>"
+			},
+			"today": "<div class=\"has-blocklane-tab-list-left has-blocklane-tab-list-valign-stretch\"></div>",
+			"expected": "<div class=\"has-blocklane-tab-list-left\"></div>"
+		},
+		{
+			"id": "tabs-left-everything",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "left",
+				"blocklaneProTabListVerticalAlignment": "center",
+				"blocklaneProTabListWidth": 25,
+				"blocklaneProTabDescriptionsAlwaysVisible": true
+			},
+			"props": {
+				"className": "is-style-cards",
+				"style": {
+					"color": "red"
+				}
+			},
+			"today": "<div class=\"is-style-cards has-blocklane-tab-list-left has-blocklane-tab-list-valign-center has-blocklane-tab-descriptions-always\" style=\"color:red;--blocklane-tab-list-width:25%\"></div>",
+			"expected": "<div class=\"is-style-cards has-blocklane-tab-list-left has-blocklane-tab-list-valign-center has-blocklane-tab-descriptions-always\" style=\"color:red;--blocklane-tab-list-width:25%\"></div>"
+		},
+		{
+			"id": "tabs-not-tabs",
+			"block": "core/group",
+			"registered": [
+				"blocklaneProTabListPosition"
+			],
+			"attributes": {
+				"blocklaneProTabListPosition": "left"
+			},
+			"props": {},
+			"today": "<div></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "tabs-unregistered",
+			"block": "core/tabs",
+			"registered": [],
+			"attributes": {
+				"blocklaneProTabListPosition": "left"
+			},
+			"props": {},
+			"contract": {
+				"rule": "F3",
+				"why": "core/tabs does not register blocklaneProTabListPosition: no contribution, so core's validation sees the markup it saved",
+				"writes": "nothing"
+			},
+			"today": "<div class=\"has-blocklane-tab-list-left\"></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "tablist-font-px",
+			"block": "core/tab-list",
+			"registered": [
+				"blocklaneProTabDescriptionFontSize"
+			],
+			"attributes": {
+				"blocklaneProTabDescriptionFontSize": "18px"
+			},
+			"props": {},
+			"today": "<div style=\"--blocklane-tab-desc-font-size:18px\"></div>",
+			"expected": "<div style=\"--blocklane-tab-desc-font-size:18px\"></div>"
+		},
+		{
+			"id": "tablist-font-rem",
+			"block": "core/tab-list",
+			"registered": [
+				"blocklaneProTabDescriptionFontSize"
+			],
+			"attributes": {
+				"blocklaneProTabDescriptionFontSize": "1.25rem"
+			},
+			"props": {},
+			"today": "<div style=\"--blocklane-tab-desc-font-size:1.25rem\"></div>",
+			"expected": "<div style=\"--blocklane-tab-desc-font-size:1.25rem\"></div>"
+		},
+		{
+			"id": "tablist-font-preset",
+			"block": "core/tab-list",
+			"registered": [
+				"blocklaneProTabDescriptionFontSize"
+			],
+			"attributes": {
+				"blocklaneProTabDescriptionFontSize": "var(--wp--preset--font-size--large)"
+			},
+			"props": {},
+			"today": "<div style=\"--blocklane-tab-desc-font-size:var(--wp--preset--font-size--large)\"></div>",
+			"expected": "<div style=\"--blocklane-tab-desc-font-size:var(--wp--preset--font-size--large)\"></div>"
+		},
+		{
+			"id": "tablist-font-preset-digits",
+			"block": "core/tab-list",
+			"registered": [
+				"blocklaneProTabDescriptionFontSize"
+			],
+			"attributes": {
+				"blocklaneProTabDescriptionFontSize": "var(--wp--preset--font-size--2-xl)"
+			},
+			"props": {},
+			"today": "<div style=\"--blocklane-tab-desc-font-size:var(--wp--preset--font-size--2-xl)\"></div>",
+			"expected": "<div style=\"--blocklane-tab-desc-font-size:var(--wp--preset--font-size--2-xl)\"></div>"
+		},
+		{
+			"id": "tablist-font-unset",
+			"block": "core/tab-list",
+			"registered": [
+				"blocklaneProTabDescriptionFontSize"
+			],
+			"attributes": {
+				"blocklaneProTabDescriptionFontSize": ""
+			},
+			"props": {},
+			"today": "<div></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "tablist-font-merge",
+			"block": "core/tab-list",
+			"registered": [
+				"blocklaneProTabDescriptionFontSize"
+			],
+			"attributes": {
+				"blocklaneProTabDescriptionFontSize": "18px"
+			},
+			"props": {
+				"style": {
+					"color": "red"
+				}
+			},
+			"today": "<div style=\"color:red;--blocklane-tab-desc-font-size:18px\"></div>",
+			"expected": "<div style=\"color:red;--blocklane-tab-desc-font-size:18px\"></div>"
+		},
+		{
+			"id": "tablist-font-declarations",
+			"block": "core/tab-list",
+			"registered": [
+				"blocklaneProTabDescriptionFontSize"
+			],
+			"attributes": {
+				"blocklaneProTabDescriptionFontSize": "18px;background:red"
+			},
+			"props": {},
+			"contract": {
+				"rule": "S5",
+				"why": "the font size accepts only the control's canonical grammar (a preset reference or a number with a unit): anything else writes no custom property",
+				"writes": "nothing"
+			},
+			"today": "<div style=\"--blocklane-tab-desc-font-size:18px;background:red\"></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "tablist-font-url",
+			"block": "core/tab-list",
+			"registered": [
+				"blocklaneProTabDescriptionFontSize"
+			],
+			"attributes": {
+				"blocklaneProTabDescriptionFontSize": "url(https://example.test/x)"
+			},
+			"props": {},
+			"contract": {
+				"rule": "S5",
+				"why": "a value outside the grammar writes nothing, so no request rides in a custom property",
+				"writes": "nothing"
+			},
+			"today": "<div style=\"--blocklane-tab-desc-font-size:url(https://example.test/x)\"></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "tablist-font-not-tab-list",
+			"block": "core/tabs",
+			"registered": [
+				"blocklaneProTabDescriptionFontSize",
+				"blocklaneProTabListPosition",
+				"blocklaneProTabListVerticalAlignment",
+				"blocklaneProTabListWidth",
+				"blocklaneProTabDescriptionsAlwaysVisible"
+			],
+			"attributes": {
+				"blocklaneProTabDescriptionFontSize": "18px"
+			},
+			"props": {},
+			"today": "<div></div>",
+			"expected": "<div></div>"
+		},
+		{
+			"id": "tablist-font-unregistered",
+			"block": "core/tab-list",
+			"registered": [],
+			"attributes": {
+				"blocklaneProTabDescriptionFontSize": "18px"
+			},
+			"props": {},
+			"contract": {
+				"rule": "F3",
+				"why": "core/tab-list does not register the font size: no contribution",
+				"writes": "nothing"
+			},
+			"today": "<div style=\"--blocklane-tab-desc-font-size:18px\"></div>",
+			"expected": "<div></div>"
+		}
+	]
+}

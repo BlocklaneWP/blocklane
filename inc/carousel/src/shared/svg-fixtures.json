@@ -1,0 +1,169 @@
+[
+	{
+		"name": "valid svg with a path",
+		"svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\"><path d=\"M0 0h10v10z\"/></svg>",
+		"expect": "render"
+	},
+	{
+		"name": "malformed: unclosed path",
+		"svg": "<svg xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M0 0h1\"></svg>",
+		"expect": "caret"
+	},
+	{
+		"name": "non-svg root: the inner <g> copied out of a file",
+		"svg": "<g><path d=\"M0 0h1\"/></g>",
+		"expect": "caret"
+	},
+	{
+		"name": "prefixed root s:svg",
+		"svg": "<s:svg xmlns:s=\"http://www.w3.org/2000/svg\"><s:path d=\"M0 0h1\"/></s:svg>",
+		"expect": "caret"
+	},
+	{
+		"name": "Illustrator export: xml declaration, comment, public DOCTYPE",
+		"svg": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!-- Generator: Adobe Illustrator -->\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\"><path d=\"M0 0h10v10z\"/></svg>",
+		"expect": "render"
+	},
+	{
+		"name": "internal entity declared and used in an attribute",
+		"svg": "<!DOCTYPE svg [<!ENTITY x \"M0 0h10\">]><svg xmlns=\"http://www.w3.org/2000/svg\"><path d=\"&x;\"/></svg>",
+		"expect": "caret"
+	},
+	{
+		"name": "external entity",
+		"svg": "<!DOCTYPE svg [<!ENTITY x SYSTEM \"file:///etc/passwd\">]><svg xmlns=\"http://www.w3.org/2000/svg\"><path d=\"&x;\"/></svg>",
+		"expect": "caret"
+	},
+	{
+		"name": "shell only: nothing draws",
+		"svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\"/>",
+		"expect": "caret"
+	},
+	{
+		"name": "script and handler are stripped, the drawing survives",
+		"svg": "<svg xmlns=\"http://www.w3.org/2000/svg\"><script>alert(1)</script><path onclick=\"x()\" d=\"M0 0h1\"/></svg>",
+		"expect": "render",
+		"absent": [
+			"<script",
+			"onclick"
+		]
+	},
+	{
+		"name": "leading whitespace before the xml declaration",
+		"svg": "  <?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M0 0h1\"/></svg>",
+		"expect": "caret"
+	},
+	{
+		"name": "empty paste",
+		"svg": "",
+		"expect": "caret"
+	},
+	{
+		"name": "undeclared entity reference under an external subset (a level-1 libxml error; loadXML alone says true)",
+		"svg": "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path d=\"&arrow;\"/></svg>",
+		"expect": "caret"
+	},
+	{
+		"name": "an entity-encoded url( in a paint value is judged decoded: the attribute goes, the drawing stays",
+		"svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\"><path d=\"M0 0h10v10z\" fill=\"&#117;rl(https://evil.test/p)\"/></svg>",
+		"expect": "render",
+		"absent": [
+			"evil.test"
+		]
+	},
+	{
+		"name": "an uppercase attribute and URL( in any letter case: the attribute goes",
+		"svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\"><path d=\"M0 0h10v10z\" FILL=\"URL(https://evil.test/p)\"/></svg>",
+		"expect": "render",
+		"absent": [
+			"evil.test"
+		]
+	},
+	{
+		"name": "a backslash in a kept attribute's value is a CSS escape that can spell url( (\\75 rl(): the attribute goes, the drawing stays",
+		"svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\"><path d=\"M0 0h10v10z\" fill=\"\\75 rl(https://evil.test/x)\"/></svg>",
+		"expect": "render",
+		"absent": [
+			"evil.test",
+			"\\75",
+			"fill="
+		]
+	},
+	{
+		"name": "an uppercase SVG root is an svg root",
+		"svg": "<SVG xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\"><path d=\"M0 0h10v10z\"/></SVG>",
+		"expect": "render"
+	},
+	{
+		"name": "foreignObject holding XHTML img onerror and script: all of it goes, the drawing stays",
+		"svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\"><foreignObject width=\"10\" height=\"10\"><div xmlns=\"http://www.w3.org/1999/xhtml\"><img src=\"x\" onerror=\"alert(1)\"/><script>alert(2)</script></div></foreignObject><path d=\"M0 0h10v10z\"/></svg>",
+		"expect": "render",
+		"absent": [
+			"onerror",
+			"<script",
+			"<img",
+			"foreignObject",
+			"<div"
+		]
+	},
+	{
+		"name": "use and a javascript: link go; the path the link wrapped stays",
+		"svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 10 10\"><use href=\"#x\"/><a href=\"javascript:alert(1)\"><path d=\"M0 0h10v10z\"/></a></svg>",
+		"expect": "render",
+		"absent": [
+			"<use",
+			"javascript",
+			"<a ",
+			"href"
+		]
+	},
+	{
+		"name": "a prefixed svg:path under an unprefixed root is not a path: nothing draws",
+		"svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:svg=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\"><svg:path d=\"M0 0h10v10z\"/></svg>",
+		"expect": "caret"
+	},
+	{
+		"name": "a paste of exactly 65,536 bytes is read",
+		"build": {
+			"head": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\"><path d=\"M0 0h10v10z\"/><!--",
+			"open": "x",
+			"tail": "--></svg>",
+			"bytes": 65536
+		},
+		"expect": "render"
+	},
+	{
+		"name": "a paste of 65,537 bytes is refused before parsing",
+		"build": {
+			"head": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\"><path d=\"M0 0h10v10z\"/><!--",
+			"open": "x",
+			"tail": "--></svg>",
+			"bytes": 65537
+		},
+		"expect": "caret"
+	},
+	{
+		"name": "200 nested groups are read",
+		"build": {
+			"head": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\">",
+			"open": "<g>",
+			"times": 200,
+			"inner": "<path d=\"M0 0h10v10z\"/>",
+			"close": "</g>",
+			"tail": "</svg>"
+		},
+		"expect": "render"
+	},
+	{
+		"name": "300 nested groups are refused",
+		"build": {
+			"head": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\">",
+			"open": "<g>",
+			"times": 300,
+			"inner": "<path d=\"M0 0h10v10z\"/>",
+			"close": "</g>",
+			"tail": "</svg>"
+		},
+		"expect": "caret"
+	}
+]

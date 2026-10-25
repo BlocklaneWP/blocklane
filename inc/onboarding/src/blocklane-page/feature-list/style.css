@@ -1,0 +1,75 @@
+/*
+ * A Settings tab's list: the toolbar over it, its sections and rows cards,
+ * and the loading and empty states in its place
+ * (../../components/ListToolbar.js, FeatureList.js; spec
+ * 2026-10-12-c-settings.md §3.3; design spec Amendments F2, J).
+ *
+ * Tokens only (the stylelint override for blocklane-page/**): no hex, no px,
+ * no !important. Authored from the spec and the WPDS tokens.
+ */
+
+/* ---- Toolbar: search at the content's left edge, the bulk button after it */
+.blocklane-list-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--wpds-dimension-gap-md);
+	margin-block-end: var(--wpds-dimension-gap-lg);
+}
+
+.blocklane-list-toolbar__search {
+	flex: 0 1 var(--wpds-dimension-surface-width-sm);
+	min-width: 0;
+}
+
+/* ---- Sections: a muted heading over one bordered rows card -------------- */
+.blocklane-feature-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xl);
+}
+
+.blocklane-feature-list__section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-sm);
+}
+
+.blocklane-feature-list__title {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-md);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-feature-list__card {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	border: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-md);
+	background: var(--wpds-color-background-surface-neutral-strong);
+}
+
+/* Rows are divided by the weak hairline; the card's own border closes them. */
+.blocklane-feature-list__card > .blocklane-feature-row + .blocklane-feature-row {
+	border-block-start: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
+}
+
+/* ---- Loading and empty: the content area only (design rule R3) ---------- */
+.blocklane-feature-list__loading {
+	display: flex;
+	justify-content: center;
+	padding: var(--wpds-dimension-padding-3xl);
+}
+
+.blocklane-feature-list__empty {
+	padding-block: var(--wpds-dimension-padding-3xl);
+}
+
+/* The save-error notice sits between the toolbar and the list. */
+.blocklane-settings__notice {
+	margin-block-end: var(--wpds-dimension-gap-lg);
+}

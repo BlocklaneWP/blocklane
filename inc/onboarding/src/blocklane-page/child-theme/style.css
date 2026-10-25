@@ -1,0 +1,120 @@
+/*
+ * Create Child Theme (../../screens/ChildThemeScreen.js; spec
+ * 2026-10-12-c-child-theme.md; frames on page 87:617, design spec
+ * Amendment M). Layout only: core's controls draw their own labels, inputs,
+ * help lines, notices and dialog. Tokens only; the one literal, the 600px
+ * field column, is on design/shell-allow.json with its reason.
+ */
+
+/* The content stack: notices above the column, gap-xl (frame @content). */
+.blocklane-child-theme {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xl);
+}
+
+.blocklane-child-theme .components-notice {
+	margin: 0;
+}
+
+/* The form: one 600 column, gap-xl between its parts (frame @column). */
+.blocklane-child-theme__column {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xl);
+	width: 100%;
+	max-width: 600px;
+}
+
+.blocklane-child-theme__note {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+/* The import offer: a bordered card (Amendment M), checkbox then its help. */
+.blocklane-child-theme__import {
+	padding: var(--wpds-dimension-padding-lg);
+	border:
+		var(--wpds-border-width-xs) solid
+		var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-md);
+}
+
+/* Create, right-aligned under the column (R1, Large primary). */
+.blocklane-child-theme__actions {
+	display: flex;
+	justify-content: flex-end;
+}
+
+/* The result: notice, note, summary and the hide-tool note, gap-lg. */
+.blocklane-child-theme__result {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-lg);
+}
+
+.blocklane-child-theme__small {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+	line-height: var(--wpds-typography-line-height-xs);
+}
+
+/* What was written beside the screenshot it carries (frame @summary). */
+.blocklane-child-theme__summary {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wpds-dimension-gap-xl);
+}
+
+/*
+ * One grid for the seven rows, so every value starts on one line; the rows
+ * keep their own boxes through subgrid, and the hairline between them is
+ * the list's own surface showing through a 1px row gap.
+ */
+.blocklane-child-theme__rows {
+	display: grid;
+	flex: 1 1 auto;
+	grid-template-columns: max-content 1fr;
+	row-gap: var(--wpds-border-width-xs);
+	margin: 0;
+	background: var(--wpds-color-stroke-surface-neutral-weak);
+}
+
+.blocklane-child-theme__row {
+	display: grid;
+	grid-column: 1 / -1;
+	grid-template-columns: subgrid;
+	column-gap: var(--wpds-dimension-gap-lg);
+	padding-block: var(--wpds-dimension-padding-sm);
+	background: var(--wpds-color-background-surface-neutral-strong);
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-child-theme__row dt {
+	color: var(--wpds-color-foreground-content-neutral);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+}
+
+.blocklane-child-theme__row dd {
+	margin: 0;
+	min-width: 0;
+	overflow-wrap: anywhere;
+	color: var(--wpds-color-foreground-content-neutral);
+}
+
+.blocklane-child-theme__screenshot {
+	flex: none;
+	box-sizing: border-box;
+	width: var(--wpds-dimension-surface-width-sm);
+	aspect-ratio: 4 / 3;
+	object-fit: cover;
+	border:
+		var(--wpds-border-width-xs) solid
+		var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-md);
+	background: var(--wpds-color-background-surface-neutral-strong);
+}

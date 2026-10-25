@@ -1,0 +1,68 @@
+/**
+ * One transition, many contributors.
+ *
+ * `transition` is a single property: whichever rule wins the cascade
+ * replaces every other extension's list. The hover-colors unit's
+ * two-class rule beat the transforms unit's one-class rule, so a card's
+ * lift snapped while its border eased. Each extension therefore writes
+ * ONLY its own slot, a custom property holding its own transitions, and
+ * every rule that sets `transition` sets the same composed list of all
+ * slots. Whichever rule wins, the list carries every contributor; an unset
+ * slot falls back to a no-op entry (`blocklane-pro-none`, a property name
+ * nothing has).
+ *
+ * The slots are registered with `inherits: false`, so a slot set on a block
+ * never leaks into a nested block that composes its own transition.
+ *
+ * MIRROR CONTRACT: loader/transforms/transforms.css is plain CSS outside this
+ * build and spells the same @property rule for its slot and the same
+ * composed declaration. The extensions-contract battery (XC2) fails a
+ * `transition` declaration in either stylesheet that is not this list, a
+ * slot without its @property, and a slot that names `all` or `translate`
+ * (the scroll-motion unit's property, which must never ease).
+ *
+ * Order matters only where two slots name one property (the later entry
+ * wins): the animation-designer unit's scale-on-hover comes after the
+ * transforms unit's slot, which refuses its own `transform` on an
+ * animated block anyway.
+ */
+
+@use "sass:list";
+@use "sass:string";
+
+$blocklane-pro-transition-slots: hover-text, hover-background, hover-border, transforms, animation-hover, animation-reveal, header;
+
+@function blocklane-pro-transition-list() {
+	$list: ();
+
+	@each $slot in $blocklane-pro-transition-slots {
+		$list: list.append($list, string.unquote("var(--blocklane-pro-transition-#{$slot}, blocklane-pro-none 0s)"), comma);
+	}
+
+	@return $list;
+}
+
+/// Contribute one slot and compose the element's transition.
+/// @param {String} $slot  One of $blocklane-pro-transition-slots.
+/// @param {List}   $value The slot's transitions.
+@mixin blocklane-pro-transition($slot, $value) {
+
+	@if not list.index($blocklane-pro-transition-slots, $slot) {
+
+		@error "Unknown transition slot `#{$slot}`.";
+	}
+	--blocklane-pro-transition-#{$slot}: #{$value};
+	transition: blocklane-pro-transition-list();
+}
+
+/// Register the slots (once per stylesheet that sets them).
+@mixin blocklane-pro-transition-properties() {
+
+	@each $slot in $blocklane-pro-transition-slots {
+
+		@property --blocklane-pro-transition-#{$slot} {
+			syntax: "*";
+			inherits: false;
+		}
+	}
+}

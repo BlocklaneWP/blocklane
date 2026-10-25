@@ -1,0 +1,2219 @@
+<?php
+/**
+ * Popups — runtime (canonical source).
+ *
+ * SELF-CONTAINED by construction: it assumes no module has booted, and the
+ * two plugin classes it references — both side-effect free: the toggle
+ * reader, Content_Toggle, and the inline-asset door, Inline_Asset — are
+ * resolved by the classmap autoloader registered at plugin-file scope before
+ * any runtime loads, so no load order can trip it.
+ * (The old "core WordPress only" letter of the rule outlived its reason —
+ * this file used to be copied into a generated must-use plugin and run
+ * outside the plugin; the spirit, no dependence on a booted module, still
+ * holds.)
+ * (The gate chain below is safe mode → Advanced toggle, nothing else: nothing
+ * in this plugin gates on the license at runtime — enforcement is server-side
+ * at the update gateway; see inc/license/class-blocklane-pro-license.php.)
+ *
+ * One home now: the plugin requires this file in-process (once, from
+ * Modules), so it runs only while Blocklane Pro is active. The single-load
+ * guard below is kept anyway — it costs nothing, and on a site upgrading from
+ * a pre-2026-08 version a leftover baked copy outside the plugin would still
+ * load first and define these symbols. Assets resolve via plugins_url().
+ *
+ * It provides: the blocklane_popup CPT + settings meta, the display-rules
+ * evaluation, the wp_footer render (markup + per-popup animation CSS + the
+ * block-support style delta + the front assets), the capability-gated
+ * force-open preview parameter, the Site Lock splash suppression (popups stay
+ * off the Coming Soon / Maintenance screen unless a popup's showOnLockScreen
+ * setting opts it in — the gate announces the splash via the
+ * `blocklane_pro_site_lock_splash` action, read here with did_action()), and
+ * the Popup Bindings render pass (popup-bindings.md): source-provenance
+ * opener detection (stored markup + comment-JSON attrs, never rendered
+ * output) + the bound-popup render guarantee, image/cover opener markup,
+ * button closers.
+ *
+ * @package blocklane_pro
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+// Single-load guard. The plugin requires this file once, from the Modules
+// manifest; the guard matters on a site upgrading from a pre-2026-08 version,
+// where a leftover baked copy outside the plugin loads first and wins.
+if ( defined( 'BLOCKLANE_PRO_POPUPS_RUNTIME_LOADED' ) ) {
+	return;
+}
+define( 'BLOCKLANE_PRO_POPUPS_RUNTIME_LOADED', true );
+
+// Safe mode silences every Blocklane Pro surface, the generated runtimes included.
+if ( defined( 'BLOCKLANE_PRO_SAFE_MODE' ) && BLOCKLANE_PRO_SAFE_MODE ) {
+	return;
+}
+
+// The Advanced toggle (ships OFF). Read through the one toggle reader, which
+// resolves the stored row without loading the Advanced class: an absent row
+// or key means the shipped default, and there is no second source to consult.
+if ( ! \blocklane_pro\Content_Toggle::on( 'popups' ) ) {
+	return;
+}
+
+if ( ! function_exists( 'blocklane_pro_popups_register' ) ) {
+
+	/** The post type key. */
+	define( 'BLOCKLANE_PRO_POPUPS_CPT', 'blocklane_popup' );
+
+	/**
+	 * Allowed enum values for the settings meta (server-side allowlists).
+	 *
+	 * `trigger` and `condition` are the popups VOCABULARIES (edition-manifest
+	 * rule 6): whole in BOTH editions, keyed by value, ONE VALUE PER LINE.
+	 * The sanitizer keys on them, so a popup authored under Pro reads back
+	 * byte-identical under free (H1: never normalize away Pro-authored data)
+	 * — what free cannot do with a value is decided by the three registries
+	 * (resolvers, client arms, editor options), never by the table. Per-value
+	 * schema rides the value: `max` clamps a numeric trigger value. The
+	 * lines are a grammar bin/popups-mirror-check.php reads and holds the
+	 * registries and the manifest's `contributes` to; a contributed value is
+	 * quoted nowhere else in a base popups file.
+	 *
+	 * @return array<string, mixed>
+	 */
+	function blocklane_pro_popups_enums(): array {
+		return array(
+			'position'   => array( 'center', 'top-left', 'top-center', 'top-right', 'center-left', 'center-right', 'bottom-left', 'bottom-center', 'bottom-right' ),
+			'trigger'    => array(
+				'time'   => array(),
+				'scroll' => array( 'max' => 100 ),
+				'exit'   => array(),
+				'manual' => array(),
+			),
+			'qualifier'  => array( 'is', 'is-not', 'contains', 'not-contains' ),
+			'condition'  => array(
+				'everywhere' => array(),
+				'front-page' => array(),
+				'page'       => array(),
+				'post'       => array(),
+				'post-type'  => array(),
+				'url'        => array(),
+				'logged-in'  => array(),
+			),
+			// The Animation extension's shared keyframe names. Popups ships
+			// the same six keyframes in style.css (popups battery PU5), so
+			// the Open animation works with that extension off or absent.
+			'animation'  => array(
+				'fadeIn'      => 'blocklaneProAnimateFadeIn',
+				'fadeInUp'    => 'blocklaneProAnimateFadeInUp',
+				'fadeInDown'  => 'blocklaneProAnimateFadeInDown',
+				'fadeInLeft'  => 'blocklaneProAnimateFadeInLeft',
+				'fadeInRight' => 'blocklaneProAnimateFadeInRight',
+				'zoomIn'      => 'blocklaneProAnimateZoomIn',
+			),
+		);
+	}
+
+	/** Default settings — the single source of truth for the meta shape. */
+	function blocklane_pro_popups_default_settings() {
+		return array(
+			'position'         => 'center',
+			'trigger'          => array(
+				'type'  => 'time',
+				'value' => 0,
+			),
+			'frequency'        => array(
+				'seen'      => 0,
+				'dismissed' => 7,
+			),
+			'rules'            => array(
+				'match' => 'any',
+				'items' => array(),
+			),
+			// A CSS length (px/em/rem) evaluated client-side via matchMedia,
+			// so the browser does the unit math. '' = show at every width.
+			'minWidth'         => '',
+			// The popup card's max-width (CSS length; '' = default sizing:
+			// center = theme content size, corners = fit content). Applied
+			// as an inline style on the dialog AND mirrored onto the popup
+			// editor canvas, so what you design is what opens.
+			'maxWidth'         => '',
+			'closable'         => true,
+			'showCloseButton'  => true,
+			// Whether this popup may appear on the Site Lock splash (Coming
+			// Soon / Maintenance). Default OFF: the splash suppresses popups
+			// unless a popup opts in. NOTE the polarity — unlike closable/
+			// showCloseButton, an absent key means FALSE.
+			'showOnLockScreen' => false,
+			// The Animation builder's vocabulary: shared keyframes + its
+			// duration/delay ranges (0.1-5s / 0-5s).
+			'animation'        => array(
+				'type'     => '',
+				'duration' => 0.4,
+				'delay'    => 0,
+			),
+		);
+	}
+
+	/**
+	 * Sanitize the settings meta against the defaults + enums. Unknown keys
+	 * drop; enum misses fall back to the default; ints clamp to >= 0.
+	 *
+	 * @param mixed $value Raw meta value.
+	 * @return array Clean settings.
+	 */
+	function blocklane_pro_popups_sanitize_settings( $value ) {
+		$defaults = blocklane_pro_popups_default_settings();
+		$enums    = blocklane_pro_popups_enums();
+		$value    = is_array( $value ) ? $value : array();
+
+		$clean             = $defaults;
+		$clean['position'] = in_array( $value['position'] ?? '', $enums['position'], true ) ? $value['position'] : $defaults['position'];
+
+		// CSS lengths in px/em/rem (viewport units are circular for a
+		// viewport threshold, and pointless for the card). Legacy integer
+		// saves meant px.
+		foreach ( array( 'minWidth', 'maxWidth' ) as $length_key ) {
+			$length = $value[ $length_key ] ?? '';
+			if ( is_int( $length ) || ( is_string( $length ) && ctype_digit( $length ) ) ) {
+				$length = absint( $length ) > 0 ? absint( $length ) . 'px' : '';
+			}
+			$clean[ $length_key ] = ( is_string( $length ) && preg_match( '/^\d*\.?\d+(px|em|rem)$/', trim( $length ) ) ) ? trim( $length ) : '';
+		}
+
+		// Keyed on the vocabulary, in either edition: a Pro trigger read under
+		// free stays what the author stored (rule 6, H1); only a value outside
+		// the vocabulary falls back. The clamp is the value's own schema.
+		$trigger                   = is_array( $value['trigger'] ?? null ) ? $value['trigger'] : array();
+		$trigger_type              = is_string( $trigger['type'] ?? null ) ? $trigger['type'] : '';
+		$clean['trigger']['type']  = isset( $enums['trigger'][ $trigger_type ] ) ? $trigger_type : $defaults['trigger']['type'];
+		$clean['trigger']['value'] = max( 0, absint( $trigger['value'] ?? 0 ) );
+		if ( isset( $enums['trigger'][ $clean['trigger']['type'] ]['max'] ) ) {
+			$clean['trigger']['value'] = min( (int) $enums['trigger'][ $clean['trigger']['type'] ]['max'], $clean['trigger']['value'] );
+		}
+
+		$frequency                      = is_array( $value['frequency'] ?? null ) ? $value['frequency'] : array();
+		$clean['frequency']['seen']      = max( 0, absint( $frequency['seen'] ?? 0 ) );
+		$clean['frequency']['dismissed'] = max( 0, absint( $frequency['dismissed'] ?? 0 ) );
+
+		$rules                  = is_array( $value['rules'] ?? null ) ? $value['rules'] : array();
+		$clean['rules']['match'] = ( 'all' === ( $rules['match'] ?? '' ) ) ? 'all' : 'any';
+		$clean['rules']['items'] = array();
+		foreach ( (array) ( $rules['items'] ?? array() ) as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+			$condition = is_string( $item['condition'] ?? null ) && isset( $enums['condition'][ $item['condition'] ] ) ? $item['condition'] : 'everywhere';
+			$qualifier = in_array( $item['qualifier'] ?? '', $enums['qualifier'], true ) ? $item['qualifier'] : 'is';
+			$clean['rules']['items'][] = array(
+				'condition' => $condition,
+				'qualifier' => $qualifier,
+				'value'     => sanitize_text_field( (string) ( $item['value'] ?? '' ) ),
+			);
+		}
+
+		$clean['closable']         = ! isset( $value['closable'] ) || (bool) $value['closable'];
+		$clean['showCloseButton']  = ! isset( $value['showCloseButton'] ) || (bool) $value['showCloseButton'];
+		// Opposite polarity to the two above on purpose: absent means FALSE
+		// (legacy rows and stale clients surface with the splash opt-in off).
+		$clean['showOnLockScreen'] = ! empty( $value['showOnLockScreen'] );
+
+		// Animation: legacy saves were a bare type string; now an object
+		// carrying the builder's duration/delay.
+		$animation = $value['animation'] ?? array();
+		if ( is_string( $animation ) ) {
+			$animation = array( 'type' => $animation );
+		}
+		$animation = is_array( $animation ) ? $animation : array();
+		$clean['animation']['type']     = isset( $enums['animation'][ $animation['type'] ?? '' ] ) ? $animation['type'] : '';
+		$clean['animation']['duration'] = min( 5, max( 0.1, round( (float) ( $animation['duration'] ?? $defaults['animation']['duration'] ), 2 ) ) );
+		$clean['animation']['delay']    = min( 5, max( 0, round( (float) ( $animation['delay'] ?? 0 ), 2 ) ) );
+
+		return $clean;
+	}
+
+	/** Register the CPT + the settings meta. */
+	function blocklane_pro_popups_register() {
+		register_post_type(
+			BLOCKLANE_PRO_POPUPS_CPT,
+			array(
+				'labels'              => array(
+					'name'          => __( 'Popups', 'blocklane' ),
+					'singular_name' => __( 'Popup', 'blocklane' ),
+					'add_new_item'  => __( 'Add New Popup', 'blocklane' ),
+					'edit_item'     => __( 'Edit Popup', 'blocklane' ),
+					'not_found'     => __( 'No popups yet.', 'blocklane' ),
+				),
+				'public'              => false,
+				'show_ui'             => true,
+				// Site-wide chrome, so admin-level only: default post caps
+				// would let Authors/Editors create and publish popups through
+				// edit.php or core REST (the hidden submenu is not a gate).
+				// Every primitive maps to manage_options, matching the other
+				// site-chrome surfaces (Scripts, Site Visibility). With
+				// map_meta_cap off, edit_post/read_post/delete_post resolve
+				// straight to these primitives, so the render-time
+				// current_user_can( 'edit_post', … ) checks below stay correct.
+				'map_meta_cap'        => false,
+				'capabilities'        => array(
+					'edit_post'              => 'manage_options',
+					'read_post'              => 'manage_options',
+					'delete_post'            => 'manage_options',
+					'edit_posts'             => 'manage_options',
+					'edit_others_posts'      => 'manage_options',
+					'publish_posts'          => 'manage_options',
+					'read_private_posts'     => 'manage_options',
+					'read'                   => 'read',
+					'delete_posts'           => 'manage_options',
+					'delete_private_posts'   => 'manage_options',
+					'delete_published_posts' => 'manage_options',
+					'delete_others_posts'    => 'manage_options',
+					'edit_private_posts'     => 'manage_options',
+					'edit_published_posts'   => 'manage_options',
+					'create_posts'           => 'manage_options',
+				),
+				// Under the Blocklane Pro menu while the plugin is around; a
+				// plain top-level menu from the bake when it isn't, so the
+				// content stays manageable. defined() is a soft probe — this
+				// file must never hard-require the plugin.
+				'show_in_menu'        => defined( 'BLOCKLANE_PRO_VERSION' ) ? 'blocklane-pro' : true,
+				'menu_icon'           => 'dashicons-megaphone',
+				'exclude_from_search' => true,
+				'publicly_queryable'  => false,
+				'show_in_rest'        => true,
+				// custom-fields is required for registered meta to surface in
+				// REST (and therefore in the editor's meta entity prop) — the
+				// settings panels are dead without it.
+				'supports'            => array( 'title', 'editor', 'revisions', 'custom-fields' ),
+				'rewrite'             => false,
+			)
+		);
+
+		$item_schema = array(
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'properties'           => array(
+				'condition' => array( 'type' => 'string' ),
+				'qualifier' => array( 'type' => 'string' ),
+				'value'     => array( 'type' => 'string' ),
+			),
+		);
+
+		register_post_meta(
+			BLOCKLANE_PRO_POPUPS_CPT,
+			'blocklane_popup_settings',
+			array(
+				'single'            => true,
+				'type'              => 'object',
+				'default'           => blocklane_pro_popups_default_settings(),
+				'sanitize_callback' => 'blocklane_pro_popups_sanitize_settings',
+				'auth_callback'     => static function ( $allowed, $meta_key, $post_id ) {
+					return current_user_can( 'edit_post', $post_id );
+				},
+				'show_in_rest'      => array(
+					// Core's default prepare_callback schema-validates the
+					// STORED value and nulls the whole object on any mismatch,
+					// so legacy rows (bare-string animation, integer minWidth)
+					// reached the editor as null — and the next save patched
+					// over defaults, silently wiping rules/trigger/frequency.
+					// Run the same sanitizer the write path uses so legacy
+					// shapes surface migrated; it is idempotent on
+					// current-shape values.
+					'prepare_callback' => static function ( $value ) {
+						return blocklane_pro_popups_sanitize_settings( $value );
+					},
+					'schema' => array(
+						'type'                 => 'object',
+						'additionalProperties' => false,
+						'properties'           => array(
+							'position'         => array( 'type' => 'string' ),
+							'trigger'          => array(
+								'type'                 => 'object',
+								'additionalProperties' => false,
+								'properties'           => array(
+									'type'  => array( 'type' => 'string' ),
+									'value' => array( 'type' => 'integer' ),
+								),
+							),
+							'frequency'        => array(
+								'type'                 => 'object',
+								'additionalProperties' => false,
+								'properties'           => array(
+									'seen'      => array( 'type' => 'integer' ),
+									'dismissed' => array( 'type' => 'integer' ),
+								),
+							),
+							'rules'            => array(
+								'type'                 => 'object',
+								'additionalProperties' => false,
+								'properties'           => array(
+									'match' => array( 'type' => 'string' ),
+									'items' => array(
+										'type'  => 'array',
+										'items' => $item_schema,
+									),
+								),
+							),
+							'minWidth'         => array( 'type' => 'string' ),
+							'maxWidth'         => array( 'type' => 'string' ),
+							'closable'         => array( 'type' => 'boolean' ),
+							'showCloseButton'  => array( 'type' => 'boolean' ),
+							'showOnLockScreen' => array( 'type' => 'boolean' ),
+							'animation'        => array(
+								'type'                 => 'object',
+								'additionalProperties' => false,
+								'properties'           => array(
+									'type'     => array( 'type' => 'string' ),
+									'duration' => array( 'type' => 'number' ),
+									'delay'    => array( 'type' => 'number' ),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+	}
+	add_action( 'init', 'blocklane_pro_popups_register' );
+
+	/**
+	 * A popup's settings, sanitized with defaults filled.
+	 *
+	 * @param int $post_id Popup ID.
+	 * @return array
+	 */
+	function blocklane_pro_popups_settings( $post_id ) {
+		return blocklane_pro_popups_sanitize_settings( get_post_meta( $post_id, 'blocklane_popup_settings', true ) );
+	}
+
+	/**
+	 * Evaluate one display rule against the current request.
+	 *
+	 * @param array $rule { condition, qualifier, value }.
+	 * @return bool
+	 */
+	function blocklane_pro_popups_rule_matches( array $rule ) {
+		$values = array_values( array_filter( array_map( 'trim', explode( ',', (string) $rule['value'] ) ) ) );
+		$negate = in_array( $rule['qualifier'], array( 'is-not', 'not-contains' ), true );
+
+		// A condition this edition has no resolver for is FALSE — the shape
+		// the unknown-condition default always had — and the qualifier then
+		// applies as authored: a Pro `is` rule under free never matches
+		// (inert, never widened to everywhere); its `is-not` twin matches,
+		// because the exclusion is the half free cannot evaluate.
+		$resolvers = blocklane_pro_popups_rule_resolvers();
+		$condition = (string) $rule['condition'];
+		$result    = isset( $resolvers[ $condition ] ) ? (bool) call_user_func( $resolvers[ $condition ], $values ) : false;
+
+		return $negate ? ! $result : $result;
+	}
+
+	/**
+	 * The rule resolvers THIS EDITION carries: condition => callable taking
+	 * the rule's comma-split values, answering whether the current request
+	 * matches. The FIRST registry of the popups vocabularies (rule 6): the
+	 * base map is ONE ENTRY PER LINE (bin/popups-mirror-check.php reads the
+	 * lines), and the Pro file adds its conditions through the filter. A
+	 * condition with no resolver never matches (rule_matches).
+	 *
+	 * THE REGISTRY VALIDATES AT ITS ONE DOOR. rule_matches() calls an entry
+	 * unguarded, and rules_match() runs in both render passes on every
+	 * front-end request — so a filter that put a non-callable here threw a
+	 * TypeError site-wide (#1024). An entry survives only with a string key
+	 * and a callable value; a failing entry whose key is in the base map
+	 * falls back to the base callable (the site keeps evaluating that
+	 * condition), any other failing entry is dropped (its condition then
+	 * never matches, the shape an unknown condition always had), and each
+	 * one raises _doing_it_wrong — the WordPress convention for a filter that
+	 * returned the wrong shape, which fires under WP_DEBUG and never on a
+	 * production request. The sibling seam validates its callables the same
+	 * way (blocklane_pro_forms_field_type_registry).
+	 *
+	 * @return array<string, callable(array<int, string>): bool>
+	 */
+	function blocklane_pro_popups_rule_resolvers(): array {
+		$base = array(
+			'everywhere' => static fn( array $values ): bool => true,
+			'page'       => static fn( array $values ): bool => empty( $values ) ? is_page() : is_page( $values ),
+			'post'       => static fn( array $values ): bool => empty( $values ) ? is_singular( 'post' ) : is_single( $values ),
+		);
+
+		/**
+		 * The rule resolvers. A contributing unit adds the conditions it owns;
+		 * the vocabulary decides what a stored value may be, this map decides
+		 * what this edition can evaluate.
+		 *
+		 * The CONTRACT is array<string, callable(array<int, string>): bool>.
+		 * The declared type is `mixed` because a filter is not obliged to
+		 * honor a contract, and that is the whole point of the validation
+		 * below: typing the contract here would make PHPStan believe it and
+		 * read every check as dead code (#1024).
+		 *
+		 * @param mixed $base The base map.
+		 */
+		$resolvers = apply_filters( 'blocklane_pro_popups_rule_resolvers', $base );
+		if ( ! is_array( $resolvers ) ) {
+			return $base;
+		}
+
+		$checked = array();
+		foreach ( $resolvers as $condition => $resolver ) {
+			if ( is_string( $condition ) && is_callable( $resolver ) ) {
+				$checked[ $condition ] = $resolver;
+				continue;
+			}
+			$blocklane_key = is_string( $condition ) ? $condition : gettype( $condition );
+			if ( is_string( $condition ) && isset( $base[ $condition ] ) ) {
+				$checked[ $condition ] = $base[ $condition ];
+			}
+			_doing_it_wrong(
+				'blocklane_pro_popups_rule_resolvers',
+				esc_html(
+					sprintf(
+						/* translators: 1: a rule condition key, 2: a PHP type name. */
+						__( 'The resolver for "%1$s" is a %2$s, not a callable. Every entry must be callable; this one was ignored.', 'blocklane' ),
+						$blocklane_key,
+						gettype( $resolver )
+					)
+				),
+				esc_html( defined( 'BLOCKLANE_PRO_VERSION' ) ? BLOCKLANE_PRO_VERSION : '0.0.0' )
+			);
+		}
+
+		return $checked;
+	}
+
+	/**
+	 * Whether a popup's rules allow it on the current request. No rules =
+	 * everywhere (the editor default).
+	 *
+	 * @param array $rules { match, items }.
+	 * @return bool
+	 */
+	function blocklane_pro_popups_rules_match( array $rules ) {
+		if ( empty( $rules['items'] ) ) {
+			return true;
+		}
+
+		foreach ( $rules['items'] as $rule ) {
+			$matched = blocklane_pro_popups_rule_matches( $rule );
+			if ( $matched && 'any' === $rules['match'] ) {
+				return true;
+			}
+			if ( ! $matched && 'all' === $rules['match'] ) {
+				return false;
+			}
+		}
+
+		return 'all' === $rules['match'];
+	}
+
+	/**
+	 * Enqueue the front-end style and script — the ONE door (both render
+	 * passes call it, and wp_enqueue_* is idempotent). Fires
+	 * blocklane_pro_popups_front_enqueued so a contributing unit can add its
+	 * trigger arms with 'blocklane-pro-popups' as the dependency — the SECOND
+	 * registry (rule 6): view.js's `window.blocklanePopups.register()`.
+	 */
+	function blocklane_pro_popups_enqueue_front(): void {
+		$url = plugin_dir_url( __FILE__ );
+		wp_enqueue_style( 'blocklane-pro-popups', $url . 'style.css', array(), (string) filemtime( __DIR__ . '/style.css' ) );
+		wp_enqueue_script( 'blocklane-pro-popups', $url . 'view.js', array(), (string) filemtime( __DIR__ . '/view.js' ), true );
+
+		/**
+		 * Fires after the popups front-end script is enqueued (once per render
+		 * pass that produced markup; enqueues are idempotent).
+		 */
+		do_action( 'blocklane_pro_popups_front_enqueued' );
+	}
+
+	/**
+	 * The editor's trigger and condition option rows for THIS EDITION — the
+	 * THIRD registry (rule 6). One row per line (bin/popups-mirror-check.php
+	 * reads `'value' => '…'`); the Pro file appends its rows through the
+	 * filter and may replace a base row's help. Labels are translated HERE,
+	 * so the Pro labels live in the Pro file and the free bundle carries
+	 * none — the forbidden_ui_strings posture without a needle. Rows are
+	 * localized to the editor as window.blocklaneProPopupsOptions
+	 * (blocklane_pro_popups_editor_assets); src/index.js quotes no value.
+	 *
+	 * Trigger row: value, label, order, control ('seconds' | 'percent' | null:
+	 * which numeric control the editor shows), default (the value written on
+	 * switch), help. Condition row: value, label, order, valueless (a pure
+	 * state check), qualifiers (a LIST of qualifier vocabulary values, in the
+	 * order the select offers them). The payload's third key, `qualifier`, is
+	 * the one label map for that vocabulary — a row names values, never
+	 * labels, so the labels exist once (#1026, #1028).
+	 *
+	 * @return array{trigger: list<array<string, mixed>>, condition: list<array<string, mixed>>, qualifier: array<string, string>}
+	 */
+	function blocklane_pro_popups_editor_options(): array {
+		$base = array(
+			'trigger'   => array(
+				array( 'value' => 'time', 'label' => __( 'Time on page', 'blocklane' ), 'order' => 10, 'control' => 'seconds', 'default' => 0, 'help' => '' ),
+				array( 'value' => 'manual', 'label' => __( 'Manual only', 'blocklane' ), 'order' => 40, 'control' => null, 'default' => 0, 'help' => __( 'Point a link at #blocklane-popup-{ID}, or add a blocklane-popup-open-{ID} class to any element.', 'blocklane' ) ),
+			),
+			'condition' => array(
+				array( 'value' => 'everywhere', 'label' => __( 'Everywhere', 'blocklane' ), 'order' => 10, 'valueless' => true, 'qualifiers' => array( 'is', 'is-not' ) ),
+				array( 'value' => 'page', 'label' => __( 'Page', 'blocklane' ), 'order' => 30, 'valueless' => false, 'qualifiers' => array( 'is', 'is-not' ) ),
+				array( 'value' => 'post', 'label' => __( 'Post', 'blocklane' ), 'order' => 40, 'valueless' => false, 'qualifiers' => array( 'is', 'is-not' ) ),
+			),
+			'qualifier' => blocklane_pro_popups_qualifier_labels(),
+		);
+
+		/**
+		 * The editor option rows. A contributing unit appends the rows for
+		 * the values it owns (and may replace a base row's help). The
+		 * `qualifier` label map belongs to the base vocabulary and is not a
+		 * contribution point.
+		 *
+		 * @param array{trigger: list<array<string, mixed>>, condition: list<array<string, mixed>>, qualifier: array<string, string>} $base The base rows.
+		 */
+		$options = apply_filters( 'blocklane_pro_popups_editor_options', $base );
+
+		return is_array( $options ) ? $options : $base;
+	}
+
+	/**
+	 * The qualifier vocabulary's labels — the ONE source.
+	 *
+	 * The same is/is-not pair used to be written three times: here, in
+	 * inc/popups/pro/runtime.php, and as a JS fallback in src/index.js. Three
+	 * copies of a label map are three chances to disagree, and the JS copy
+	 * did something worse than disagree: it stood in for "this condition's
+	 * qualifiers" on a condition with no row at all, so a free author could
+	 * switch the qualifier of a rule this edition cannot evaluate (#1026,
+	 * #1028). Condition rows now carry a LIST of values; the labels are here;
+	 * and the editor receives this map as the payload's `qualifier` key, so a
+	 * stored qualifier a condition does not offer can be shown under its own
+	 * name instead of "Not available in this edition", which under Pro
+	 * (`page` + `contains`, storable because the sanitizer checks the whole
+	 * vocabulary) was simply false.
+	 *
+	 * Every key is a base vocabulary value, so no contributed literal enters
+	 * a base file and bin/popups-mirror-check.php stays satisfied.
+	 *
+	 * @return array<string, string> Qualifier value => translated label.
+	 */
+	function blocklane_pro_popups_qualifier_labels(): array {
+		return array(
+			'is'           => __( 'is', 'blocklane' ),
+			'is-not'       => __( 'is not', 'blocklane' ),
+			'contains'     => __( 'contains', 'blocklane' ),
+			'not-contains' => __( 'does not contain', 'blocklane' ),
+		);
+	}
+
+	/**
+	 * How a popup opens by itself, in one phrase — for a consumer that needs
+	 * to SAY it rather than act on it (the Popup Bindings panel's "this popup
+	 * also opens automatically (…)" hint).
+	 *
+	 * Derived from registry 3's rows, never from a switch. The binding panel
+	 * had its own switch over time/scroll/exit with hand-written labels — a
+	 * fourth reader of the trigger vocabulary, and one living outside
+	 * inc/popups/ where the mirror check's base-file scan could not see it,
+	 * so a renamed or retired trigger would have left it quietly wrong
+	 * (#1027). It cannot read window.blocklaneProPopupsOptions either: that
+	 * bridge is localized on the popup CPT screen only, and the panel renders
+	 * on every editor screen. So the label comes from the server, with the
+	 * payload that already carries the trigger.
+	 *
+	 * '' means "nothing opens this by itself": `manual` (a base value the
+	 * base may quote) or a trigger with no row in this edition — for which
+	 * "opens on click only" is the true sentence, since this build has no arm
+	 * for it.
+	 *
+	 * @param array<string, mixed> $trigger A settings trigger { type, value }.
+	 * @return string A translated phrase, or '' .
+	 */
+	function blocklane_pro_popups_trigger_summary( array $trigger ): string {
+		$type = isset( $trigger['type'] ) ? (string) $trigger['type'] : '';
+		if ( '' === $type || 'manual' === $type ) {
+			return '';
+		}
+
+		$row = null;
+		foreach ( blocklane_pro_popups_editor_options()['trigger'] as $candidate ) {
+			if ( isset( $candidate['value'] ) && $type === $candidate['value'] ) {
+				$row = $candidate;
+				break;
+			}
+		}
+		if ( null === $row ) {
+			return '';
+		}
+
+		$label   = isset( $row['label'] ) ? (string) $row['label'] : $type;
+		$value   = isset( $trigger['value'] ) ? (int) $trigger['value'] : 0;
+		$control = $row['control'] ?? null;
+		if ( 'seconds' === $control ) {
+			return sprintf(
+				/* translators: 1: a trigger label, e.g. "Time on page", 2: a number of seconds. */
+				_n( '%1$s, %2$d second', '%1$s, %2$d seconds', $value, 'blocklane' ),
+				$label,
+				$value
+			);
+		}
+		if ( 'percent' === $control ) {
+			return sprintf(
+				/* translators: 1: a trigger label, e.g. "Scroll percentage", 2: a percentage. */
+				__( '%1$s, %2$d%%', 'blocklane' ),
+				$label,
+				$value
+			);
+		}
+
+		return $label;
+	}
+
+	/**
+	 * The force-open preview id, when this request is a valid preview: the
+	 * param names a popup the current user can edit. Called from the
+	 * wp_footer render only — the current_user_can( 'edit_post' ) check
+	 * here is the real gate (with the admin-mapped CPT caps that means
+	 * manage_options).
+	 *
+	 * @return int 0 when not previewing.
+	 */
+	function blocklane_pro_popups_preview_id() {
+		$id = absint( $_GET['blocklane_popup_preview'] ?? 0 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only preview flag: it force-opens a popup the current user can edit (checked below); nothing is written.
+		if ( ! $id || BLOCKLANE_PRO_POPUPS_CPT !== get_post_type( $id ) || ! current_user_can( 'edit_post', $id ) ) {
+			return 0;
+		}
+		return $id;
+	}
+
+	/** Point the editor's Preview at the front page with the force-open param. */
+	function blocklane_pro_popups_preview_link( $link, $post ) {
+		if ( BLOCKLANE_PRO_POPUPS_CPT === $post->post_type ) {
+			return add_query_arg( 'blocklane_popup_preview', $post->ID, home_url( '/' ) );
+		}
+		return $link;
+	}
+	add_filter( 'preview_post_link', 'blocklane_pro_popups_preview_link', 10, 2 );
+
+	/**
+	 * The page's bound-popup registry: popup IDs referenced by a manual
+	 * opener rendered somewhere on this request (popup-bindings.md). The
+	 * footer render unions these into its output so a click binding always
+	 * has its popup in the page.
+	 *
+	 * @param array $add Popup IDs to register.
+	 * @return int[] All registered IDs.
+	 */
+	function blocklane_pro_popups_bound_ids( $add = array() ) {
+		static $ids = array();
+		foreach ( (array) $add as $id ) {
+			$id = absint( $id );
+			if ( $id > 0 ) {
+				$ids[ $id ] = true;
+			}
+		}
+		return array_keys( $ids );
+	}
+
+	/**
+	 * Popup IDs already rendered into this request — shared between the main
+	 * render (wp_footer:9) and the late drain (wp_footer:19) so a popup can
+	 * never print twice. Same static-registry shape as bound_ids above.
+	 *
+	 * @param array<int|string> $mark IDs to mark rendered.
+	 * @return array<int> The rendered IDs.
+	 */
+	function blocklane_pro_popups_rendered_ids( $mark = array() ) {
+		static $ids = array();
+		foreach ( (array) $mark as $id ) {
+			$id = absint( $id );
+			if ( $id > 0 ) {
+				$ids[ $id ] = true;
+			}
+		}
+		return array_keys( $ids );
+	}
+
+	/**
+	 * Popup Bindings render pass (popup-bindings.md), two jobs:
+	 *
+	 * 1. Apply attribute-carried binding markup: Image/Cover openers
+	 *    (blocklaneProPopupId → opener class + activatable wrapper) and
+	 *    Button closers (blocklaneProPopupClose → data-popup-close). Anchor
+	 *    blocks need no mutation — their binding is their own href.
+	 * 2. Register every manual-opener reference found in the block's SOURCE —
+	 *    its stored markup and comment-JSON attributes — for the footer
+	 *    render's union (the render guarantee). Never the rendered output:
+	 *    that is the channel visitor content arrives on (#34).
+	 *
+	 * @param string $block_content Rendered block HTML.
+	 * @param array  $block         Parsed block.
+	 * @return string
+	 */
+	function blocklane_pro_popups_bind_render_block( $block_content, $block ) {
+		if ( ! is_string( $block_content ) || '' === $block_content ) {
+			return $block_content;
+		}
+
+		// The opener mutations and the registry are consumed only by the
+		// wp_footer render, which never runs in admin, REST, or feed
+		// contexts. Skip there: the work would be discarded anyway (and this
+		// filter fires on every block of every REST content.rendered).
+		// wp_is_rest_endpoint() (WP 6.5) covers internal rest_do_request()
+		// dispatch too, where the REST_REQUEST constant is never set — the
+		// same predicate the Video Modal twin uses (its
+		// blocklane_pro_video_modal_page_prints_runtime()). Embeds render the
+		// excerpt, never blocks, so there is nothing to add for them.
+		if ( is_admin() || wp_is_rest_endpoint() || is_feed() ) {
+			return $block_content;
+		}
+
+		$name  = isset( $block['blockName'] ) ? $block['blockName'] : '';
+		$attrs = isset( $block['attrs'] ) && is_array( $block['attrs'] ) ? $block['attrs'] : array();
+
+		// Manual-class openers (issue #429): a hand-typed
+		// blocklane-popup-open-{id} class on an image binds the delegated
+		// click on the whole element — including the <img> core's lightbox
+		// also binds — so the same suppression the attribute branch performs
+		// below must fire here too, or the one documented opener path the
+		// attribute door doesn't cover double-fires popup + zoom. Keyed on
+		// the STORED className attribute (the Additional CSS classes field),
+		// never rendered output — the #34 provenance rule.
+		if ( 'core/image' === $name
+			&& is_string( $attrs['className'] ?? null )
+			&& false !== strpos( $attrs['className'], 'blocklane-popup-open-' ) ) {
+			remove_filter( 'render_block_core/image', 'block_core_image_render_lightbox', 15 );
+		}
+
+		// Image/Cover openers, for a published popup only (a deleted or
+		// unpublished target renders the block untouched). Video Modal wins a
+		// copy-pasted conflict (one click, one meaning) — but only when it
+		// will ACTUALLY render (issue #410): the resolver is the shared
+		// predicate, and its absence means the extension is off for this
+		// request, so the popup opener proceeds instead of leaving a block
+		// with neither behavior.
+		$video_wins = function_exists( 'blocklane_pro_video_modal_resolve' )
+			&& null !== blocklane_pro_video_modal_resolve( $name, $attrs );
+		if ( in_array( $name, array( 'core/image', 'core/cover' ), true ) && ! $video_wins ) {
+			$popup_id = absint( $attrs['blocklaneProPopupId'] ?? 0 );
+			$popup    = $popup_id > 0 ? get_post( $popup_id ) : null;
+
+			// A linked image keeps its link (issue #420's popups door,
+			// decision D2): stamping role="button" around a real <a> is the
+			// same nested-interactive violation one feature over. No opener
+			// — the binding stays saved, and the picker's own linked-image
+			// notice explains. Structural check covers hand-written wraps.
+			$image_linked = false;
+			if ( 'core/image' === $name && $popup ) {
+				$image_linked = 'none' !== ( $attrs['linkDestination'] ?? 'none' );
+				if ( ! $image_linked && preg_match( '/<a[\s>]/i', $block_content, $m_a, PREG_OFFSET_CAPTURE ) ) {
+					$img_at       = stripos( $block_content, '<img' );
+					$image_linked = ( false === $img_at || $m_a[0][1] < $img_at );
+				}
+			}
+
+			if ( $popup && ! $image_linked && BLOCKLANE_PRO_POPUPS_CPT === $popup->post_type && 'publish' === $popup->post_status ) {
+				// The generated opener class exists only in rendered output,
+				// which the scan below no longer reads (#34) — register the
+				// binding directly. One call covers the image path, the cover
+				// overlay path, and the cover fallback path.
+				blocklane_pro_popups_bound_ids( array( $popup_id ) );
+
+				// MIRROR — core lightbox suppression, same mechanism and
+				// rationale as blocklane_pro_video_modal_render_block()
+				// (wp-includes/blocks/image.php:104-126; issues #403/D2):
+				// the explicit popup opener owns this image's click, so
+				// core's ambient zoom must not double-fire beneath it. The
+				// next lightboxed image re-adds the filter in its own
+				// render callback.
+				if ( 'core/image' === $name ) {
+					remove_filter( 'render_block_core/image', 'block_core_image_render_lightbox', 15 );
+				}
+
+				$title = get_the_title( $popup );
+				$label = '' !== $title
+					/* translators: %s: popup title. */
+					? sprintf( __( 'Open popup: %s', 'blocklane' ), $title )
+					: __( 'Open popup', 'blocklane' );
+
+				if ( 'core/cover' === $name ) {
+					// A Cover is a container: making its wrapper role="button"
+					// would wrap the cover's own interactive blocks (links,
+					// buttons) in a button role and add a competing tab stop.
+					// Instead inject ONE real <button> overlay as the FIRST
+					// child of the inner-container, filling it. Inside the
+					// inner-container the button sits in the same stacking
+					// context as the content (no fight with core's cover
+					// z-index rules): CSS lifts the cover's own controls above
+					// it, so background/text clicks open the popup while inner
+					// controls keep working.
+					$needle = '<div class="wp-block-cover__inner-container';
+					$at     = strpos( $block_content, $needle );
+					$tag_end = false !== $at ? strpos( $block_content, '>', $at ) : false;
+					if ( false !== $tag_end ) {
+						$processor = new WP_HTML_Tag_Processor( $block_content );
+						if ( $processor->next_tag() ) {
+							$processor->add_class( 'blocklane-popup-cover-opener' );
+							$block_content = $processor->get_updated_html();
+							$at            = strpos( $block_content, $needle );
+							$tag_end       = strpos( $block_content, '>', $at );
+						}
+						$button    = '<button type="button" class="blocklane-popup-open-' . $popup_id
+							. ' blocklane-popup-cover-opener__trigger" aria-label="' . esc_attr( $label ) . '"></button>';
+						$insert_at     = $tag_end + 1;
+						$block_content = substr( $block_content, 0, $insert_at ) . $button . substr( $block_content, $insert_at );
+					} else {
+						// No inner-container found (unexpected markup): fall back
+						// to the wrapper-as-opener so the binding still works.
+						$processor = new WP_HTML_Tag_Processor( $block_content );
+						if ( $processor->next_tag() ) {
+							$processor->add_class( 'blocklane-popup-open-' . $popup_id );
+							$processor->set_attribute( 'role', 'button' );
+							$processor->set_attribute( 'tabindex', '0' );
+							$processor->set_attribute( 'aria-label', $label );
+							$block_content = $processor->get_updated_html();
+						}
+					}
+				} else {
+					// Image: a <figure> wrapping a non-interactive <img> — the
+					// button role is well-formed here.
+					$processor = new WP_HTML_Tag_Processor( $block_content );
+					if ( $processor->next_tag() ) {
+						$processor->add_class( 'blocklane-popup-open-' . $popup_id );
+						$processor->set_attribute( 'role', 'button' );
+						$processor->set_attribute( 'tabindex', '0' );
+						$processor->set_attribute( 'aria-label', $label );
+						$block_content = $processor->get_updated_html();
+					}
+				}
+			}
+		}
+
+		// Button closers: data-popup-close is the attribute view.js already
+		// honors; href="#" keeps a URL-less anchor focusable (view.js
+		// prevents the default so it never scroll-jumps). Close wins a
+		// copy-pasted video-modal conflict — the video filter already ran
+		// (extensions load before popups), so its trigger
+		// class is strippable here.
+		if ( 'core/button' === $name && ! empty( $attrs['blocklaneProPopupClose'] ) ) {
+			$processor = new WP_HTML_Tag_Processor( $block_content );
+			$found     = $processor->next_tag( 'a' );
+			if ( ! $found ) {
+				$processor = new WP_HTML_Tag_Processor( $block_content );
+				$found     = $processor->next_tag( 'button' );
+			}
+			if ( $found ) {
+				$processor->set_attribute( 'data-popup-close', 'true' );
+				$processor->remove_class( 'blocklane-pro-video-modal-trigger' );
+				if ( 'A' === $processor->get_tag() && null === $processor->get_attribute( 'href' ) ) {
+					$processor->set_attribute( 'href', '#' );
+				}
+				$block_content = $processor->get_updated_html();
+			}
+		}
+
+		// Register opener references from the block's SOURCE — its stored
+		// markup and comment-JSON attributes — never from rendered output
+		// (#34). Stored block source exists only in author-controlled
+		// containers (post content, templates, template parts, patterns,
+		// navigation/popup posts); visitor- and external-supplied text
+		// (comments, embeds, feeds) enters a page only through a dynamic
+		// block's render callback and can never appear here, and a rendered
+		// opener also bubbles into every ANCESTOR block's output, so no
+		// per-block denylist could hold. Attribute view only, as before, so
+		// escaped text that merely names the contract stays inert. Only a
+		// bare same-page fragment counts as an opener; a cross-page deep
+		// link navigates and opens on arrival via the hash. PHP-generated
+		// openers (dynamic third-party blocks, other render_block filters)
+		// are the one deliberate loss — they register by calling
+		// blocklane_pro_popups_bound_ids() themselves (popup-bindings.md).
+		$ids = blocklane_pro_popups_source_opener_ids( $block );
+		if ( $ids ) {
+			blocklane_pro_popups_bound_ids( $ids );
+		}
+
+		return $block_content;
+	}
+	add_filter( 'render_block', 'blocklane_pro_popups_bind_render_block', 10, 2 );
+
+	/**
+	 * The popup ids a parsed block opens, read from its SOURCE alone: a bare
+	 * same-page `#blocklane-popup-{id}` href and `blocklane-popup-open-{id}`
+	 * classes in its stored markup (innerHTML), and the same two spellings in
+	 * its top-level string attributes (dynamic anchor blocks and dynamic
+	 * blocks carrying a hand-typed class have no saved markup). The one
+	 * predicate for the render pass above and the module predictor's chain
+	 * walk (blocklane_pro_popups_collect_modules()), so the two cannot
+	 * disagree about what opens what. Pure: it reads nothing else and
+	 * registers nothing.
+	 *
+	 * @param array<string, mixed> $block A parsed block.
+	 * @return list<int> Popup ids, unique, unvalidated.
+	 */
+	function blocklane_pro_popups_source_opener_ids( array $block ): array {
+		$attrs = isset( $block['attrs'] ) && is_array( $block['attrs'] ) ? $block['attrs'] : array();
+		$ids   = array();
+
+		$source = isset( $block['innerHTML'] ) && is_string( $block['innerHTML'] ) ? $block['innerHTML'] : '';
+		if ( '' !== $source && false !== strpos( $source, 'blocklane-popup-' ) ) {
+			$tags = new WP_HTML_Tag_Processor( $source );
+			while ( $tags->next_tag() ) {
+				$href = $tags->get_attribute( 'href' );
+				if ( is_string( $href ) && preg_match( '/^#blocklane-popup-(\d+)$/', $href, $m ) ) {
+					$ids[] = $m[1];
+				}
+				$class = $tags->get_attribute( 'class' );
+				if ( is_string( $class ) && preg_match_all( '/(?:^|\s)blocklane-popup-open-(\d+)(?:\s|$)/', $class, $cm ) ) {
+					$ids = array_merge( $ids, $cm[1] );
+				}
+			}
+		}
+
+		// Top-level string values only; the anchored patterns fail on the
+		// first character for everything else.
+		foreach ( $attrs as $attr_value ) {
+			if ( is_string( $attr_value ) && preg_match( '/^#blocklane-popup-(\d+)$/', $attr_value, $m ) ) {
+				$ids[] = $m[1];
+			}
+		}
+		$class_attr = isset( $attrs['className'] ) ? $attrs['className'] : null;
+		if ( is_string( $class_attr ) && preg_match_all( '/(?:^|\s)blocklane-popup-open-(\d+)(?:\s|$)/', $class_attr, $cm ) ) {
+			$ids = array_merge( $ids, $cm[1] );
+		}
+
+		return array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) );
+	}
+
+	/**
+	 * Render one popup's footer markup (and append its animation CSS).
+	 *
+	 * @param WP_Post $post         Popup post.
+	 * @param array   $settings     Sanitized settings.
+	 * @param bool    $force_manual Replace the ambient trigger with manual —
+	 *                              bound-only popups on rules-excluded pages
+	 *                              must open on click but never auto-fire.
+	 * @param bool    $is_preview   Capability-gated force-open preview.
+	 * @param array   $enums        blocklane_pro_popups_enums().
+	 * @param string  $css          Accumulated animation CSS (by reference).
+	 * @return string Markup, '' when the popup has no content.
+	 */
+	function blocklane_pro_popups_render_single( $post, $settings, $force_manual, $is_preview, $enums, &$css ) {
+		$content = trim( (string) $post->post_content );
+		if ( '' === $content ) {
+			return '';
+		}
+		// Core's order (_wp_apply_block_content_filters): shortcodes run on
+		// the STORED content, before do_blocks(), never on the rendered
+		// output, so a shortcode string a dynamic block prints (a post
+		// title, an excerpt, a comment) stays text.
+		$content = wp_filter_content_tags( do_blocks( do_shortcode( shortcode_unautop( $content ) ) ) );
+
+		if ( $force_manual ) {
+			$settings['trigger'] = array(
+				'type'  => 'manual',
+				'value' => 0,
+			);
+		}
+
+		$id        = 'blocklane-popup-' . $post->ID;
+		$is_center = 'center' === $settings['position'];
+		$closable  = ! empty( $settings['closable'] );
+
+		$client = array(
+			'trigger'   => $settings['trigger'],
+			'frequency' => $settings['frequency'],
+			'minWidth'  => $settings['minWidth'],
+			'closable'  => $closable,
+			'position'  => $settings['position'],
+			'center'    => $is_center,
+			'force'     => $is_preview,
+			// Editors bypass frequency suppression (the dismissal cookie
+			// otherwise silences the popup for days mid-design — the footgun
+			// the reference solved with a global "test mode"). Triggers still
+			// run naturally so timing can be felt.
+			'bypass'    => current_user_can( 'edit_post', $post->ID ),
+		);
+
+		$close_button = '';
+		if ( $closable && ! empty( $settings['showCloseButton'] ) ) {
+			$close_button = '<button type="button" class="blocklane-popup__close" data-popup-close aria-label="' . esc_attr__( 'Close', 'blocklane' ) . '">'
+				. '<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" focusable="false" fill="none"><path d="M4.5 4.5l11 11M15.5 4.5l-11 11" stroke="currentColor" stroke-width="1.7"/></svg>'
+				. '</button>';
+		}
+
+		// Center = a real modal; corners = non-modal complementary.
+		$dialog_attrs = $is_center
+			? 'role="dialog" aria-modal="true"'
+			: 'role="complementary"';
+		$dialog_attrs .= ' aria-label="' . esc_attr( get_the_title( $post ) ) . '" tabindex="-1"';
+
+		// Max width caps both sizing models (center = content-size width,
+		// corners = fit-content). The value is sanitizer-guaranteed to be a
+		// bare CSS length. Placement differs on purpose: a corner wrapper is
+		// a shrink-to-fit fixed box, and a percentage inside its child's
+		// max-width is CYCLIC there — browsers drop the cap from the
+		// intrinsic-width pass, so the wrapper sizes to the uncapped content
+		// and the dialog caps inside it, leaving lopsided dead space at the
+		// pinned edge. Capping the WRAPPER with viewport units (non-cyclic,
+		// mirroring its own 100vw - 48px stylesheet cap) keeps corners
+		// hugging their offsets; center wrappers span the viewport, so the
+		// cap stays on the dialog, where % resolves against a definite flex
+		// parent.
+		$wrapper_attrs = '';
+		if ( '' !== $settings['maxWidth'] ) {
+			if ( $is_center ) {
+				$dialog_attrs .= ' style="max-width:min(' . esc_attr( $settings['maxWidth'] ) . ', 100%)"';
+			} else {
+				$wrapper_attrs = ' style="max-width:min(' . esc_attr( $settings['maxWidth'] ) . ', 100vw - 48px)"';
+			}
+		}
+
+		if ( '' !== $settings['animation']['type'] ) {
+			$css .= sprintf(
+				'@media (prefers-reduced-motion: no-preference) { #%1$s.is-open .blocklane-popup__dialog { animation: %2$s %3$ss ease-out %4$ss both; } }',
+				esc_attr( $id ),
+				$enums['animation'][ $settings['animation']['type'] ],
+				(float) $settings['animation']['duration'],
+				(float) $settings['animation']['delay']
+			);
+		}
+
+		return '<div id="' . esc_attr( $id ) . '" class="blocklane-popup blocklane-popup--' . esc_attr( $settings['position'] ) . '"'
+			. $wrapper_attrs
+			. ' data-blocklane-popup="' . esc_attr( wp_json_encode( $client ) ) . '" hidden>'
+			. ( $is_center ? '<div class="blocklane-popup__overlay" data-popup-overlay></div>' : '' )
+			. '<div class="blocklane-popup__dialog" ' . $dialog_attrs . '>'
+			. $close_button
+			. '<div class="blocklane-popup__content is-layout-flow">' . $content . '</div>'
+			. '</div></div>';
+	}
+
+	/**
+	 * Shape version for the cached popup rows. BUMP THIS whenever the settings
+	 * structure blocklane_pro_popups_sanitize_settings() produces changes —
+	 * a key added, renamed or removed, or an enum's allowed values narrowed —
+	 * or when the payload layout itself changes. Cached payloads built under
+	 * a different version are discarded on read, so an upgrade can never feed
+	 * old-shape settings to new render code.
+	 *
+	 * 2: rows keyed by post ID + the flush-generation token ('gen'); the
+	 *    published SET moved out of the cache into a per-request ids-only
+	 *    WP_Query (see blocklane_pro_popups_published_rows).
+	 * 3: settings gained showOnLockScreen (the Site Lock splash opt-in).
+	 */
+	define( 'BLOCKLANE_PRO_POPUPS_CACHE_SCHEMA', 3 );
+
+	/**
+	 * Autoload budget for a cache row, mirroring
+	 * blocklane_pro\Helper::autoload_ok(). Duplicated since the bake era, when
+	 * this file also ran as a generated copy outside the plugin and could not
+	 * reach into it (docs/archive/bake-contract.md). Keep the number in sync
+	 * with the Helper.
+	 *
+	 * @param mixed $value The value about to be stored.
+	 * @return bool Whether the option should autoload.
+	 */
+	function blocklane_pro_popups_autoload_ok( $value ) {
+		return strlen( maybe_serialize( $value ) ) < 32768;
+	}
+
+	/**
+	 * The published-popup set for the footer render.
+	 *
+	 * WHICH popups are in the set is decided per request, by an ids-only
+	 * WP_Query that runs everything a normal query runs — pre_get_posts, the
+	 * posts_* SQL filters, whatever a membership or translation plugin hooks
+	 * to scope this CPT. An earlier revision cached the set itself, filled by
+	 * a deliberately filter-free $wpdb SELECT so no single request could skew
+	 * the shared row; that made the cache deterministic but also bypassed any
+	 * plugin legitimately filtering the CPT, for every visitor — restricted
+	 * popups could reach people meant not to see them. UNRESOLVED PRODUCT
+	 * DECISION (no ruling yet), safer option taken: correct-by-default at the
+	 * price of one light ids query per page — the zero-query warm path is
+	 * gone. Reversing this means re-introducing a context-free id fetch; the
+	 * row cache below is unaffected either way.
+	 *
+	 * What IS cached is the heavy, request-independent part: per-popup rows —
+	 * raw post fields + sanitized settings — keyed by post ID, so the meta
+	 * lookup + sanitizer pass and the full post rows are not refetched per
+	 * request. Rendering stays per-request (do_blocks and per-user bits like
+	 * the editor bypass run fresh), so dynamic content inside a popup is
+	 * never frozen.
+	 *
+	 * Autoload is size-gated, NOT unconditional. Only this render path reads
+	 * the cache and it bails on is_admin(), so an autoloaded row would tax
+	 * every admin, REST and cron request on the site for something none of
+	 * them use. Small sets still ride alloptions for free; a set carrying
+	 * enough post content to exceed the budget drops to on-demand, costing
+	 * that one front-end read a query and every other request nothing. A
+	 * plain option rather than a transient because set_transient() with no
+	 * expiry is precisely the unconditional-autoload trap, and one WITH an
+	 * expiry would throw the warm-read win away for every site.
+	 *
+	 * The stored payload carries the schema version it was built under. The
+	 * rows hold sanitizer OUTPUT, and the render path indexes that structure
+	 * without isset guards, so a release that adds, renames or drops a
+	 * settings key would otherwise serve old-shape arrays to new render code
+	 * until every popup happened to be re-saved — this repo's render-vs-schema
+	 * divergence class. Reading through the version makes an upgrade
+	 * self-healing instead of depending on a migration hook having fired.
+	 *
+	 * It also carries the flush-generation token current when this rebuild
+	 * STARTED. blocklane_pro_popups_flush_rows() rotates the token, so a
+	 * rebuild already in flight when an editor's save flushed writes a
+	 * payload stamped with the old token — discarded on the next read,
+	 * instead of resurrecting the pre-save snapshot until the next mutation
+	 * (which a bare delete_option flush allowed).
+	 *
+	 * @return array{posts:WP_Post[],settings:array<int,array>}
+	 */
+	function blocklane_pro_popups_published_rows() {
+		/**
+		 * Whether to serve per-popup row data from the shared cache.
+		 *
+		 * The published SET is always resolved per request (query filters
+		 * honored), so most sites never need this. Return false only when the
+		 * row DATA itself — post fields, settings — is request-dependent:
+		 * every row is then rebuilt through WP_Query on each request.
+		 *
+		 * @param bool $use_cache Whether to use the cached row data.
+		 */
+		$use_cache = (bool) apply_filters( 'blocklane_pro_popups_use_cache', true );
+
+		if ( ! $use_cache ) {
+			return blocklane_pro_popups_assemble( blocklane_pro_popups_fetch_rows_queried() );
+		}
+
+		$ids = blocklane_pro_popups_published_ids();
+
+		// The generation token is read BEFORE the rows are, so a flush that
+		// lands while this rebuild is in flight leaves the payload written
+		// below stamped stale — the next read discards it. The token row is
+		// seeded on first use so later reads ride alloptions instead of
+		// paying a missing-option query on every front-end request.
+		$gen = (string) get_option( 'blocklane_pro_popup_rows_gen', '' );
+		if ( '' === $gen ) {
+			add_option( 'blocklane_pro_popup_rows_gen', wp_generate_uuid4(), '', true );
+			// Re-read: a concurrent seeder may have won the add_option race,
+			// and both requests must agree on the one stored token.
+			$gen = (string) get_option( 'blocklane_pro_popup_rows_gen', '' );
+		}
+
+		$cached = get_option( 'blocklane_pro_popup_rows', null );
+		$rows   = ( is_array( $cached )
+			&& isset( $cached['schema'], $cached['gen'], $cached['rows'] )
+			&& BLOCKLANE_PRO_POPUPS_CACHE_SCHEMA === $cached['schema']
+			&& $gen === $cached['gen']
+			&& is_array( $cached['rows'] ) )
+				? $cached['rows']
+				: array();
+
+		$missing = array();
+		foreach ( $ids as $id ) {
+			if ( ! isset( $rows[ $id ] ) ) {
+				$missing[] = $id;
+			}
+		}
+		if ( $missing ) {
+			$rows    = $rows + blocklane_pro_popups_rows_from_posts( array_filter( array_map( 'get_post', $missing ) ) );
+			$payload = array(
+				'schema' => BLOCKLANE_PRO_POPUPS_CACHE_SCHEMA,
+				'gen'    => $gen,
+				'rows'   => $rows,
+			);
+			update_option( 'blocklane_pro_popup_rows', $payload, blocklane_pro_popups_autoload_ok( $payload ) );
+		}
+
+		// Serve ONLY the ids this request's query allowed, in query order —
+		// the cache may hold rows other requests were allowed to see.
+		$allowed = array();
+		foreach ( $ids as $id ) {
+			if ( isset( $rows[ $id ] ) ) {
+				$allowed[ $id ] = $rows[ $id ];
+			}
+		}
+
+		return blocklane_pro_popups_assemble( $allowed );
+	}
+
+	/**
+	 * Inflate cache rows into the render contract. The reconstructed posts
+	 * are primed into the post cache so the render path's get_post()/
+	 * get_the_title()/current_user_can( 'edit_post' ) lookups stay
+	 * query-free.
+	 *
+	 * @param array<int,array{post:array,settings:array}> $rows Cache rows.
+	 * @return array{posts:WP_Post[],settings:array<int,array>}
+	 */
+	function blocklane_pro_popups_assemble( $rows ) {
+		$posts    = array();
+		$settings = array();
+		foreach ( $rows as $row ) {
+			$post                  = new WP_Post( (object) $row['post'] );
+			$posts[]               = $post;
+			$settings[ $post->ID ] = $row['settings'];
+		}
+
+		if ( $posts ) {
+			update_post_cache( $posts );
+		}
+
+		return array(
+			'posts'    => $posts,
+			'settings' => $settings,
+		);
+	}
+
+	/**
+	 * The published popup IDs for the current request — a real WP_Query so
+	 * pre_get_posts and the posts_* filters all run, restricted to ids so
+	 * the heavy row data can come from the cache instead of a full row
+	 * fetch. Mirrors the cached set's original shape: newest first, capped
+	 * at 20.
+	 *
+	 * @return int[]
+	 */
+	function blocklane_pro_popups_published_ids() {
+		$query = new WP_Query(
+			array(
+				'post_type'              => BLOCKLANE_PRO_POPUPS_CPT,
+				'post_status'            => 'publish',
+				'posts_per_page'         => 20,
+				'orderby'                => 'date',
+				'order'                  => 'DESC',
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'update_post_term_cache' => false,
+				'update_post_meta_cache' => false,
+			)
+		);
+
+		return array_map( 'absint', $query->posts );
+	}
+
+	/**
+	 * Build the row set through WP_Query, honouring every per-request filter
+	 * for the row data too. Used only when the row cache is switched off.
+	 *
+	 * @return array<int,array{post:array,settings:array}>
+	 */
+	function blocklane_pro_popups_fetch_rows_queried() {
+		$query = new WP_Query(
+			array(
+				'post_type'              => BLOCKLANE_PRO_POPUPS_CPT,
+				'post_status'            => 'publish',
+				'posts_per_page'         => 20,
+				'no_found_rows'          => true,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		return blocklane_pro_popups_rows_from_posts( $query->posts );
+	}
+
+	/**
+	 * Shape post objects into cache rows, keyed by post ID: raw fields plus
+	 * sanitized settings.
+	 *
+	 * @param array $posts Post objects.
+	 * @return array<int,array{post:array,settings:array}>
+	 */
+	function blocklane_pro_popups_rows_from_posts( $posts ) {
+		$rows = array();
+		foreach ( (array) $posts as $post ) {
+			$rows[ (int) $post->ID ] = array(
+				'post'     => get_object_vars( $post ),
+				'settings' => blocklane_pro_popups_settings( $post->ID ),
+			);
+		}
+		return $rows;
+	}
+
+	/**
+	 * Drop the cached popup rows; the next front-end request rebuilds them.
+	 *
+	 * The generation token rotates FIRST: a rebuild that read the old token
+	 * before this flush — and may still be mid-fetch on another request —
+	 * writes a payload stamped with it, which the token mismatch then
+	 * discards on read. Deleting the option alone let that in-flight write
+	 * resurrect the pre-save snapshot until the next mutation. A fresh
+	 * random token rather than an increment, so two concurrent flushes
+	 * cannot lose a bump to a read-modify-write race.
+	 */
+	function blocklane_pro_popups_flush_rows() {
+		update_option( 'blocklane_pro_popup_rows_gen', wp_generate_uuid4(), true );
+		delete_option( 'blocklane_pro_popup_rows' );
+		// Releases fitted before the option move cached under a no-expiry
+		// transient, which autoloads and is exempt from the expired-transient
+		// purge. Clear that row too so upgrading sites stop paying for it.
+		delete_transient( 'blocklane_pro_popup_rows' );
+	}
+
+	// Any popup mutation invalidates. These hooks live in the runtime so the
+	// baked copy keeps the cache honest after the plugin is deactivated or
+	// removed.
+	//
+	// save_post_{type} is the single hook that covers every core write path,
+	// scheduled publishes included: wp_publish_post() fires
+	// wp_transition_post_status() and then, unconditionally,
+	// do_action( "save_post_{$post->post_type}", ... ) — so it needs no
+	// transition_post_status companion. (An earlier revision carried one,
+	// justified by the belief that wp_publish_post only fires the transition.
+	// It does not; the hook was pure duplicate work and its comment would have
+	// misled the next editor into treating it as load-bearing.)
+	add_action( 'save_post_' . BLOCKLANE_PRO_POPUPS_CPT, 'blocklane_pro_popups_flush_rows' );
+	add_action(
+		'deleted_post',
+		function ( $post_id, $post = null ) {
+			if ( $post && BLOCKLANE_PRO_POPUPS_CPT === $post->post_type ) {
+				blocklane_pro_popups_flush_rows();
+			}
+		},
+		10,
+		2
+	);
+	// The settings meta written outside a post save — wp post meta update, or
+	// any code calling update_post_meta() directly. Before the cache existed
+	// such an edit took effect on the next request; without this it would sit
+	// invisible until the popup happened to be re-saved.
+	foreach ( array( 'updated_post_meta', 'added_post_meta', 'deleted_post_meta' ) as $blocklane_pro_popups_meta_hook ) {
+		add_action(
+			$blocklane_pro_popups_meta_hook,
+			function ( $meta_id, $post_id, $meta_key ) {
+				if ( 'blocklane_popup_settings' === $meta_key
+					&& BLOCKLANE_PRO_POPUPS_CPT === get_post_type( $post_id ) ) {
+					blocklane_pro_popups_flush_rows();
+				}
+			},
+			10,
+			3
+		);
+	}
+	unset( $blocklane_pro_popups_meta_hook );
+
+	/**
+	 * Print block-support styles the popup render queued onto a hook slot
+	 * that can no longer run (#42). wp_enqueue_block_support_styles targets
+	 * wp_head in block themes (long fired by footer time) and wp_footer:10
+	 * in classic themes (already passed for the late drain) — the callbacks
+	 * it queues during a popup's footer-time render are dead code, and the
+	 * block-level preset variables they print simply never appear. Snapshot
+	 * the hook table before the render, then invoke and REMOVE whatever
+	 * appeared in a dead slot. A dead-slot callback would never
+	 * have run anyway, so invoking it here can only surface output that was
+	 * otherwise lost; slots that will still run naturally are left alone so
+	 * nothing prints twice.
+	 *
+	 * Invoked IN PLACE — the caller calls this exactly where the captured
+	 * output used to be echoed, right before the popup markup — so each
+	 * callback prints through core's own printer (WP_HTML_Tag_Processor in
+	 * wp_enqueue_block_support_styles()) and nothing here echoes. A callback
+	 * that throws is skipped; whatever it printed before throwing stands, as
+	 * it would have in its own slot.
+	 *
+	 * @param string $hook_name         'wp_head' or 'wp_footer'.
+	 * @param array<int|string,array<string,array{function:callable,accepted_args:int}>> $before Pre-render WP_Hook->callbacks snapshot.
+	 * @param int    $max_dead_priority Highest priority that can no longer
+	 *                                  run (PHP_INT_MAX when the whole hook
+	 *                                  already fired).
+	 */
+	function blocklane_pro_popups_flush_dead_support_styles( string $hook_name, array $before, int $max_dead_priority ): void {
+		if ( ! isset( $GLOBALS['wp_filter'][ $hook_name ] ) ) {
+			return;
+		}
+		$hook = $GLOBALS['wp_filter'][ $hook_name ];
+		foreach ( $hook->callbacks as $priority => $callbacks ) {
+			if ( $priority > $max_dead_priority ) {
+				continue; // Will still run naturally — never double-print.
+			}
+			foreach ( $callbacks as $id => $callback ) {
+				if ( isset( $before[ $priority ][ $id ] ) ) {
+					continue; // Pre-existing (already ran when its slot fired).
+				}
+				try {
+					call_user_func( $callback['function'] );
+				} catch ( \Throwable ) {
+					// A foreign late-added callback must not break the footer.
+				}
+				unset( $hook->callbacks[ $priority ][ $id ] );
+				if ( empty( $hook->callbacks[ $priority ] ) ) {
+					unset( $hook->callbacks[ $priority ] );
+				}
+			}
+		}
+	}
+
+	/**
+	 * The bound-popup drain (popup-bindings.md): manual openers seen during
+	 * page render pull their popups in even where display rules exclude them
+	 * (rules govern ambient behavior; a binding is author intent), and past
+	 * the ambient query cap. Rules-excluded popups get their trigger forced
+	 * to manual so they can't auto-fire where rules say no. Rendering popup
+	 * content registers any openers inside it (chained popups), so drain
+	 * until quiet; the rendered-ids registry makes cycles terminate and lets
+	 * the late pass at wp_footer:19 resume where this one stopped.
+	 *
+	 * @param array<int,array<string,mixed>> $settings_map Cached settings by popup ID.
+	 * @param bool                           $is_splash    Rendering on the Site Lock splash.
+	 * @param array<string,mixed>            $enums        blocklane_pro_popups_enums().
+	 * @param string                         $css          Accumulated animation CSS (by reference).
+	 * @return string Rendered markup.
+	 */
+	function blocklane_pro_popups_drain_bound( $settings_map, $is_splash, $enums, &$css ) {
+		$markup = '';
+		do {
+			$pending = array_diff( blocklane_pro_popups_bound_ids(), blocklane_pro_popups_rendered_ids() );
+			foreach ( $pending as $bound_id ) {
+				blocklane_pro_popups_rendered_ids( array( $bound_id ) );
+
+				$post = get_post( $bound_id );
+				if ( ! $post || BLOCKLANE_PRO_POPUPS_CPT !== $post->post_type || 'publish' !== $post->post_status ) {
+					continue;
+				}
+
+				$settings     = isset( $settings_map[ $bound_id ] )
+					? $settings_map[ $bound_id ]
+					: blocklane_pro_popups_settings( $bound_id );
+				// A binding is author intent, so a bound popup renders even on
+				// the splash — but the splash term is load-bearing: the bound
+				// pass must never grant ambient behavior the ambient pass just
+				// denied. Without it, a rules-matching bound popup would
+				// auto-fire on the splash with its opt-in off.
+				$force_manual = ! blocklane_pro_popups_rules_match( $settings['rules'] )
+					|| ( $is_splash && empty( $settings['showOnLockScreen'] ) );
+				$markup      .= blocklane_pro_popups_render_single( $post, $settings, $force_manual, false, $enums, $css );
+			}
+		} while ( $pending );
+
+		return $markup;
+	}
+
+	/**
+	 * Whether the ambient pass renders a popup on this request: the
+	 * force-open preview always does; otherwise the Site Lock splash shows
+	 * only a popup that opted in, and the popup's display rules decide. The
+	 * one predicate for the render's pass 1 and the module predictor
+	 * (blocklane_pro_popups_module_candidates()), so the two cannot disagree
+	 * about which popups a page carries.
+	 *
+	 * @param array<string, mixed> $settings   Sanitized settings.
+	 * @param bool                 $is_preview The capability-gated force-open preview.
+	 * @param bool                 $is_splash  Rendering on the Site Lock splash.
+	 * @return bool
+	 */
+	function blocklane_pro_popups_ambient_shows( array $settings, bool $is_preview, bool $is_splash ): bool {
+		if ( $is_preview ) {
+			return true;
+		}
+		if ( $is_splash && empty( $settings['showOnLockScreen'] ) ) {
+			return false;
+		}
+		return blocklane_pro_popups_rules_match( $settings['rules'] );
+	}
+
+	/**
+	 * Render eligible popups into the footer: markup hidden until the view
+	 * script opens it, per-popup animation CSS, the block-support styles the
+	 * footer-time render generates, and the front assets — enqueued only when
+	 * something rendered.
+	 *
+	 * On the Site Lock splash (Coming Soon / Maintenance), popups are
+	 * suppressed by default: ambient popups skip unless their
+	 * showOnLockScreen setting opts them in, and bound popups render
+	 * click-only. The splash is detected via did_action() on the gate's
+	 * `blocklane_pro_site_lock_splash` action — a string-level contract, so
+	 * this file stays free of plugin classes and degrades to normal behavior
+	 * when the gate never fires.
+	 */
+	function blocklane_pro_popups_render() {
+		if ( is_admin() ) {
+			return;
+		}
+
+		// The gate fires this before any splash output, and only when the
+		// splash actually renders (editors, unlocked visitors, and the inert
+		// passwordless Coming Soon never reach it) — so did_action() is a
+		// precise "we are the splash" predicate.
+		$is_splash = did_action( 'blocklane_pro_site_lock_splash' ) > 0;
+
+		$preview_id = blocklane_pro_popups_preview_id();
+
+		$cached       = blocklane_pro_popups_published_rows();
+		$settings_map = $cached['settings'];
+
+		// A previewed draft isn't in the published set — pull it in explicitly.
+		$posts = $cached['posts'];
+		if ( $preview_id && ! wp_list_filter( $posts, array( 'ID' => $preview_id ) ) ) {
+			$preview_post = get_post( $preview_id );
+			if ( $preview_post ) {
+				$posts[] = $preview_post;
+			}
+		}
+
+		$markup = '';
+		$css    = '';
+		$enums  = blocklane_pro_popups_enums();
+
+		// Snapshot the style engine's block-supports store BEFORE any popup
+		// content renders. Core prints that store in the head (block themes) or
+		// at wp_footer priority 1 (classic) — both already behind us — so any
+		// rule this render generates (layout wp-container-*, elements, block
+		// gap) would otherwise never be printed. The after-render delta against
+		// this snapshot is compiled and printed below. Keys are the selector
+		// (or "rules-group selector"). Layout selectors are content-hashed, so
+		// one already present means an identical rule was already printed for a
+		// page block — the popup borrows it, correctly. Element selectors
+		// (wp-elements-*) are per-request unique ids and never pre-exist, so
+		// they always land in the delta.
+		$blocklane_pro_popups_store        = WP_Style_Engine_CSS_Rules_Store::get_store( 'block-supports' );
+		$blocklane_pro_popups_rules_before = $blocklane_pro_popups_store->get_all_rules();
+
+		// Dead-slot snapshot for the support-style flush below (#42): in a
+		// block theme the enqueue target is wp_head, which already fired; in
+		// a classic theme it is wp_footer:10, which still runs after this
+		// render at 9 — nothing is dead here, so no flush.
+		$support_hook   = wp_is_block_theme() ? 'wp_head' : '';
+		$support_before = ( '' !== $support_hook && isset( $GLOBALS['wp_filter'][ $support_hook ] ) )
+			? $GLOBALS['wp_filter'][ $support_hook ]->callbacks
+			: array();
+
+		// Pass 1 — ambient popups: display rules decide, triggers arm
+		// naturally. Rules-excluded posts are NOT marked done: an opener
+		// elsewhere on the page can still pull them in below (as manual).
+		foreach ( $posts as $post ) {
+			$settings   = isset( $settings_map[ $post->ID ] )
+				? $settings_map[ $post->ID ]
+				: blocklane_pro_popups_settings( $post->ID );
+			$is_preview = $preview_id === $post->ID;
+
+			// The splash shows no ambient popup that hasn't opted in. Checked
+			// before the rules so a rules-excluded-but-bound popup still takes
+			// the pass-2 path (forced manual there, splash or not). The
+			// capability-gated force-open preview outranks the splash skip:
+			// preview_id() demands edit_post (manage_options under the mapped
+			// CPT caps), and gate bypass keys on edit_posts — for every stock
+			// role those coincide and the splash is unreachable, but a custom
+			// role holding one without the other must not lose its preview
+			// (nor gain any splash exposure: the popup renders force-open for
+			// that capable user only). blocklane_pro_popups_ambient_shows()
+			// answers the preview before either skip — keep any future skip
+			// inside it, after that answer, or the preview falls through to
+			// pass 2, whose render hardcodes $is_preview false and loses the
+			// force-open. One predicate, so the module predictor reads the
+			// same answer.
+			if ( ! blocklane_pro_popups_ambient_shows( $settings, $is_preview, $is_splash ) ) {
+				continue;
+			}
+
+			$markup .= blocklane_pro_popups_render_single( $post, $settings, false, $is_preview, $enums, $css );
+			blocklane_pro_popups_rendered_ids( array( $post->ID ) );
+		}
+
+		// Pass 2 — bound popups: the drain is shared with the late pass at
+		// wp_footer:19, both marking the rendered-ids registry, so a bound
+		// popup renders exactly once whichever pass first sees its opener.
+		$markup .= blocklane_pro_popups_drain_bound( $settings_map, $is_splash, $enums, $css );
+
+		if ( '' === $markup ) {
+			return;
+		}
+
+		blocklane_pro_popups_enqueue_front();
+
+		// The block-support rules the popup renders just generated (see the
+		// snapshot above). Only the delta — everything in the snapshot was
+		// already printed for the page, and re-printing it would double every
+		// rule and churn specificity order.
+		$new_rules = array_diff_key( $blocklane_pro_popups_store->get_all_rules(), $blocklane_pro_popups_rules_before );
+		if ( $new_rules ) {
+			$processor   = new WP_Style_Engine_Processor();
+			$support_css = $processor->add_rules( $new_rules )->get_css( array( 'prettify' => false ) );
+			if ( '' !== $support_css ) {
+				\blocklane_pro\Inline_Asset::print_style( 'blocklane-pro-popups-block-supports', $support_css );
+			}
+		}
+
+		// In place, in this order: delta support CSS, animations, dead-slot
+		// output, then the markup (docs/specs/popups.md). Inline_Asset prints
+		// each through core's style printer.
+		if ( '' !== $css ) {
+			\blocklane_pro\Inline_Asset::print_style( 'blocklane-pro-popups-animations', $css );
+		}
+		if ( '' !== $support_hook ) {
+			blocklane_pro_popups_flush_dead_support_styles( $support_hook, $support_before, PHP_INT_MAX );
+		}
+		// Provenance (spec 2026-10-06 D3, F8): each popup's wrapper is escaped
+		// piecewise in render_single(); its content is do_blocks() output of
+		// the popup post an editor saved (stored content that passed kses at
+		// save; each dynamic block escapes its own output) — printed the way
+		// core prints a template part. kses here would strip embeds and the
+		// forms inside popups. Listed in edition/free/escape-allow.json.
+		echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- rendered block markup of saved popup content, as core prints a template part.
+	}
+	// Priority 9, deliberately ahead of core's wp_footer:10 tenants: the
+	// popup content must have RENDERED before WP_Duotone::output_footer_assets
+	// emits SVG defs and before the video-modal footer prints its shared
+	// overlay — both are registered earlier than this file loads, so at the
+	// same priority they would run first and miss anything popup content
+	// enqueued. Core's stored-styles print (priority 1, classic themes) has
+	// already run either way — the delta print above covers that. Known gap:
+	// in block themes duotone's CSS half IS flushed into the block-supports
+	// store, but only once, head-side (WP_Duotone::output_block_styles on
+	// wp_enqueue_scripts); footer-render duotone accumulates in WP_Duotone's
+	// private declarations array and is never re-flushed, so popup-only
+	// duotone stays unstyled there — a timing gap, not a store bypass. The
+	// classic-theme footer path (priority 10) is what the 9-move rescues.
+	add_action( 'wp_footer', 'blocklane_pro_popups_render', 9 );
+
+	/**
+	 * Late drain. The render at 9 must stay ahead of core's footer tenants
+	 * (see above) — but that closes the bound-popup drain before any tenant
+	 * at priority 9+ that renders block content: its openers registered
+	 * after the drain finished, so the opener printed and its popup never
+	 * did. One more drain right before core prints footer scripts
+	 * (wp_print_footer_scripts, :20 — assets enqueued here still print)
+	 * catches them. The contract line (popup-bindings.md): openers must
+	 * exist before wp_footer:19. Content rendered this late sits past
+	 * duotone defs and the head-side block-support print — the same accepted
+	 * residuals as the main render's known gaps, one bucket later.
+	 *
+	 * SCRIPT MODULES, THE CONTRACT (issue #436; spec 2026-10-25 D2): this
+	 * drain runs after core's printers. The import map (wp_head in a block
+	 * theme, wp_footer:10 in a classic one) and the module data, the
+	 * Interactivity state and config (wp_footer:10), cannot print again, and
+	 * no supplemental map is printed. After its markup the drain calls core's
+	 * footer module printer once more, while that printer is hooked (a device
+	 * that unhooks it prints its own way): it prints the modules this late
+	 * render queued that core has not printed. Module tags are deferred, so
+	 * they run after the parse, which includes this markup. Such a module
+	 * runs only if every bare import it makes was already in the map: true
+	 * when the predictor (blocklane_pro_popups_preload_modules()) knew the
+	 * popup at wp_head, or another candidate's blocks needed the same
+	 * imports; otherwise its import fails in the browser. Server state never
+	 * reaches the client from here, so a block that needs it renders its
+	 * first paint and stays inert inside a late-drained popup: tabs (the
+	 * per-instance tab list), the image and gallery lightbox (per-image
+	 * metadata), playlist (its tracks) and the video modal (its config).
+	 * Accepted: it takes an opener that a footer tenant at priority 10-18
+	 * prints, for a popup nothing on the page bound at wp_head and no
+	 * candidate opens. A chained popup (one a rendered popup opens) is not
+	 * late: the main pass's bound drain renders it at wp_footer 9, and the
+	 * predictor walks the chain.
+	 *
+	 * @return void
+	 */
+	function blocklane_pro_popups_late_drain() {
+		if ( is_admin() ) {
+			return;
+		}
+		if ( ! array_diff( blocklane_pro_popups_bound_ids(), blocklane_pro_popups_rendered_ids() ) ) {
+			return;
+		}
+
+		$is_splash    = did_action( 'blocklane_pro_site_lock_splash' ) > 0;
+		$cached       = blocklane_pro_popups_published_rows();
+		$settings_map = $cached['settings'];
+		$enums        = blocklane_pro_popups_enums();
+		$css          = '';
+
+		$store  = WP_Style_Engine_CSS_Rules_Store::get_store( 'block-supports' );
+		$before = $store->get_all_rules();
+
+		// Dead-slot snapshot (#42): block themes queue onto the long-fired
+		// wp_head (everything dead); classic themes queue onto wp_footer:10,
+		// which this drain at 19 has already passed — dead up to 18, while
+		// later slots still run naturally.
+		$support_hook   = wp_is_block_theme() ? 'wp_head' : 'wp_footer';
+		$support_dead   = wp_is_block_theme() ? PHP_INT_MAX : 18;
+		$support_before = isset( $GLOBALS['wp_filter'][ $support_hook ] )
+			? $GLOBALS['wp_filter'][ $support_hook ]->callbacks
+			: array();
+
+		$markup = blocklane_pro_popups_drain_bound( $settings_map, $is_splash, $enums, $css );
+		if ( '' === $markup ) {
+			return;
+		}
+
+		blocklane_pro_popups_enqueue_front();
+
+		$new_rules = array_diff_key( $store->get_all_rules(), $before );
+		if ( $new_rules ) {
+			$processor   = new WP_Style_Engine_Processor();
+			$support_css = $processor->add_rules( $new_rules )->get_css( array( 'prettify' => false ) );
+			if ( '' !== $support_css ) {
+				\blocklane_pro\Inline_Asset::print_style( 'blocklane-pro-popups-block-supports-late', $support_css );
+			}
+		}
+		if ( '' !== $css ) {
+			\blocklane_pro\Inline_Asset::print_style( 'blocklane-pro-popups-animations-late', $css );
+		}
+		blocklane_pro_popups_flush_dead_support_styles( $support_hook, $support_before, $support_dead );
+		// Provenance: as the main render's print above (D3, F8).
+		echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- rendered block markup of saved popup content, as core prints a template part.
+
+		// The modules this render queued, through core's own printer (the
+		// contract above): it skips every module already printed.
+		$modules = wp_script_modules();
+		if ( false !== has_action( 'wp_footer', array( $modules, 'print_enqueued_script_modules' ) ) ) {
+			$modules->print_enqueued_script_modules();
+		}
+	}
+	add_action( 'wp_footer', 'blocklane_pro_popups_late_drain', 19 );
+
+	/**
+	 * How many synced patterns, patterns and navigation menus the module
+	 * predictor resolves in one request, across every candidate popup.
+	 */
+	define( 'BLOCKLANE_PRO_POPUPS_REF_BUDGET', 50 );
+
+	/**
+	 * Queue, before the import map prints, the view modules the popups this
+	 * request carries will need (spec 2026-10-25-popup-script-module-preload).
+	 *
+	 * Core's import map lists the DEPENDENCIES of queued modules, never the
+	 * queued modules themselves, and in a block theme it prints at wp_head
+	 * 10, long before popups render at wp_footer 9. A popup's Form view,
+	 * queued by its render and printed in the footer, then imports
+	 * '@wordpress/interactivity' the map never named, and stays inert. So
+	 * this runs on wp_enqueue_scripts (wp_head 1): it predicts each
+	 * candidate's modules from the renderers' own predicates and queues
+	 * every predicted module core has registered. Core then maps their
+	 * dependency closure, the Interactivity runtime included, and prints
+	 * each module once (the render's own enqueue is a no-op on a queued id).
+	 * The runtime itself is never queued: a queued module is printed as a
+	 * script, never mapped, and nothing could import it.
+	 *
+	 * In a classic theme the map and the modules print at wp_footer 10,
+	 * after the main render; the prediction is then redundant and harmless.
+	 * Out of contract (documented, spec §5 row 25): blocks that only a
+	 * shortcode, a template part or post content inside a popup brings in,
+	 * and modules a third-party render_block filter enqueues, unless that
+	 * filter answers on blocklane_pro_popups_block_modules.
+	 *
+	 * @return void
+	 */
+	function blocklane_pro_popups_preload_modules(): void {
+		if ( is_admin() || ! function_exists( 'wp_enqueue_script_module' ) ) {
+			return;
+		}
+
+		$ids     = array();
+		$seen    = array();
+		$budget  = BLOCKLANE_PRO_POPUPS_REF_BUDGET;
+		$pending = blocklane_pro_popups_module_candidates();
+		foreach ( $pending as $post ) {
+			$seen[ 'popup:' . $post->ID ] = true;
+		}
+		while ( array() !== $pending ) {
+			$post    = array_shift( $pending );
+			$content = (string) $post->post_content;
+			// Content with no block and no opener predicts nothing. Content
+			// with an opener but no block comment is Classic (freeform)
+			// markup, whose openers the render pass binds too.
+			if ( false === strpos( $content, '<!-- wp:' ) && false === strpos( $content, 'blocklane-popup-' ) ) {
+				continue;
+			}
+			$openers = array();
+			blocklane_pro_popups_collect_modules( parse_blocks( $content ), $ids, $seen, $budget, $openers );
+
+			// A popup this one opens renders in the same footer pass (the
+			// bound drain chains, popup-bindings.md), whatever its rules, so
+			// it is a candidate too: once each ($seen, so a cycle ends), and
+			// each spends the budget.
+			foreach ( array_keys( $openers ) as $opened ) {
+				$key = 'popup:' . $opened;
+				if ( isset( $seen[ $key ] ) || $budget <= 0 ) {
+					continue;
+				}
+				$seen[ $key ] = true;
+				--$budget;
+				$chained = get_post( (int) $opened );
+				if ( $chained && BLOCKLANE_PRO_POPUPS_CPT === $chained->post_type && 'publish' === $chained->post_status ) {
+					$pending[] = $chained;
+				}
+			}
+		}
+
+		$modules = wp_script_modules();
+		foreach ( array_keys( $ids ) as $id ) {
+			if ( null !== $modules->get_registered( (string) $id ) ) {
+				wp_enqueue_script_module( (string) $id );
+			}
+		}
+	}
+	add_action( 'wp_enqueue_scripts', 'blocklane_pro_popups_preload_modules' );
+
+	/**
+	 * The popups this request will render, as far as wp_head can know
+	 * (Garrett, D1): those the ambient pass shows here, by the render's own
+	 * predicate; every published popup an opener already rendered binds (in
+	 * a block theme the template has rendered by wp_head, so its openers are
+	 * in the registry), whatever its rules; and a previewed draft. Never
+	 * every published popup. The predictor then adds, transitively, each
+	 * published popup a candidate opens, since the main pass's bound drain
+	 * renders that chain at wp_footer 9 too.
+	 *
+	 * @return list<WP_Post>
+	 */
+	function blocklane_pro_popups_module_candidates(): array {
+		$is_splash  = did_action( 'blocklane_pro_site_lock_splash' ) > 0;
+		$preview_id = blocklane_pro_popups_preview_id();
+		$cached     = blocklane_pro_popups_published_rows();
+		$candidates = array();
+
+		foreach ( $cached['posts'] as $post ) {
+			$settings = isset( $cached['settings'][ $post->ID ] )
+				? $cached['settings'][ $post->ID ]
+				: blocklane_pro_popups_settings( $post->ID );
+			if ( blocklane_pro_popups_ambient_shows( $settings, $preview_id === $post->ID, $is_splash ) ) {
+				$candidates[ $post->ID ] = $post;
+			}
+		}
+
+		foreach ( blocklane_pro_popups_bound_ids() as $bound_id ) {
+			if ( isset( $candidates[ $bound_id ] ) ) {
+				continue;
+			}
+			$post = get_post( $bound_id );
+			if ( $post && BLOCKLANE_PRO_POPUPS_CPT === $post->post_type && 'publish' === $post->post_status ) {
+				$candidates[ $bound_id ] = $post;
+			}
+		}
+
+		if ( $preview_id && ! isset( $candidates[ $preview_id ] ) ) {
+			$post = get_post( $preview_id );
+			if ( $post ) {
+				$candidates[ $preview_id ] = $post;
+			}
+		}
+
+		return array_values( $candidates );
+	}
+
+	/**
+	 * Walk parsed blocks for the modules their render will queue, following
+	 * references the way core's renderers do, each at most once ($seen),
+	 * within the request's resolution budget, and noting every popup a block
+	 * opens (the render pass's own predicate,
+	 * blocklane_pro_popups_source_opener_ids(), plus the Image/Cover opener
+	 * attribute). Nothing is rendered and nothing from a referenced post is
+	 * printed.
+	 *
+	 * @param array<mixed>        $blocks  Parsed blocks.
+	 * @param array<string, bool> $ids     Predicted module ids (by reference), as keys.
+	 * @param array<string, bool> $seen    Resolved references (by reference).
+	 * @param int                 $budget  Resolutions left (by reference).
+	 * @param array<int, bool>    $openers Popup ids the blocks open (by reference), as keys.
+	 * @return void
+	 */
+	function blocklane_pro_popups_collect_modules( array $blocks, array &$ids, array &$seen, int &$budget, array &$openers ): void {
+		foreach ( $blocks as $block ) {
+			if ( ! is_array( $block ) ) {
+				continue;
+			}
+			// Before the name gate: core fires render_block for a Classic
+			// (freeform) block too (class-wp-block.php:717), so the render
+			// pass binds the openers in its markup.
+			foreach ( blocklane_pro_popups_block_opened_ids( $block ) as $opened ) {
+				$openers[ $opened ] = true;
+			}
+			if ( ! is_string( $block['blockName'] ?? null ) || '' === $block['blockName'] ) {
+				continue;
+			}
+			foreach ( blocklane_pro_popups_block_modules( $block ) as $id ) {
+				$ids[ $id ] = true;
+			}
+			if ( is_array( $block['innerBlocks'] ?? null ) && array() !== $block['innerBlocks'] ) {
+				blocklane_pro_popups_collect_modules( $block['innerBlocks'], $ids, $seen, $budget, $openers );
+			}
+			$referenced = blocklane_pro_popups_referenced_blocks( $block, $seen, $budget );
+			if ( array() !== $referenced ) {
+				blocklane_pro_popups_collect_modules( $referenced, $ids, $seen, $budget, $openers );
+			}
+		}
+	}
+
+	/**
+	 * The popups one parsed block opens: its source openers, and an Image or
+	 * Cover's `blocklaneProPopupId` (the render pass binds that one directly,
+	 * when it renders the opener; predicted unconditionally, since a missed
+	 * chain costs an inert Form and an extra one a module request).
+	 *
+	 * @param array<string, mixed> $block A parsed block.
+	 * @return list<int>
+	 */
+	function blocklane_pro_popups_block_opened_ids( array $block ): array {
+		$ids = blocklane_pro_popups_source_opener_ids( $block );
+		if ( in_array( $block['blockName'] ?? '', array( 'core/image', 'core/cover' ), true ) ) {
+			$popup_id = absint( $block['attrs']['blocklaneProPopupId'] ?? 0 );
+			if ( $popup_id > 0 ) {
+				$ids[] = $popup_id;
+			}
+		}
+		return array_values( array_unique( $ids ) );
+	}
+
+	/**
+	 * The parsed blocks a reference renders, by core's own rules, or none:
+	 *
+	 * - core/block `ref`: a wp_block that is published with no password
+	 *   (wp-includes/blocks/block.php:26-46);
+	 * - core/pattern `slug`: a registered pattern's content
+	 *   (wp-includes/blocks/pattern.php:43-63);
+	 * - core/navigation `ref`, or the legacy `navigationMenuId`, which wins
+	 *   as in core: a published wp_navigation
+	 *   (wp-includes/blocks/navigation.php:322-331, 522-524).
+	 *
+	 * Each reference resolves once per request, and resolving spends the
+	 * budget; a spent budget follows nothing more.
+	 *
+	 * @param array<string, mixed> $block  A parsed block.
+	 * @param array<string, bool>  $seen   Resolved references (by reference).
+	 * @param int                  $budget Resolutions left (by reference).
+	 * @return array<mixed> Parsed blocks.
+	 */
+	function blocklane_pro_popups_referenced_blocks( array $block, array &$seen, int &$budget ): array {
+		$name  = (string) $block['blockName'];
+		$attrs = is_array( $block['attrs'] ?? null ) ? $block['attrs'] : array();
+
+		if ( 'core/navigation' === $name && array_key_exists( 'navigationMenuId', $attrs ) ) {
+			$attrs['ref'] = $attrs['navigationMenuId'];
+		}
+
+		if ( 'core/pattern' === $name ) {
+			$key = is_string( $attrs['slug'] ?? null ) ? 'pattern:' . $attrs['slug'] : '';
+		} elseif ( 'core/block' === $name || 'core/navigation' === $name ) {
+			$ref = is_numeric( $attrs['ref'] ?? null ) ? absint( $attrs['ref'] ) : 0;
+			$key = $ref > 0 ? 'post:' . $ref : '';
+		} else {
+			return array();
+		}
+		if ( '' === $key || isset( $seen[ $key ] ) || $budget <= 0 ) {
+			return array();
+		}
+		$seen[ $key ] = true;
+		--$budget;
+
+		if ( 'core/pattern' === $name ) {
+			$registry = WP_Block_Patterns_Registry::get_instance();
+			$slug     = (string) $attrs['slug'];
+			if ( ! $registry->is_registered( $slug ) ) {
+				return array();
+			}
+			$pattern = $registry->get_registered( $slug );
+			return parse_blocks( (string) ( $pattern['content'] ?? '' ) );
+		}
+
+		$post = get_post( $ref );
+		if ( ! $post ) {
+			return array();
+		}
+		$followed = 'core/block' === $name
+			? ( 'wp_block' === $post->post_type && 'publish' === $post->post_status && empty( $post->post_password ) )
+			: ( 'wp_navigation' === $post->post_type && 'publish' === $post->post_status );
+
+		return $followed ? parse_blocks( (string) $post->post_content ) : array();
+	}
+
+	/**
+	 * The script modules one block's render queues, predicted without
+	 * rendering it; the union of:
+	 *
+	 * 1. the block registry's view modules, any namespace (core queues them
+	 *    whenever the block renders, class-wp-block.php:684-688);
+	 * 2. core's render-time enqueues (blocklane_pro_popups_core_render_modules());
+	 * 3. core/image's lightbox, by core's own predicate with its theme.json
+	 *    fallback (wp-includes/blocks/image.php:97-110, 146-167), and a
+	 *    dynamic core/gallery's, on the image core builds for it;
+	 * 4. fit text on any block (wp-includes/block-supports/typography.php:307-308);
+	 * 5. what a unit names on blocklane_pro_popups_block_modules (non-empty
+	 *    strings only).
+	 *
+	 * @param array<string, mixed> $block A parsed block.
+	 * @return list<string> Module ids.
+	 */
+	function blocklane_pro_popups_block_modules( array $block ): array {
+		$name  = is_string( $block['blockName'] ?? null ) ? $block['blockName'] : '';
+		$attrs = is_array( $block['attrs'] ?? null ) ? $block['attrs'] : array();
+		$ids   = array();
+
+		$type = '' !== $name ? WP_Block_Type_Registry::get_instance()->get_registered( $name ) : null;
+		if ( $type instanceof WP_Block_Type ) {
+			foreach ( (array) $type->view_script_module_ids as $id ) {
+				$ids[] = $id;
+			}
+		}
+
+		$core = blocklane_pro_popups_core_render_modules();
+		if ( isset( $core[ $name ] ) ) {
+			$ids[] = $core[ $name ];
+		}
+
+		if ( 'core/image' === $name && 'none' === ( $attrs['linkDestination'] ?? 'none' ) && function_exists( 'block_core_image_get_lightbox_settings' ) ) {
+			$lightbox = block_core_image_get_lightbox_settings( $block );
+			if ( is_array( $lightbox ) && true === ( $lightbox['enabled'] ?? null ) ) {
+				$ids[] = '@wordpress/block-library/image/view';
+			}
+		}
+
+		// A dynamic Gallery renders its images at render time, each through a
+		// core/image whose link attributes core derives from the gallery's
+		// linkTo (block_core_gallery_dynamic_image_link_attributes(),
+		// wp-includes/blocks/gallery.php:179-206, 319, 353-355). Its switch,
+		// read without calling it (it builds attachment links, which warn
+		// with no attachment and no global post): `lightbox` turns the
+		// image's lightbox on, a link to media or the attachment never
+		// lightboxes, and anything else (`none`) leaves the image to the
+		// theme.json setting.
+		if ( 'core/gallery' === $name && ! empty( $attrs['dynamicContent'] ) && function_exists( 'block_core_image_get_lightbox_settings' ) ) {
+			$link_to = $attrs['linkTo'] ?? 'none';
+			if ( 'lightbox' === $link_to ) {
+				$ids[] = '@wordpress/block-library/image/view';
+			} elseif ( ! in_array( $link_to, array( 'media', 'file', 'attachment', 'post' ), true ) ) {
+				$lightbox = block_core_image_get_lightbox_settings(
+					array(
+						'blockName' => 'core/image',
+						'attrs'     => array(),
+					)
+				);
+				if ( is_array( $lightbox ) && true === ( $lightbox['enabled'] ?? null ) ) {
+					$ids[] = '@wordpress/block-library/image/view';
+				}
+			}
+		}
+
+		if ( ! empty( $attrs['fitText'] ) ) {
+			$ids[] = '@wordpress/block-editor/utils/fit-text-frontend';
+		}
+
+		/**
+		 * The script modules a block inside a popup will queue when it
+		 * renders, for a unit whose render_block filter queues one. The
+		 * popups predictor queues each registered id before the import map
+		 * prints, so the module's imports are mapped. Only non-empty strings
+		 * count.
+		 *
+		 * @param array<mixed>         $modules Module ids; none by default.
+		 * @param array<string, mixed> $block   The parsed block.
+		 */
+		$named = apply_filters( 'blocklane_pro_popups_block_modules', array(), $block );
+		foreach ( is_array( $named ) ? $named : array() as $id ) {
+			if ( is_string( $id ) && '' !== $id ) {
+				$ids[] = $id;
+			}
+		}
+
+		return array_values( array_unique( array_filter( $ids, 'is_string' ) ) );
+	}
+
+	/**
+	 * The modules core's own render callbacks queue, by block, beyond the
+	 * registry's view modules: pinned to WordPress 7.1.x, and held to core's
+	 * source by the popups battery's PU11, which fails on any literal
+	 * wp_enqueue_script_module() call in wp-includes/blocks/ or
+	 * wp-includes/block-supports/ that this table, the image predicate or
+	 * the fit-text row does not cover. Unconditional, so over-inclusive: an
+	 * unused module costs a request, a missed one an inert block. The query
+	 * view carries the router as a dynamic dependency, so core maps the
+	 * router with it.
+	 *
+	 * @return array<string, string> Block name => module id.
+	 */
+	function blocklane_pro_popups_core_render_modules(): array {
+		return array(
+			'core/navigation' => '@wordpress/block-library/navigation/view',
+			'core/search'     => '@wordpress/block-library/search/view',
+			'core/file'       => '@wordpress/block-library/file/view',
+			'core/playlist'   => '@wordpress/block-library/playlist/view',
+			'core/query'      => '@wordpress/block-library/query/view',
+		);
+	}
+
+	/**
+	 * The settings-panel bundle on the popup CPT's editor. Lives in the
+	 * runtime (not the plugin integration) so popups stay fully DESIGNABLE
+	 * from the bake alone — the same survival story as the Mega Menu block,
+	 * whose editor UI ships in its bake via block.json. build/index.js is
+	 * sits beside this file and resolves relative to it.
+	 */
+	function blocklane_pro_popups_editor_assets() {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen || BLOCKLANE_PRO_POPUPS_CPT !== $screen->post_type ) {
+			return;
+		}
+
+		$asset_path = __DIR__ . '/build/index.asset.php';
+		if ( ! file_exists( $asset_path ) ) {
+			return;
+		}
+		$asset = require $asset_path;
+
+		wp_enqueue_script(
+			'blocklane-pro-popups-editor',
+			plugin_dir_url( __FILE__ ) . 'build/index.js',
+			$asset['dependencies'],
+			$asset['version'],
+			true
+		);
+		// The option rows this edition offers (the third registry): the
+		// bundle reads them instead of carrying its own tables.
+		wp_add_inline_script(
+			'blocklane-pro-popups-editor',
+			'window.blocklaneProPopupsOptions = ' . wp_json_encode( blocklane_pro_popups_editor_options() ) . ';',
+			'before'
+		);
+
+		if ( file_exists( __DIR__ . '/build/index.css' ) ) {
+			wp_enqueue_style(
+				'blocklane-pro-popups-editor',
+				plugin_dir_url( __FILE__ ) . 'build/index.css',
+				array(),
+				$asset['version']
+			);
+		}
+	}
+	add_action( 'enqueue_block_editor_assets', 'blocklane_pro_popups_editor_assets' );
+
+	/**
+	 * Slot the Popups submenu right after SEO — or after Content Types when
+	 * the SEO screen is hidden — under the Blocklane Pro menu (WP appends CPT
+	 * submenus at the end). The bare 'blocklane-pro' slug is the same soft
+	 * dependency as show_in_menu above; without the plugin the CPT has its
+	 * own top-level menu and this no-ops.
+	 */
+	function blocklane_pro_popups_menu_order() {
+		global $submenu;
+		if ( empty( $submenu['blocklane-pro'] ) || ! is_array( $submenu['blocklane-pro'] ) ) {
+			return;
+		}
+
+		$items       = array_values( $submenu['blocklane-pro'] );
+		$popup_index = null;
+		foreach ( $items as $i => $item ) {
+			if ( false !== strpos( (string) ( $item[2] ?? '' ), 'post_type=' . BLOCKLANE_PRO_POPUPS_CPT ) ) {
+				$popup_index = $i;
+				break;
+			}
+		}
+		if ( null === $popup_index ) {
+			return;
+		}
+
+		$popup = $items[ $popup_index ];
+		unset( $items[ $popup_index ] );
+		$items = array_values( $items );
+
+		// Exact slug matches — a substring test would also capture any
+		// future screen whose slug merely starts with 'seo'.
+		$target = count( $items );
+		foreach ( array( 'blocklane-pro&screen=seo', 'blocklane-pro&screen=content-types' ) as $anchor ) {
+			foreach ( $items as $i => $item ) {
+				if ( ( $item[2] ?? '' ) === $anchor ) {
+					$target = $i + 1;
+					break 2;
+				}
+			}
+		}
+		array_splice( $items, $target, 0, array( $popup ) );
+		$submenu['blocklane-pro'] = $items;
+	}
+	add_action( 'admin_menu', 'blocklane_pro_popups_menu_order', 99 );
+}

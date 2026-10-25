@@ -1,0 +1,118 @@
+/*
+ * One Settings row (../../components/FeatureRow.js; spec
+ * 2026-10-12-c-settings.md §3.3; design spec Amendments C2, F4/4b, G;
+ * SD18 for the inert Pro switch).
+ *
+ * Three columns: the 32×20 switch cell, the text, and the actions; 12
+ * between the switch and the title (gap-md). The actions are centered in the
+ * full row height whatever the row holds (4b). Options sit under the
+ * description, indented to the title column, after padding-md, with no fill
+ * and no inset (4b). Tokens only.
+ */
+.blocklane-feature-row {
+	display: grid;
+	grid-template-columns: var(--wpds-dimension-size-md) minmax(0, 1fr) auto;
+	column-gap: var(--wpds-dimension-gap-md);
+	align-items: start;
+	padding: var(--wpds-dimension-padding-lg);
+}
+
+/* ---- The switch cell ----------------------------------------------------- */
+.blocklane-feature-row__switch {
+	display: flex;
+	align-items: center;
+	width: var(--wpds-dimension-size-md);
+	height: var(--wpds-dimension-size-xs);
+}
+
+/* The Pro row's switch: presentation only, in the off position (SD18). It is
+   drawn from the disabled-interactive tokens so it reads as "not here", and
+   it is aria-hidden in the markup: no role, no focus, no handler. */
+.blocklane-feature-row__switch-inert {
+	position: relative;
+	box-sizing: border-box;
+	display: block;
+	width: var(--wpds-dimension-size-md);
+	height: var(--wpds-dimension-size-xs);
+	border: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-interactive-neutral-disabled);
+	border-radius: var(--wpds-dimension-size-xs);
+	background: var(--wpds-color-background-interactive-neutral-strong-disabled);
+}
+
+.blocklane-feature-row__switch-inert::after {
+	position: absolute;
+	inset-block-start: 50%;
+	inset-inline-start: var(--wpds-dimension-size-5xs);
+	width: var(--wpds-dimension-size-3xs);
+	height: var(--wpds-dimension-size-3xs);
+	border-radius: 50%;
+	background: var(--wpds-color-background-thumb-neutral-weak-disabled);
+	content: "";
+	transform: translateY(-50%);
+}
+
+/* ---- The text column ----------------------------------------------------- */
+.blocklane-feature-row__text {
+	min-width: 0;
+}
+
+.blocklane-feature-row__summary {
+	cursor: pointer;
+}
+
+.blocklane-feature-row__heading {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
+}
+
+.blocklane-feature-row__title {
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-md);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-feature-row__description,
+.blocklane-feature-row__reason {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.blocklane-feature-row__reason {
+	font-size: var(--wpds-typography-font-size-sm);
+	line-height: var(--wpds-typography-line-height-xs);
+}
+
+.blocklane-feature-row__options {
+	padding-block-start: var(--wpds-dimension-padding-md);
+}
+
+/* ---- The actions: centered in the full row height ------------------------ */
+.blocklane-feature-row__actions {
+	display: flex;
+	align-items: center;
+	align-self: center;
+	gap: var(--wpds-dimension-gap-sm);
+}
+
+/* Selection is the info glyph's color, never a fill or a row tint
+   (Amendment G): weak while closed, weak-active while its card is open. */
+.blocklane-feature-row__info.components-button {
+	color: var(--wpds-color-foreground-interactive-neutral-weak);
+}
+
+.blocklane-feature-row__info.components-button.is-selected {
+	color: var(--wpds-color-foreground-interactive-neutral-weak-active);
+}
+
+/* The cue above is color alone; where colors are forced, it is an outline. */
+@media (forced-colors: active) {
+
+	.blocklane-feature-row__info.is-selected {
+		outline: var(--wpds-border-width-focus) solid currentcolor;
+	}
+}

@@ -1,0 +1,27 @@
+{
+	"groups": [
+		{
+			"blocks": [ "core/navigation" ],
+			"attributes": {
+				"blocklaneToggleLabel": { "type": "string", "default": "" },
+				"blocklaneToggleIcon": {
+					"type": "string",
+					"enum": [
+						"",
+						"menu",
+						"layout",
+						"category",
+						"grid",
+						"list"
+					],
+					"default": ""
+				},
+				"blocklaneToggleStyle": {
+					"type": "string",
+					"enum": [ "", "button" ],
+					"default": ""
+				}
+			}
+		}
+	]
+}

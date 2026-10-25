@@ -1,0 +1,465 @@
+{
+	"_comment": "THE normalizer vectors (spec 2026-10-17-pattern-catalog-browse \u00a73.4, failure rows N1-N16). Two readers, both required to pass: bin/pattern-taxonomy-battery.php (Pattern_Taxonomy::normalize(), every field) and src/normalize.test.js (phrase(), the browser twin). Every expected value is written from the rules, never captured from either twin. A twin that disagrees with one vector fails its own suite.",
+	"vectors": [
+		{
+			"case": "N1",
+			"input": "testimonial",
+			"phrase": "testimonial",
+			"term": "testimonials",
+			"kind": "entry"
+		},
+		{
+			"case": "N1",
+			"input": "Testimonials",
+			"phrase": "testimonial",
+			"term": "testimonials",
+			"kind": "entry"
+		},
+		{
+			"case": "N2",
+			"input": "news",
+			"phrase": "news",
+			"term": "posts",
+			"kind": "entry",
+			"why": "an exception: \"news\" is not the plural of \"new\""
+		},
+		{
+			"case": "N2",
+			"input": "new",
+			"phrase": "new",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N2",
+			"input": "canvas",
+			"phrase": "canvas",
+			"term": null,
+			"kind": null,
+			"why": "an exception, kept whole"
+		},
+		{
+			"case": "N2",
+			"input": "series",
+			"phrase": "series",
+			"term": null,
+			"kind": null,
+			"why": "an exception: never \"sery\""
+		},
+		{
+			"case": "N2",
+			"input": "species",
+			"phrase": "species",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N3",
+			"input": "heroes",
+			"phrase": "hero",
+			"term": "heroes",
+			"kind": "entry",
+			"why": "an irregular: the -s rule alone gives \"heroe\""
+		},
+		{
+			"case": "N3",
+			"input": "Hero",
+			"phrase": "hero",
+			"term": "heroes",
+			"kind": "entry"
+		},
+		{
+			"case": "N3",
+			"input": "banner",
+			"phrase": "banner",
+			"term": "heroes",
+			"kind": "entry"
+		},
+		{
+			"case": "N3",
+			"input": "Banners",
+			"phrase": "banner",
+			"term": "heroes",
+			"kind": "entry"
+		},
+		{
+			"case": "N4",
+			"input": "galleries",
+			"phrase": "gallery",
+			"term": "gallery",
+			"kind": "entry"
+		},
+		{
+			"case": "N4",
+			"input": "Gallery",
+			"phrase": "gallery",
+			"term": "gallery",
+			"kind": "entry"
+		},
+		{
+			"case": "N5",
+			"input": "FAQs",
+			"phrase": "faq",
+			"term": "faq",
+			"kind": "entry"
+		},
+		{
+			"case": "N5",
+			"input": "faq's",
+			"phrase": "faq",
+			"term": "faq",
+			"kind": "entry"
+		},
+		{
+			"case": "N5",
+			"input": "FAQ\u2019s",
+			"phrase": "faq",
+			"term": "faq",
+			"kind": "entry",
+			"why": "a typographic apostrophe is deleted like a plain one"
+		},
+		{
+			"case": "N5",
+			"input": "Frequently Asked Questions",
+			"phrase": "frequently asked question",
+			"term": "faq",
+			"kind": "entry"
+		},
+		{
+			"case": "N6",
+			"input": "calls to action",
+			"phrase": "call to action",
+			"term": "call-to-action",
+			"kind": "entry"
+		},
+		{
+			"case": "N6",
+			"input": "call-to-action",
+			"phrase": "call to action",
+			"term": "call-to-action",
+			"kind": "entry"
+		},
+		{
+			"case": "N6",
+			"input": "Call\u2014to\u2014action",
+			"phrase": "call to action",
+			"term": "call-to-action",
+			"kind": "entry",
+			"why": "a dash is a separator"
+		},
+		{
+			"case": "N6",
+			"input": "call\u00a0to\u00a0action",
+			"phrase": "call to action",
+			"term": "call-to-action",
+			"kind": "entry",
+			"why": "a no-break space is a space"
+		},
+		{
+			"case": "N6",
+			"input": "CTA",
+			"phrase": "cta",
+			"term": "call-to-action",
+			"kind": "entry"
+		},
+		{
+			"case": "N7",
+			"input": "staff",
+			"phrase": "staff",
+			"term": "team",
+			"kind": "entry"
+		},
+		{
+			"case": "N7",
+			"input": "people",
+			"phrase": "people",
+			"term": "team",
+			"kind": "entry"
+		},
+		{
+			"case": "N7",
+			"input": "members",
+			"phrase": "member",
+			"term": "team",
+			"kind": "entry"
+		},
+		{
+			"case": "N7",
+			"input": "team members",
+			"phrase": "team member",
+			"term": "team",
+			"kind": "entry"
+		},
+		{
+			"case": "N8",
+			"input": "stats",
+			"phrase": "stat",
+			"term": "Stats",
+			"kind": "descriptor"
+		},
+		{
+			"case": "N8",
+			"input": "numbers",
+			"phrase": "number",
+			"term": "Stats",
+			"kind": "descriptor"
+		},
+		{
+			"case": "N8",
+			"input": "metrics",
+			"phrase": "metric",
+			"term": "Stats",
+			"kind": "descriptor"
+		},
+		{
+			"case": "N8",
+			"input": "Counters",
+			"phrase": "counter",
+			"term": "Stats",
+			"kind": "descriptor"
+		},
+		{
+			"case": "N9",
+			"input": "slider",
+			"phrase": "slider",
+			"term": "carousel",
+			"kind": "feature"
+		},
+		{
+			"case": "N9",
+			"input": "Sliders",
+			"phrase": "slider",
+			"term": "carousel",
+			"kind": "feature"
+		},
+		{
+			"case": "N10",
+			"input": "Caf\u00e9",
+			"phrase": "cafe",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N10",
+			"input": "Cafe\u0301",
+			"phrase": "cafe",
+			"term": null,
+			"kind": null,
+			"why": "a decomposed accent folds the same as a precomposed one"
+		},
+		{
+			"case": "N11",
+			"input": "",
+			"phrase": "",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N11",
+			"input": "   ",
+			"phrase": "",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N11",
+			"input": "\t-_ ",
+			"phrase": "",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N12",
+			"input": "services",
+			"phrase": "service",
+			"term": "services",
+			"kind": "entry"
+		},
+		{
+			"case": "N12",
+			"input": "Services",
+			"phrase": "service",
+			"term": "services",
+			"kind": "entry"
+		},
+		{
+			"case": "N13",
+			"input": "process",
+			"phrase": "process",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N13",
+			"input": "status",
+			"phrase": "status",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N13",
+			"input": "campus",
+			"phrase": "campus",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N13",
+			"input": "analysis",
+			"phrase": "analysis",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N14",
+			"input": "bus",
+			"phrase": "bus",
+			"term": null,
+			"kind": null,
+			"why": "-us is kept"
+		},
+		{
+			"case": "N14",
+			"input": "buses",
+			"phrase": "bus",
+			"term": null,
+			"kind": null,
+			"why": "-ses drops -es"
+		},
+		{
+			"case": "N14",
+			"input": "gas",
+			"phrase": "gas",
+			"term": null,
+			"kind": null,
+			"why": "\"ga\" is shorter than min_stem"
+		},
+		{
+			"case": "N15",
+			"input": "<b>Pricing</b> aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			"phrase": "<b>pricing</b> aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			"term": null,
+			"kind": null,
+			"why": "capped at 200 code points, compared, never parsed"
+		},
+		{
+			"case": "N15",
+			"input": "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+			"phrase": "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+			"term": null,
+			"kind": null,
+			"why": "a run of one letter costs one pass: no backtracking"
+		},
+		{
+			"case": "N16",
+			"input": "Men\u00fc",
+			"phrase": "menu",
+			"term": "navigation",
+			"kind": "entry"
+		},
+		{
+			"case": "N16",
+			"input": "S\u00f8g",
+			"phrase": "sog",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N16",
+			"input": "stra\u00dfe",
+			"phrase": "strasse",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N16",
+			"input": "\u0110or\u0111e",
+			"phrase": "dorde",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N16",
+			"input": "l\u00b7l",
+			"phrase": "ll",
+			"term": null,
+			"kind": null,
+			"why": "Catalan ela geminada: the middle dot is deleted"
+		},
+		{
+			"case": "N16",
+			"input": "col\u00b7lecci\u00f3",
+			"phrase": "colleccio",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N16",
+			"input": "\u00c5r",
+			"phrase": "ar",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N16",
+			"input": "\u0130stanbul",
+			"phrase": "istanbul",
+			"term": null,
+			"kind": null,
+			"why": "lowercasing gives i + U+0307 in both twins; the mark is stripped"
+		},
+		{
+			"case": "N16",
+			"input": "\u039f\u0394\u039f\u03a3",
+			"phrase": "\u03bf\u03b4\u03bf\u03c3",
+			"term": null,
+			"kind": null,
+			"why": "a final sigma folds to sigma, however the lowercasing chose"
+		},
+		{
+			"case": "N16",
+			"input": "\u1e9e",
+			"phrase": "ss",
+			"term": null,
+			"kind": null,
+			"why": "capital sharp s lowercases to sharp s, which folds to ss"
+		},
+		{
+			"case": "N12",
+			"input": "boxes",
+			"phrase": "box",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N12",
+			"input": "churches",
+			"phrase": "church",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N12",
+			"input": "classes",
+			"phrase": "class",
+			"term": null,
+			"kind": null
+		},
+		{
+			"case": "N12",
+			"input": "movies",
+			"phrase": "movie",
+			"term": null,
+			"kind": null,
+			"why": "an irregular"
+		},
+		{
+			"case": "N7",
+			"input": "Menus",
+			"phrase": "menu",
+			"term": "navigation",
+			"kind": "entry",
+			"why": "an irregular: the -us rule alone keeps \"menus\" whole"
+		}
+	]
+}

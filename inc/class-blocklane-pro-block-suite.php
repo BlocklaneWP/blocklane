@@ -1,0 +1,286 @@
+<?php
+/**
+ * Block_Suite — one owner for manifest-driven block registration.
+ *
+ * Every block feature used to carry its own registration loop, its own
+ * "missing manifest" bookkeeping (a $GLOBALS stash per feature) and its own
+ * admin notice — or, in the menu designer's case, a silent skip. build/ is
+ * gitignored, so every checkout starts stale, and a block that never
+ * registers fails invisibly: WordPress prints whatever the block's save()
+ * left behind — nothing for these dynamic suites, the plain fallback link
+ * for the mega menu — and no one is told. This file is the one place that
+ * alarm lives, keyed per feature (never one shared slot — a shared slot lets
+ * feature A mark feature B done).
+ *
+ * Deliberately NOT owned here: safe-mode and Advanced-toggle gating. Those
+ * stay as top-of-file early returns in each runtime, because the gate must
+ * run before any hook is registered (defect class: an emitter hooked earlier
+ * than the gate that suppresses it). Each runtime calls register() from its
+ * OWN init callback, so per-site hook timing is unchanged by construction.
+ *
+ * Loading: the classmap autoloader, registered at plugin-file scope before
+ * any runtime loads, resolves this class on first reference — a runtime
+ * cannot be tripped by load order. That is the live half of the old "core
+ * WordPress only" rule; the other half ("no plugin classes, so the file can
+ * be baked into a generated must-use copy") died with the bake.
+ *
+ * Institutional memory carried from inc/forms/runtime.php (v3): until v3 a
+ * stale build fataled on a missing helper, which at least announced itself;
+ * moving the helpers into the tracked runtime removed that alarm without
+ * replacing it. For forms specifically a missing block also means the server
+ * schema no longer matches the form — submissions lose the fields that block
+ * carried. One template can only be right for the adopter it was written
+ * from (#507, #515), so each adopter supplies its feature's name and the
+ * sentence that says what a stale build costs it; the template frames them.
+ *
+ * The container convention (spec 2026-10-06, "shell and slot"): a block whose
+ * built block.json says `"render": "file:./shell.php"` is a CONTAINER. Its
+ * template never sees the rendered inner blocks — it prints its own markup
+ * with the slot comment (Block_Suite::SLOT) where they belong, and
+ * render_shell() splices them in, exactly as core's container blocks return
+ * their inner blocks from a render callback. So no container template echoes
+ * a value it did not escape itself, and none can: $content is not in scope.
+ *
+ * @package blocklane_pro
+ */
+
+namespace blocklane_pro;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+final class Block_Suite {
+
+	/**
+	 * Where a container's shell wants its rendered inner blocks. Printed by
+	 * the shell as literal inline HTML, exactly once; render_shell() fixes
+	 * its offset BEFORE inserting anything, so content that spells it cannot
+	 * move it.
+	 */
+	public const SLOT = '<!--blocklane:inner-blocks-->';
+
+	/**
+	 * Missing block names per feature, plus the command that rebuilds them,
+	 * the feature's human name and its consequence sentence for the notice.
+	 * Keyed per feature — never one shared slot.
+	 *
+	 * @var array<string, array{blocks: string[], rebuild: string, label: string, consequence: string}>
+	 */
+	private static array $missing = array();
+
+	/** Whether the admin_notices callback is hooked. */
+	private static bool $hooked = false;
+
+	/**
+	 * Register every block of a suite from its built block.json under
+	 * $build_dir/<slug>/block.json. Registry-idempotent: an already-registered
+	 * block is skipped, so init re-runs and a second registration call are both no-ops.
+	 *
+	 * A missing manifest is NEVER a silent skip: it is collected under
+	 * $feature, returned, and announced once by skew_notice() to
+	 * administrators. Call from the feature's own init callback — this method
+	 * adds no init hook of its own, so the caller keeps its exact hook timing.
+	 *
+	 * @param string               $feature   Feature key (e.g. 'carousel'); owns its missing list.
+	 * @param string               $block_ns  Block namespace without the slash (e.g. 'blocklane').
+	 * @param string               $build_dir Absolute path to the feature's build/ directory.
+	 * @param string[]             $blocks    Block slugs in registration order (dir names under build/).
+	 * @param string               $rebuild     The command that rebuilds the assets (shown in the notice).
+	 * @param string               $label       The feature's human name for the notice (translated by the caller).
+	 * @param string               $consequence One translated sentence: what a stale build costs THIS feature.
+	 * @param array<string, mixed> $args        Extra register_block_type() args applied to every block.
+	 * @return string[] Block slugs whose manifest was missing (empty when all registered).
+	 */
+	public static function register( string $feature, string $block_ns, string $build_dir, array $blocks, string $rebuild, string $label, string $consequence, array $args = array() ): array {
+		$registry = \WP_Block_Type_Registry::get_instance();
+		$missing  = array();
+
+		foreach ( $blocks as $slug ) {
+			if ( $registry->is_registered( $block_ns . '/' . $slug ) ) {
+				continue;
+			}
+			$manifest = rtrim( $build_dir, '/' ) . '/' . $slug . '/block.json';
+			if ( file_exists( $manifest ) ) {
+				$type = register_block_type( $manifest, self::shell_args( $manifest, $args ) );
+				if ( $type instanceof \WP_Block_Type ) {
+					self::fix_rtl_suffix( $type );
+					self::version_styles( $type, dirname( $manifest ) );
+				}
+			} else {
+				$missing[] = $slug;
+			}
+		}
+
+		if ( $missing ) {
+			self::$missing[ $feature ] = array(
+				'blocks'      => $missing,
+				'rebuild'     => $rebuild,
+				'label'       => $label,
+				'consequence' => $consequence,
+			);
+			if ( is_admin() && ! self::$hooked ) {
+				self::$hooked = true;
+				add_action( 'admin_notices', array( __CLASS__, 'skew_notice' ) );
+			}
+		}
+
+		return $missing;
+	}
+
+	/**
+	 * A container's registration args: when the built block.json renders
+	 * `file:./shell.php`, a render_callback that runs the shell through
+	 * render_shell(). register_block_type() merges these args after the
+	 * metadata, so the callback replaces core's file renderer; the `render`
+	 * key stays, so dist-check still fails a zip that lacks the shell.
+	 *
+	 * @param string               $manifest Absolute path to the built block.json.
+	 * @param array<string, mixed> $args     The suite's shared args.
+	 * @return array<string, mixed>
+	 */
+	private static function shell_args( string $manifest, array $args ): array {
+		$meta = wp_json_file_decode( $manifest, array( 'associative' => true ) );
+		if ( ! is_array( $meta ) || 'file:./shell.php' !== ( $meta['render'] ?? null ) ) {
+			return $args;
+		}
+		$shell                 = dirname( $manifest ) . '/shell.php';
+		$args['render_callback'] = static fn( array $attributes, string $content, \WP_Block $block ): string => self::render_shell( $shell, $attributes, $content, $block );
+		return $args;
+	}
+
+	/**
+	 * Render a container: its shell, with the rendered inner blocks spliced
+	 * in at the slot.
+	 *
+	 * The shell runs in a closure that receives only $attributes and $block
+	 * — $content is not defined there, so a shell that tries to echo it is an
+	 * undefined-variable warning and a corpus mismatch, never a silent
+	 * unescaped print. The slot is counted in the shell's OWN output, before
+	 * anything is inserted: 0 → the shell is the whole render (a closed form
+	 * prints its message and no fields); 1 → the inner blocks replace it;
+	 * more → a logged failure, the first is used and the rest are removed.
+	 *
+	 * Provenance (security read F8): $content is the block renderer's output
+	 * for this block's inner blocks, parsed from stored content that passed
+	 * kses when its author saved it; each inner block's dynamic output is that
+	 * block's own responsibility, as it is inside core's container blocks.
+	 *
+	 * @param string               $template   Absolute path to the shell.php.
+	 * @param array<string, mixed> $attributes Block attributes.
+	 * @param string               $content    Rendered inner blocks.
+	 * @param \WP_Block            $block      Block instance.
+	 */
+	public static function render_shell( string $template, array $attributes, string $content, \WP_Block $block ): string {
+		$render = static function ( array $attributes, \WP_Block $block ) use ( $template ): void {
+			require $template;
+		};
+		ob_start();
+		$render( $attributes, $block );
+		$shell = (string) ob_get_clean();
+
+		$count = substr_count( $shell, self::SLOT );
+		if ( 0 === $count ) {
+			return $shell;
+		}
+		$at = (int) strpos( $shell, self::SLOT );
+		if ( $count > 1 ) {
+			blocklane_pro_log_failure( "Blocklane: the {$block->name} shell printed its inner-blocks slot {$count} times; the first holds the inner blocks, the rest were removed ({$template})." );
+			$shell = substr( $shell, 0, $at + strlen( self::SLOT ) ) . str_replace( self::SLOT, '', substr( $shell, $at + strlen( self::SLOT ) ) );
+		}
+		return substr_replace( $shell, $content, $at, strlen( self::SLOT ) );
+	}
+
+	/**
+	 * Point an RTL site's link at the block's -rtl.css. For a block that is
+	 * not core's, core finds the RTL file by replacing ".css" with
+	 * "-rtl.css" but stores the minified suffix (".min" without
+	 * SCRIPT_DEBUG) for the printer, which then looks for ".min.css" in an
+	 * unminified URL, finds none, and links the LTR file (wp-includes/
+	 * blocks.php register_block_style_handle(), class-wp-styles.php
+	 * do_item()). Inlined styles read the right file (core's 'path'); a
+	 * stylesheet past the inline budget did not. The suffix is cleared when
+	 * the URL does not carry it.
+	 *
+	 * @param \WP_Block_Type $type A registered block type.
+	 */
+	private static function fix_rtl_suffix( \WP_Block_Type $type ): void {
+		$styles = wp_styles();
+		foreach ( array_merge( (array) $type->style_handles, (array) $type->view_style_handles ) as $handle ) {
+			if ( ! is_string( $handle ) || 'replace' !== $styles->get_data( $handle, 'rtl' ) ) {
+				continue;
+			}
+			$suffix = $styles->get_data( $handle, 'suffix' );
+			$src    = (string) ( $styles->registered[ $handle ]->src ?? '' );
+			if ( is_string( $suffix ) && '' !== $suffix && ! str_contains( $src, $suffix . '.css' ) ) {
+				$styles->add_data( $handle, 'suffix', '' );
+			}
+		}
+	}
+
+	/**
+	 * Version a suite block's own stylesheets by their files' modification
+	 * time. Core versions a block.json style with the manifest's `version`
+	 * (or WordPress's), which no build changes, so a browser keeps the old
+	 * CSS after an update until its cache expires (Garrett, 2026-10-15: the
+	 * new styles did not show). A handle whose file is not in the block's
+	 * own build directory is left alone.
+	 *
+	 * @param \WP_Block_Type $type The registered block.
+	 * @param string         $dir  The block's build directory (its block.json's).
+	 */
+	private static function version_styles( \WP_Block_Type $type, string $dir ): void {
+		$styles = wp_styles();
+		$handles = array_merge( (array) $type->style_handles, (array) $type->view_style_handles, (array) $type->editor_style_handles );
+		foreach ( $handles as $handle ) {
+			if ( ! is_string( $handle ) || ! isset( $styles->registered[ $handle ] ) ) {
+				continue;
+			}
+			$path = (string) wp_parse_url( (string) $styles->registered[ $handle ]->src, PHP_URL_PATH );
+			$file = rtrim( $dir, '/' ) . '/' . basename( $path );
+			if ( '' === $path || ! str_ends_with( $path, '/' . basename( $dir ) . '/' . basename( $path ) ) || ! is_file( $file ) ) {
+				continue;
+			}
+			$styles->registered[ $handle ]->ver = (string) filemtime( $file );
+		}
+	}
+
+	/**
+	 * The missing list for a feature — the hook for pattern suppression
+	 * ("a pattern inserting unregistered blocks is unsupported-block noise").
+	 *
+	 * @param string $feature Feature key.
+	 * @return string[]
+	 */
+	public static function missing( string $feature ): array {
+		return isset( self::$missing[ $feature ] ) ? self::$missing[ $feature ]['blocks'] : array();
+	}
+
+	/**
+	 * admin_notices callback: one notice-error per stale feature, for
+	 * administrators only.
+	 *
+	 * @return void
+	 */
+	public static function skew_notice(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		foreach ( self::$missing as $feature => $entry ) {
+			printf(
+				'<div class="notice notice-error"><p>%s</p><p><code>%s</code></p></div>',
+				esc_html(
+					sprintf(
+						/* translators: 1: plugin name, 2: feature name, 3: comma-separated list of block names, 4: the feature's consequence sentence. */
+						__( '%1$s — %2$s: the built assets are out of date, so these blocks did not register: %3$s. %4$s', 'blocklane' ),
+						Branding::plugin_name(),
+						$entry['label'],
+						implode( ', ', array_map( 'sanitize_text_field', $entry['blocks'] ) ),
+						$entry['consequence']
+					)
+				),
+				esc_html( $entry['rebuild'] )
+			);
+		}
+	}
+}

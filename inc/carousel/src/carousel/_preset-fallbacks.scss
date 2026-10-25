@@ -1,0 +1,139 @@
+// Preset fallbacks for the bundled carousel patterns (#270).
+
+// The ten patterns under inc/carousel/patterns/ are authored against the
+// companion theme's presets — seven gradients, four colors, six font sizes,
+// five spacing steps, one border color — and the theme also disables core's
+// own gradients, palette, spacing scale and font sizes, so nothing core ships
+// can stand in. On any other theme every `has-…` class resolved a `var()`
+// that no rule defined and the panel painted nothing, with no signal (the
+// icons-cache shape). Pro is theme-agnostic by charter, so the patterns carry
+// their own values, two ways, and anything the theme or the site owner
+// defines WINS by construction:
+
+//  1. Class-based presets (this file) use a var() FALLBACK at the point of
+//     use, inside the `blocklane-carousel-presets` cascade LAYER. When the
+//     active theme defines the slug, core emits
+//     `.has-<slug>-… { …: var(--wp--preset--…) !important }` and wins
+//     outright; when it does not, this is the only rule and the inner
+//     fallback resolves. Layered, these lose to EVERY unlayered rule
+//     regardless of specificity — a theme stylesheet's, Additional CSS's
+//     `.has-muted-color { … }` — so an owner's hand-written override works
+//     inside a carousel exactly as it does outside one. A theme with SOME of
+//     the slugs contributes those and these fill the rest — the pattern
+//     adapts to the theme, which is the intent. No global definition, so
+//     nothing leaks into pickers or other blocks.
+//  2. Spacing and the one border color are consumed by CSS that CORE emits
+//     inline from the stored `var:preset|…` token (`margin-top:var(…)`,
+//     `border-color:var(…)`, layout `gap:`), which cannot carry a fallback —
+//     so those are DEFINED, as a layered `:root` block, by
+//     blocklane_pro_carousel_preset_root_css() in inc/carousel/runtime.php
+//     on `enqueue_block_assets`: every page and the editor canvas, never this
+//     on-demand stylesheet (a block's style handle loads only where the block
+//     renders, so a definition here was page-conditional and the editor
+//     disagreed with the page). Core's own unlayered `:root{…}` beats it
+//     wherever the theme, or core's default scale, defines the slug.
+
+// Every literal mirrors themes/blocklane/theme.json (the fluid font sizes are
+// the clamp() strings CORE computes for it — never hand-derived).
+// bin/preset-fallbacks-check.php (CI, no WordPress runtime) asserts every
+// color, gradient, nested palette fallback and spacing step against
+// theme.json on every PR; bin/carousel-battery.php C6 adds coverage (every
+// slug the patterns use has a rule) and the core-computed font sizes on the
+// dev site. A drifted literal fails naming the slug.
+// MIRROR CONTRACT: this file, runtime.php's root block, theme.json, and the
+// ten pattern files.
+
+@layer blocklane-carousel-presets {
+
+	.wp-block-blocklane-carousel {
+		// Gradients (the nested color fallbacks are the theme's palette).
+		&.has-brand-sweep-gradient-background,
+		.has-brand-sweep-gradient-background {
+			background: var(--wp--preset--gradient--brand-sweep, linear-gradient(135deg, var(--wp--preset--color--primary, #1a58e4) 0%, var(--wp--preset--color--accent, #006646) 100%));
+		}
+
+		&.has-primary-sweep-gradient-background,
+		.has-primary-sweep-gradient-background {
+			// theme.json's own literal; the battery compares it byte for byte.
+			// stylelint-disable-next-line color-named
+			background: var(--wp--preset--gradient--primary-sweep, linear-gradient(45deg, color-mix(in oklab, var(--wp--preset--color--primary, #1a58e4), black 10%) 0%, var(--wp--preset--color--primary, #1a58e4) 100%));
+		}
+
+		&.has-deep-brand-gradient-background,
+		.has-deep-brand-gradient-background {
+			background: var(--wp--preset--gradient--deep-brand, linear-gradient(135deg, var(--wp--preset--color--contrast, #051438) 0%, color-mix(in srgb, var(--wp--preset--color--primary, #1a58e4) 55%, var(--wp--preset--color--contrast, #051438)) 100%));
+		}
+
+		&.has-soft-wash-gradient-background,
+		.has-soft-wash-gradient-background {
+			background: var(--wp--preset--gradient--soft-wash, linear-gradient(180deg, var(--wp--preset--color--subtle, #f2f5fa) 0%, var(--wp--preset--color--base, #fff) 100%));
+		}
+
+		&.has-subtle-rise-gradient-background,
+		.has-subtle-rise-gradient-background {
+			background: var(--wp--preset--gradient--subtle-rise, linear-gradient(0deg, var(--wp--preset--color--subtle, #f2f5fa) 0%, var(--wp--preset--color--base, #fff) 55%));
+		}
+
+		&.has-primary-glow-gradient-background,
+		.has-primary-glow-gradient-background {
+			background: var(--wp--preset--gradient--primary-glow, radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--wp--preset--color--primary, #1a58e4) 14%, var(--wp--preset--color--base, #fff)) 0%, var(--wp--preset--color--base, #fff) 70%));
+		}
+
+		&.has-accent-glow-gradient-background,
+		.has-accent-glow-gradient-background {
+			background: var(--wp--preset--gradient--accent-glow, radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--wp--preset--color--accent, #006646) 16%, var(--wp--preset--color--base, #fff)) 0%, var(--wp--preset--color--base, #fff) 70%));
+		}
+
+		// Colors.
+		&.has-primary-color,
+		.has-primary-color {
+			color: var(--wp--preset--color--primary, #1a58e4);
+		}
+
+		&.has-muted-color,
+		.has-muted-color {
+			color: var(--wp--preset--color--muted, #4a5565);
+		}
+
+		&.has-base-color,
+		.has-base-color {
+			color: var(--wp--preset--color--base, #fff);
+		}
+
+		&.has-subtle-background-color,
+		.has-subtle-background-color {
+			background-color: var(--wp--preset--color--subtle, #f2f5fa);
+		}
+
+		// Font sizes (core's computed fluid values for theme.json's min/max).
+		&.has-small-font-size,
+		.has-small-font-size {
+			font-size: var(--wp--preset--font-size--small, 0.875rem);
+		}
+
+		&.has-heading-small-font-size,
+		.has-heading-small-font-size {
+			font-size: var(--wp--preset--font-size--heading-small, clamp(1.375rem, 1.375rem + ((1vw - 0.2rem) * 0.208), 1.5rem));
+		}
+
+		&.has-heading-medium-font-size,
+		.has-heading-medium-font-size {
+			font-size: var(--wp--preset--font-size--heading-medium, clamp(1.625rem, 1.625rem + ((1vw - 0.2rem) * 0.417), 1.875rem));
+		}
+
+		&.has-heading-large-font-size,
+		.has-heading-large-font-size {
+			font-size: var(--wp--preset--font-size--heading-large, clamp(1.875rem, 1.875rem + ((1vw - 0.2rem) * 0.625), 2.25rem));
+		}
+
+		&.has-heading-x-large-font-size,
+		.has-heading-x-large-font-size {
+			font-size: var(--wp--preset--font-size--heading-x-large, clamp(2.25rem, 2.25rem + ((1vw - 0.2rem) * 1.25), 3rem));
+		}
+
+		&.has-heading-xx-large-font-size,
+		.has-heading-xx-large-font-size {
+			font-size: var(--wp--preset--font-size--heading-xx-large, clamp(2.5rem, 2.5rem + ((1vw - 0.2rem) * 2.083), 3.75rem));
+		}
+	}
+}

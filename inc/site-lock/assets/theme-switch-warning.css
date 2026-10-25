@@ -1,0 +1,58 @@
+/**
+ * The classic-theme activation warning on Appearance → Themes.
+ *
+ * Sized and colored to sit natively among core's admin dialogs rather than
+ * to stand out — the words carry the warning, not the chrome.
+ */
+
+.blocklane-pro-theme-switch-warning {
+	max-width: 32rem;
+	padding: 24px;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	background: #fff;
+	color: #1d2327;
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+}
+
+.blocklane-pro-theme-switch-warning::backdrop {
+	background: rgba(0, 0, 0, 0.5);
+}
+
+.blocklane-pro-tsw__title {
+	margin: 0 0 12px;
+	font-size: 1.15rem;
+	line-height: 1.4;
+}
+
+.blocklane-pro-tsw__body,
+.blocklane-pro-tsw__reassurance {
+	margin: 0 0 12px;
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+.blocklane-pro-tsw__reassurance {
+	color: #50575e;
+}
+
+.blocklane-pro-tsw__actions {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+	margin-top: 20px;
+}
+
+/*
+ * The destructive choice stays available but never looks like the default.
+ * Scoped past .wp-core-ui .button, which core sets at two-class specificity.
+ */
+.wp-core-ui .blocklane-pro-theme-switch-warning .blocklane-pro-tsw__confirm {
+	color: #b32d2e;
+}
+
+.wp-core-ui .blocklane-pro-theme-switch-warning .blocklane-pro-tsw__confirm:hover,
+.wp-core-ui .blocklane-pro-theme-switch-warning .blocklane-pro-tsw__confirm:focus {
+	color: #8a2424;
+	border-color: #b32d2e;
+}
